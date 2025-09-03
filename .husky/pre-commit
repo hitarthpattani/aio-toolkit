@@ -1,0 +1,17 @@
+# Husky pre-commit hook
+
+echo "🔍 Running pre-commit checks..."
+
+# Run lint-staged to automatically fix lint and format issues on staged files
+echo "🛠️ Auto-fixing linting and formatting issues..."
+npx lint-staged
+
+# Run type checking
+echo "🔧 Running type check..."
+npm run type-check
+
+# Run tests without coverage report
+echo "🧪 Validating tests..."
+npm run test -- --passWithNoTests
+
+echo "✅ Pre-commit checks passed!"

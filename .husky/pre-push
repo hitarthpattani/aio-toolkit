@@ -1,0 +1,25 @@
+# Husky pre-push hook
+
+echo "🚀 Running pre-push validation..."
+
+# Validate formatting (check only, don't fix)
+echo "💅 Validating code formatting..."
+npm run format:check
+
+# Validate linting (check only, don't fix)
+echo "🔍 Validating linting..."
+npm run lint
+
+# Run type checking
+echo "🔧 Running type check..."
+npm run type-check
+
+# Run full test suite with coverage report
+echo "🧪 Running tests with coverage report..."
+npm run test:ci
+
+# Build the project
+echo "🏗️ Building project..."
+npm run build
+
+echo "✅ Pre-push validation passed! Ready to push 🎉"
