@@ -1,0 +1,7 @@
+dist/**/*
+*.js
+*.mjs
+src/global-types/**/*
+coverage/**/*
+jest.config.js
+tsconfig*.json

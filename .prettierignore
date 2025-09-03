@@ -1,0 +1,7 @@
+dist/
+node_modules/
+*.md
+package.json
+tsconfig*.json
+coverage/
+jest.config.js

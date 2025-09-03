@@ -1,0 +1,77 @@
+{
+  "name": "@adobe-commerce/aio-toolkit",
+  "version": "1.0.0",
+  "description": "Backend toolkit for Adobe App Builder applications - standardized tools and utilities",
+  "main": "./dist/index.js",
+  "module": "./dist/esm/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "build:watch": "tsup --watch",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src test --ext .ts",
+    "lint:fix": "eslint src test --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --watchAll=false",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "adobe",
+    "app-builder",
+    "toolkit",
+    "backend",
+    "utilities",
+    "typescript",
+    "aio"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@adobe/aio-sdk": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.55.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "jest": "^30.1.3",
+    "prettier": "^3.1.0",
+    "ts-jest": "^29.4.1",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
+  },
+  "peerDependencies": {
+    "typescript": ">=4.9.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adobe-commerce/aio-toolkit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/adobe-commerce/aio-toolkit/issues"
+  },
+  "homepage": "https://github.com/adobe-commerce/aio-toolkit#readme"
+}
