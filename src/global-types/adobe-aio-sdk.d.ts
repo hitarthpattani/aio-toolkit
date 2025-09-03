@@ -1,5 +1,4 @@
 /**
- * Type declarations for @adobe/aio-sdk
  * Copyright © Adobe, Inc. All rights reserved.
  */
 
