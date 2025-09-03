@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "description": "Backend toolkit for Adobe App Builder applications - standardized tools and utilities",
   "main": "./dist/index.js",
-  "module": "./dist/esm/index.mjs",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/esm/index.mjs",
+      "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     }
   },
