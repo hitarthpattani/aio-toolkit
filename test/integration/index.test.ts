@@ -1,0 +1,33 @@
+/**
+ * Test for integration entry point
+ * Copyright © Adobe, Inc. All rights reserved.
+ */
+
+import * as integration from '../../src/integration';
+
+describe('Integration Module', () => {
+  it('should export integration utilities', () => {
+    expect(integration).toBeDefined();
+    expect(typeof integration).toBe('object');
+  });
+
+  it('should export RestClient class', () => {
+    expect(integration.RestClient).toBeDefined();
+    expect(typeof integration.RestClient).toBe('function');
+  });
+
+  it('should be able to instantiate RestClient', () => {
+    const client = new integration.RestClient();
+    expect(client).toBeDefined();
+    expect(client.constructor.name).toBe('RestClient');
+  });
+
+  it('should have RestClient methods', () => {
+    const client = new integration.RestClient();
+    expect(typeof client.get).toBe('function');
+    expect(typeof client.post).toBe('function');
+    expect(typeof client.put).toBe('function');
+    expect(typeof client.delete).toBe('function');
+    expect(typeof client.apiCall).toBe('function');
+  });
+});

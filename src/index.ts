@@ -10,4 +10,4 @@
 export * from './framework';
 
 // Export Integration utilities
-export { default as RestClient } from './integration/rest-client';
+export * from './integration';
