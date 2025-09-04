@@ -19,11 +19,11 @@ export { default as WebhookActionResponse } from './webhook-action/response';
 export * from './webhook-action/types';
 export { WebhookOperation } from './webhook-action/response/types';
 export type {
-  ExceptionResponse as WebhookExceptionResponse,
-  AddResponse as WebhookAddResponse,
-  ReplaceResponse as WebhookReplaceResponse,
-  RemoveResponse as WebhookRemoveResponse,
-  SuccessResponse as WebhookSuccessResponse,
+  ExceptionResponse as WebhookActionExceptionResponse,
+  AddResponse as WebhookActionAddResponse,
+  ReplaceResponse as WebhookActionReplaceResponse,
+  RemoveResponse as WebhookActionRemoveResponse,
+  SuccessResponse as WebhookActionSuccessResponse,
 } from './webhook-action/response/types';
 
 // Export OpenWhisk classes
