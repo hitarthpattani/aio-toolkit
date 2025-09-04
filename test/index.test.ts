@@ -66,6 +66,11 @@ describe('Adobe Commerce AIO Toolkit', () => {
     expect(typeof toolkit.BearerToken).toBe('function');
   });
 
+  it('should export AdobeAuth class', () => {
+    expect(toolkit.AdobeAuth).toBeDefined();
+    expect(typeof toolkit.AdobeAuth).toBe('function');
+  });
+
   it('should export RestClient class', () => {
     expect(toolkit.RestClient).toBeDefined();
     expect(typeof toolkit.RestClient).toBe('function');

@@ -194,4 +194,17 @@ declare class RestClient {
     apiCall(endpoint: string, method?: string, headers?: Headers, payload?: any): Promise<any>;
 }
 
-export { BearerToken, type ErrorResponse, EventConsumerAction, GraphQlAction, type Headers, HttpMethod, HttpStatus, Openwhisk, OpenwhiskAction, Parameters, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };
+declare class AdobeAuth {
+    static getToken(clientId: string, clientSecret: string, technicalAccountId: string, technicalAccountEmail: string, imsOrgId: string, scopes: string[], currentContext?: string): Promise<string>;
+}
+
+interface AdobeIMSConfig {
+    client_id: string;
+    client_secrets: string[];
+    technical_account_id: string;
+    technical_account_email: string;
+    ims_org_id: string;
+    scopes: string[];
+}
+
+export { AdobeAuth, type AdobeIMSConfig, BearerToken, type ErrorResponse, EventConsumerAction, GraphQlAction, type Headers, HttpMethod, HttpStatus, Openwhisk, OpenwhiskAction, Parameters, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };

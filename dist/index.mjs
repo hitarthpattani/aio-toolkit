@@ -274,7 +274,7 @@ var _GraphQlAction = class _GraphQlAction {
             params
           }
         });
-        const context = {};
+        const context2 = {};
         const query = params.query;
         let parsedQuery;
         try {
@@ -308,7 +308,7 @@ var _GraphQlAction = class _GraphQlAction {
             schema: graphqlSchema,
             source: query,
             rootValue: graphqlResolvers,
-            contextValue: context,
+            contextValue: context2,
             variableValues: variables,
             operationName: params.operationName
           })
@@ -646,7 +646,51 @@ var _RestClient = class _RestClient {
 __name(_RestClient, "RestClient");
 var RestClient = _RestClient;
 var rest_client_default = RestClient;
+
+// src/commerce/adobe-auth/index.ts
+import { context, getToken } from "@adobe/aio-lib-ims";
+var _AdobeAuth = class _AdobeAuth {
+  /**
+   * Retrieves an authentication token from Adobe IMS
+   *
+   * @param clientId - The client ID for the Adobe IMS integration
+   * @param clientSecret - The client secret for the Adobe IMS integration
+   * @param technicalAccountId - The technical account ID for the Adobe IMS integration
+   * @param technicalAccountEmail - The technical account email for the Adobe IMS integration
+   * @param imsOrgId - The IMS organization ID
+   * @param scopes - Array of permission scopes to request for the token
+   * @param currentContext - The context name for storing the configuration (defaults to 'onboarding-config')
+   * @returns Promise<string> - A promise that resolves to the authentication token
+   *
+   * @example
+   * const token = await AdobeAuth.getToken(
+   *   'your-client-id',
+   *   'your-client-secret',
+   *   'your-technical-account-id',
+   *   'your-technical-account-email',
+   *   'your-ims-org-id',
+   *   ['AdobeID', 'openid', 'adobeio_api']
+   * );
+   */
+  static async getToken(clientId, clientSecret, technicalAccountId, technicalAccountEmail, imsOrgId, scopes, currentContext = "onboarding-config") {
+    const config = {
+      client_id: clientId,
+      client_secrets: [clientSecret],
+      technical_account_id: technicalAccountId,
+      technical_account_email: technicalAccountEmail,
+      ims_org_id: imsOrgId,
+      scopes
+    };
+    await context.setCurrent(currentContext);
+    await context.set(currentContext, config);
+    return await getToken();
+  }
+};
+__name(_AdobeAuth, "AdobeAuth");
+var AdobeAuth = _AdobeAuth;
+var adobe_auth_default = AdobeAuth;
 export {
+  adobe_auth_default as AdobeAuth,
   bearer_token_default as BearerToken,
   event_consumer_action_default as EventConsumerAction,
   graphql_action_default as GraphQlAction,

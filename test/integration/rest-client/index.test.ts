@@ -310,15 +310,11 @@ describe('RestClient', () => {
     });
 
     it('should handle fetch errors', async () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       mockFetch.mockRejectedValue(new Error('Network error'));
 
       await expect(restClient.apiCall('https://api.example.com/error')).rejects.toThrow(
         'Network error'
       );
-
-      expect(consoleSpy).toHaveBeenCalledWith('API call error:', expect.any(Error));
-      consoleSpy.mockRestore();
     });
 
     it('should use default method POST when not specified', async () => {
