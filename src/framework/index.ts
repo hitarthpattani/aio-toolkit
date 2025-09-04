@@ -10,6 +10,9 @@ export { default as RuntimeActionResponse } from './runtime-action/response';
 export * from './runtime-action/types';
 export * from './runtime-action/response/types';
 
+// Export EventAction class
+export { default as EventAction } from './event-action';
+
 // Export utilities
 export { default as Parameters } from './utils/parameters';
 export { default as Validator } from './utils/validator';

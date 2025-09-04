@@ -33,7 +33,7 @@ interface ErrorResponse {
 }
 type ActionResponseType = SuccessResponse | ErrorResponse;
 
-declare class Action {
+declare class RuntimeAction {
     static execute(name?: string, httpMethods?: HttpMethod[], requiredParams?: string[], requiredHeaders?: string[], action?: (params: {
         [key: string]: any;
     }, ctx: {
@@ -47,7 +47,7 @@ declare class Action {
     private static validateRequest;
 }
 
-declare class ActionResponse {
+declare class RuntimeActionResponse {
     static success(response: object | string, headers?: {
         [key: string]: string;
     }): SuccessResponse;
@@ -69,4 +69,4 @@ declare class Validator {
     }, requiredParams?: string[], requiredHeaders?: string[]): string | null;
 }
 
-export { Action, ActionResponse, type ActionResponseType, type ErrorResponse, HttpMethod, HttpStatus, Parameters, type SuccessResponse, Validator };
+export { type ActionResponseType, type ErrorResponse, HttpMethod, HttpStatus, Parameters, RuntimeAction, RuntimeActionResponse, type SuccessResponse, Validator };

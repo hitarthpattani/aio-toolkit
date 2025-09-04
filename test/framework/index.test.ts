@@ -16,6 +16,11 @@ describe('Framework', () => {
     expect(typeof framework.RuntimeActionResponse).toBe('function');
   });
 
+  it('should export EventAction class', () => {
+    expect(framework.EventAction).toBeDefined();
+    expect(typeof framework.EventAction).toBe('function');
+  });
+
   it('should export Parameters utility', () => {
     expect(framework.Parameters).toBeDefined();
     expect(typeof framework.Parameters).toBe('function');

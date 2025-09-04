@@ -1,10 +1,10 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// src/framework/action/index.ts
+// src/framework/runtime-action/index.ts
 import { Core } from "@adobe/aio-sdk";
 
-// src/framework/action/types.ts
+// src/framework/runtime-action/types.ts
 var HttpStatus = /* @__PURE__ */ ((HttpStatus2) => {
   HttpStatus2[HttpStatus2["OK"] = 200] = "OK";
   HttpStatus2[HttpStatus2["BAD_REQUEST"] = 400] = "BAD_REQUEST";
@@ -25,8 +25,8 @@ var HttpMethod = /* @__PURE__ */ ((HttpMethod3) => {
   return HttpMethod3;
 })(HttpMethod || {});
 
-// src/framework/action/response/index.ts
-var _ActionResponse = class _ActionResponse {
+// src/framework/runtime-action/response/index.ts
+var _RuntimeActionResponse = class _RuntimeActionResponse {
   /**
    * Returns a success response object, this method should be called on the handlers actions
    *
@@ -62,9 +62,9 @@ var _ActionResponse = class _ActionResponse {
     };
   }
 };
-__name(_ActionResponse, "ActionResponse");
-var ActionResponse = _ActionResponse;
-var response_default = ActionResponse;
+__name(_RuntimeActionResponse, "RuntimeActionResponse");
+var RuntimeActionResponse = _RuntimeActionResponse;
+var response_default = RuntimeActionResponse;
 
 // src/framework/utils/parameters/index.ts
 var _Parameters = class _Parameters {
@@ -153,8 +153,8 @@ __name(_Validator, "Validator");
 var Validator = _Validator;
 var validator_default = Validator;
 
-// src/framework/action/index.ts
-var _Action = class _Action {
+// src/framework/runtime-action/index.ts
+var _RuntimeAction = class _RuntimeAction {
   /**
    * @param name
    * @param httpMethods
@@ -171,7 +171,7 @@ var _Action = class _Action {
       try {
         logger.info(`Calling the ${name} action`);
         logger.debug(parameters_default.stringify(params));
-        const validationError = _Action.validateRequest(
+        const validationError = _RuntimeAction.validateRequest(
           params,
           requiredParams,
           requiredHeaders,
@@ -204,15 +204,15 @@ var _Action = class _Action {
     return null;
   }
 };
-__name(_Action, "Action");
-var Action = _Action;
-var action_default = Action;
+__name(_RuntimeAction, "RuntimeAction");
+var RuntimeAction = _RuntimeAction;
+var runtime_action_default = RuntimeAction;
 export {
-  action_default as Action,
-  response_default as ActionResponse,
   HttpMethod,
   HttpStatus,
   parameters_default as Parameters,
+  runtime_action_default as RuntimeAction,
+  response_default as RuntimeActionResponse,
   validator_default as Validator
 };
 //# sourceMappingURL=index.mjs.map
