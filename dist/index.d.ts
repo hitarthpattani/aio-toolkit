@@ -56,6 +56,21 @@ declare class RuntimeActionResponse {
     static error(statusCode: HttpStatus, error: string): ErrorResponse;
 }
 
+declare class Parameters {
+    static stringify(params: {
+        [key: string]: any;
+    }): string;
+}
+
+declare class Validator {
+    static getMissingKeys(obj: {
+        [key: string]: any;
+    }, required: string[]): string[];
+    static checkMissingRequestInputs(params: {
+        [key: string]: any;
+    }, requiredParams?: string[], requiredHeaders?: string[]): string | null;
+}
+
 declare class EventAction {
     static execute(name?: string, requiredParams?: string[], requiredHeaders?: string[], action?: (params: {
         [key: string]: any;
@@ -145,21 +160,6 @@ declare class OpenwhiskAction {
     }) => Promise<RuntimeActionResponseType>): (params: {
         [key: string]: any;
     }) => Promise<RuntimeActionResponseType>;
-}
-
-declare class Parameters {
-    static stringify(params: {
-        [key: string]: any;
-    }): string;
-}
-
-declare class Validator {
-    static getMissingKeys(obj: {
-        [key: string]: any;
-    }, required: string[]): string[];
-    static checkMissingRequestInputs(params: {
-        [key: string]: any;
-    }, requiredParams?: string[], requiredHeaders?: string[]): string | null;
 }
 
 export { type ErrorResponse, EventAction, HttpMethod, HttpStatus, Openwhisk, OpenwhiskAction, Parameters, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };
