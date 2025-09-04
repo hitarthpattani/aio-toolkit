@@ -5,6 +5,20 @@
  */
 
 import GraphQL from '../../../src/framework/graphql';
+import { RuntimeActionResponseType } from '../../../src/framework/runtime-action/response/types';
+
+// Helper functions to safely access properties on union types
+const getStatusCode = (result: RuntimeActionResponseType): number => {
+  return 'statusCode' in result ? result.statusCode : result.error.statusCode;
+};
+
+const getBody = (result: RuntimeActionResponseType): any => {
+  return 'body' in result ? result.body : result.error.body;
+};
+
+const getErrorMessage = (result: RuntimeActionResponseType): string | undefined => {
+  return 'error' in result ? result.error.body.error : undefined;
+};
 
 describe('GraphQL', () => {
   const testSchema = `
@@ -63,8 +77,8 @@ describe('GraphQL', () => {
       LOG_LEVEL: 'info',
     });
 
-    expect(result.statusCode).toBe(200);
-    expect(result.body).toEqual({
+    expect(getStatusCode(result)).toBe(200);
+    expect(getBody(result)).toEqual({
       data: { hello: 'Hello World!' },
     });
   });
@@ -79,8 +93,8 @@ describe('GraphQL', () => {
       LOG_LEVEL: 'info',
     });
 
-    expect(result.statusCode).toBe(200);
-    expect(result.body).toEqual({
+    expect(getStatusCode(result)).toBe(200);
+    expect(getBody(result)).toEqual({
       data: { hello: 'Hello Test User!' },
     });
   });
@@ -96,8 +110,8 @@ describe('GraphQL', () => {
       LOG_LEVEL: 'info',
     });
 
-    expect(result.statusCode).toBe(200);
-    expect(result.body).toEqual({
+    expect(getStatusCode(result)).toBe(200);
+    expect(getBody(result)).toEqual({
       data: {
         user: {
           id: '123',
@@ -119,8 +133,8 @@ describe('GraphQL', () => {
       LOG_LEVEL: 'info',
     });
 
-    expect(result.statusCode).toBe(200);
-    expect(result.body).toEqual({
+    expect(getStatusCode(result)).toBe(200);
+    expect(getBody(result)).toEqual({
       data: {
         user: {
           id: '456',
@@ -144,8 +158,8 @@ describe('GraphQL', () => {
       LOG_LEVEL: 'info',
     });
 
-    expect(result.statusCode).toBe(200);
-    expect(result.body).toEqual({
+    expect(getStatusCode(result)).toBe(200);
+    expect(getBody(result)).toEqual({
       data: { hello: 'Hello World!' },
     });
   });
@@ -161,8 +175,8 @@ describe('GraphQL', () => {
     });
 
     // Framework validation errors are nested
-    expect(result.error?.statusCode || result.statusCode).toBe(400);
-    expect(result.error?.body?.error || result.body?.error).toBeDefined();
+    expect(getStatusCode(result)).toBe(400);
+    expect(getErrorMessage(result) || getBody(result)?.error).toBeDefined();
   });
 
   it('should handle GraphQL parse errors', async () => {
@@ -176,9 +190,9 @@ describe('GraphQL', () => {
     });
 
     // Parse errors are also nested framework responses
-    expect(result.error?.statusCode || result.statusCode).toBe(400);
-    expect(result.error?.body?.error || result.body?.error).toBeDefined();
-    expect((result.error?.body?.error || result.body?.error) as string).toContain('Syntax Error');
+    expect(getStatusCode(result)).toBe(400);
+    expect(getErrorMessage(result) || getBody(result)?.error).toBeDefined();
+    expect((getErrorMessage(result) || getBody(result)?.error) as string).toContain('Syntax Error');
   });
 
   it('should handle GraphQL validation errors', async () => {
@@ -192,8 +206,8 @@ describe('GraphQL', () => {
     });
 
     // Framework validation errors are nested
-    expect(result.error?.statusCode || result.statusCode).toBe(400);
-    expect(result.error?.body?.error || result.body?.error).toBeDefined();
+    expect(getStatusCode(result)).toBe(400);
+    expect(getErrorMessage(result) || getBody(result)?.error).toBeDefined();
   });
 
   it('should handle invalid schema errors', async () => {
@@ -208,8 +222,8 @@ describe('GraphQL', () => {
     });
 
     // Framework validation errors are nested
-    expect(result.error?.statusCode || result.statusCode).toBe(400);
-    expect(result.error?.body?.error || result.body?.error).toBeDefined();
+    expect(getStatusCode(result)).toBe(400);
+    expect(getErrorMessage(result) || getBody(result)?.error).toBeDefined();
   });
 
   it('should support introspection by default', async () => {
@@ -222,9 +236,9 @@ describe('GraphQL', () => {
       LOG_LEVEL: 'info',
     });
 
-    expect(result.statusCode).toBe(200);
-    expect(result.body.data).toBeDefined();
-    expect(result.body.data.__schema).toBeDefined();
+    expect(getStatusCode(result)).toBe(200);
+    expect(getBody(result).data).toBeDefined();
+    expect(getBody(result).data.__schema).toBeDefined();
   });
 
   it('should disable introspection when configured', async () => {
@@ -243,8 +257,8 @@ describe('GraphQL', () => {
     });
 
     // Framework validation errors are nested
-    expect(result.error?.statusCode || result.statusCode).toBe(400);
-    expect(result.error?.body?.error || result.body?.error).toBe(
+    expect(getStatusCode(result)).toBe(400);
+    expect(getErrorMessage(result) || getBody(result)?.error).toBe(
       'Introspection is disabled for security reasons.'
     );
   });
@@ -265,8 +279,8 @@ describe('GraphQL', () => {
     });
 
     // Framework validation errors are nested
-    expect(result.error?.statusCode || result.statusCode).toBe(400);
-    expect(result.error?.body?.error || result.body?.error).toBe(
+    expect(getStatusCode(result)).toBe(400);
+    expect(getErrorMessage(result) || getBody(result)?.error).toBe(
       'Introspection is disabled for security reasons.'
     );
   });
@@ -286,8 +300,8 @@ describe('GraphQL', () => {
       LOG_LEVEL: 'info',
     });
 
-    expect(result.error?.statusCode || result.statusCode).toBe(400);
-    expect(result.error?.body?.error || result.body?.error).toBe(
+    expect(getStatusCode(result)).toBe(400);
+    expect(getErrorMessage(result) || getBody(result)?.error).toBe(
       'Introspection is disabled for security reasons.'
     );
   });
@@ -307,8 +321,8 @@ describe('GraphQL', () => {
       LOG_LEVEL: 'info',
     });
 
-    expect(result.statusCode).toBe(200);
-    expect(result.body.data.hello).toBe('Hello World!');
+    expect(getStatusCode(result)).toBe(200);
+    expect(getBody(result).data.hello).toBe('Hello World!');
   });
 
   it('should handle missing required query parameter', async () => {
@@ -321,8 +335,8 @@ describe('GraphQL', () => {
     });
 
     // Framework validation errors are nested
-    expect(result.error?.statusCode || result.statusCode).toBe(400);
-    expect((result.error?.body?.error || result.body?.error) as string).toContain(
+    expect(getStatusCode(result)).toBe(400);
+    expect((getErrorMessage(result) || getBody(result)?.error) as string).toContain(
       "missing parameter(s) 'query'"
     );
   });
@@ -337,8 +351,8 @@ describe('GraphQL', () => {
       LOG_LEVEL: 'info',
     });
 
-    expect(result.statusCode).toBe(200);
-    expect(result.body).toEqual({
+    expect(getStatusCode(result)).toBe(200);
+    expect(getBody(result)).toEqual({
       data: { hello: 'Hello World!' },
     });
   });
@@ -353,8 +367,8 @@ describe('GraphQL', () => {
       LOG_LEVEL: 'info',
     });
 
-    expect(result.statusCode).toBe(200);
-    expect(result.body).toEqual({
+    expect(getStatusCode(result)).toBe(200);
+    expect(getBody(result)).toEqual({
       data: { hello: 'Hello World!' },
     });
   });
@@ -370,8 +384,8 @@ describe('GraphQL', () => {
     });
 
     // Framework validation errors are nested
-    expect(result.error?.statusCode || result.statusCode).toBe(405);
-    expect((result.error?.body?.error || result.body?.error) as string).toContain(
+    expect(getStatusCode(result)).toBe(405);
+    expect((getErrorMessage(result) || getBody(result)?.error) as string).toContain(
       'Invalid HTTP method'
     );
   });
@@ -410,8 +424,8 @@ describe('GraphQL', () => {
       LOG_LEVEL: 'info',
     });
 
-    expect(result.statusCode).toBe(200);
-    expect(result.body.data.contextTest).toEqual({
+    expect(getStatusCode(result)).toBe(200);
+    expect(getBody(result).data.contextTest).toEqual({
       hasLogger: true,
       hasHeaders: true,
       hasParams: true,
@@ -442,10 +456,10 @@ describe('GraphQL', () => {
       LOG_LEVEL: 'info',
     });
 
-    expect(result.statusCode).toBe(200);
-    expect(result.body.data).toEqual({ errorField: null });
-    expect(result.body.errors).toBeDefined();
-    expect(result.body.errors[0].message).toBe('Resolver error');
+    expect(getStatusCode(result)).toBe(200);
+    expect(getBody(result).data).toEqual({ errorField: null });
+    expect(getBody(result).errors).toBeDefined();
+    expect(getBody(result).errors[0].message).toBe('Resolver error');
   });
 
   it('should use default values when parameters are not provided', async () => {
@@ -458,8 +472,8 @@ describe('GraphQL', () => {
       LOG_LEVEL: 'info',
     });
 
-    expect(result.statusCode).toBe(200);
-    expect(result.body.data).toBeDefined();
-    expect(result.body.data.hello).toBe('Hello World!');
+    expect(getStatusCode(result)).toBe(200);
+    expect(getBody(result).data).toBeDefined();
+    expect(getBody(result).data.hello).toBe('Hello World!');
   });
 });
