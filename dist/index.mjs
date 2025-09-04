@@ -519,6 +519,104 @@ var _OpenwhiskAction = class _OpenwhiskAction {
 __name(_OpenwhiskAction, "OpenwhiskAction");
 var OpenwhiskAction = _OpenwhiskAction;
 var openwhisk_action_default = OpenwhiskAction;
+
+// src/integration/rest-client/index.ts
+import fetch from "node-fetch";
+var _RestClient = class _RestClient {
+  /**
+   * A generic method to make GET rest call
+   *
+   * @param endpoint
+   * @param headers
+   * @returns {Promise<any>}
+   */
+  async get(endpoint, headers = {}) {
+    return await this.apiCall(endpoint, "GET", headers);
+  }
+  /**
+   * A generic method to make POST rest call
+   *
+   * @param endpoint
+   * @param headers
+   * @param payload
+   * @returns {Promise<any>}
+   */
+  async post(endpoint, headers = {}, payload = null) {
+    return await this.apiCall(endpoint, "POST", headers, payload);
+  }
+  /**
+   * A generic method to make PUT rest call
+   *
+   * @param endpoint
+   * @param headers
+   * @param payload
+   * @returns {Promise<any>}
+   */
+  async put(endpoint, headers = {}, payload = null) {
+    return await this.apiCall(endpoint, "PUT", headers, payload);
+  }
+  /**
+   * A generic method to make DELETE rest call
+   *
+   * @param endpoint
+   * @param headers
+   * @returns {Promise<any>}
+   */
+  async delete(endpoint, headers = {}) {
+    return await this.apiCall(endpoint, "DELETE", headers);
+  }
+  /**
+   * A generic method to make rest call
+   *
+   * @param endpoint
+   * @param method
+   * @param headers
+   * @param payload
+   * @returns {Promise<any>}
+   */
+  async apiCall(endpoint, method = "POST", headers = {}, payload = null) {
+    try {
+      let options = {
+        method,
+        headers
+      };
+      if (payload !== null) {
+        options = {
+          ...options,
+          body: JSON.stringify(payload),
+          headers: {
+            ...headers,
+            "Content-Type": "application/json"
+          }
+        };
+      }
+      const response = await fetch(endpoint, options);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      if (response.status === 204 || response.headers?.get("content-length") === "0") {
+        return null;
+      }
+      if (typeof response.json === "function") {
+        const contentType = response.headers?.get("content-type");
+        if (!contentType || contentType.includes("application/json") || contentType.includes("application/hal+json")) {
+          return await response.json();
+        }
+      }
+      if (typeof response.text === "function") {
+        const text = await response.text();
+        return text;
+      }
+      return null;
+    } catch (error) {
+      console.error("API call error:", error);
+      throw error;
+    }
+  }
+};
+__name(_RestClient, "RestClient");
+var RestClient = _RestClient;
+var rest_client_default = RestClient;
 export {
   event_action_default as EventAction,
   graphql_action_default as GraphQlAction,
@@ -527,6 +625,7 @@ export {
   openwhisk_default as Openwhisk,
   openwhisk_action_default as OpenwhiskAction,
   parameters_default as Parameters,
+  rest_client_default as RestClient,
   runtime_action_default as RuntimeAction,
   response_default as RuntimeActionResponse,
   SignatureVerification,

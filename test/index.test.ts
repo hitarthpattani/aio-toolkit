@@ -60,4 +60,9 @@ describe('Adobe Commerce AIO Toolkit', () => {
     expect(toolkit.Validator).toBeDefined();
     expect(typeof toolkit.Validator).toBe('function');
   });
+
+  it('should export RestClient class', () => {
+    expect(toolkit.RestClient).toBeDefined();
+    expect(typeof toolkit.RestClient).toBe('function');
+  });
 });

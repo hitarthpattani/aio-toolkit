@@ -48,6 +48,7 @@
   "dependencies": {
     "@adobe/aio-sdk": "^5.0.0",
     "graphql": "^16.11.0",
+    "node-fetch": "^2.7.0",
     "openwhisk": "^3.21.8"
   },
   "lint-staged": {
@@ -62,6 +63,7 @@
     "@types/graphql": "^14.2.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.10.0",
+    "@types/node-fetch": "^2.6.13",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",
     "eslint": "^8.55.0",

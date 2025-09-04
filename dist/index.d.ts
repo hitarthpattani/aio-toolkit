@@ -176,4 +176,16 @@ declare class OpenwhiskAction {
     }) => Promise<RuntimeActionResponseType>;
 }
 
-export { type ErrorResponse, EventAction, GraphQlAction, HttpMethod, HttpStatus, Openwhisk, OpenwhiskAction, Parameters, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };
+interface Headers {
+    [key: string]: string;
+}
+
+declare class RestClient {
+    get(endpoint: string, headers?: Headers): Promise<any>;
+    post(endpoint: string, headers?: Headers, payload?: any): Promise<any>;
+    put(endpoint: string, headers?: Headers, payload?: any): Promise<any>;
+    delete(endpoint: string, headers?: Headers): Promise<any>;
+    apiCall(endpoint: string, method?: string, headers?: Headers, payload?: any): Promise<any>;
+}
+
+export { type ErrorResponse, EventAction, GraphQlAction, HttpMethod, HttpStatus, Openwhisk, OpenwhiskAction, Parameters, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };
