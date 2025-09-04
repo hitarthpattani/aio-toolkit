@@ -19,7 +19,7 @@ export { default as WebhookActionResponse } from './webhook-action/response';
 export * from './webhook-action/types';
 export { WebhookOperation } from './webhook-action/response/types';
 export type {
-  ExceptionResponse as WebhookExceptionResponse,
+  ExceptionResponse as WebhookExceptionRes100ponse,
   AddResponse as WebhookAddResponse,
   ReplaceResponse as WebhookReplaceResponse,
   RemoveResponse as WebhookRemoveResponse,
@@ -32,4 +32,4 @@ export { default as OpenwhiskAction } from './openwhisk-action';
 
 // Export utilities
 export { default as Parameters } from './runtime-action/parameters';
-export { default as Validator } from './utils/validator';
+export { default as Validator } from './runtime-action/validator';

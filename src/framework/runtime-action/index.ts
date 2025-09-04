@@ -6,7 +6,7 @@ import { Core } from '@adobe/aio-sdk';
 
 import RuntimeActionResponse from './response';
 import Parameters from './parameters';
-import Validator from '../utils/validator';
+import Validator from './validator';
 
 import { HttpStatus, HttpMethod } from './types';
 import { RuntimeActionResponseType } from './response/types';

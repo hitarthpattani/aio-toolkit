@@ -3,7 +3,7 @@
  * Copyright © Adobe, Inc. All rights reserved.
  */
 
-import Validator from '../../../../src/framework/utils/validator';
+import Validator from '../../../../src/framework/runtime-action/validator';
 
 describe('Validator', () => {
   describe('getMissingKeys', () => {
