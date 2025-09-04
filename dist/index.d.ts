@@ -18,7 +18,7 @@ declare enum HttpMethod {
     OPTIONS = "options"
 }
 
-interface SuccessResponse {
+interface SuccessResponse$1 {
     statusCode: HttpStatus;
     body: object | string;
     headers?: {
@@ -33,7 +33,7 @@ interface ErrorResponse {
         };
     };
 }
-type RuntimeActionResponseType = SuccessResponse | ErrorResponse;
+type RuntimeActionResponseType = SuccessResponse$1 | ErrorResponse;
 
 declare class RuntimeAction {
     static execute(name?: string, httpMethods?: HttpMethod[], requiredParams?: string[], requiredHeaders?: string[], action?: (params: {
@@ -52,7 +52,7 @@ declare class RuntimeAction {
 declare class RuntimeActionResponse {
     static success(response: object | string, headers?: {
         [key: string]: string;
-    }): SuccessResponse;
+    }): SuccessResponse$1;
     static error(statusCode: HttpStatus, error: string): ErrorResponse;
 }
 
@@ -67,6 +67,65 @@ declare class EventAction {
     }) => Promise<RuntimeActionResponseType>): (params: {
         [key: string]: any;
     }) => Promise<RuntimeActionResponseType>;
+}
+
+declare enum SignatureVerification {
+    DISABLED = 0,
+    ENABLED = 1,
+    ENABLED_WITH_BASE64 = 2
+}
+
+declare class Webhook {
+    static execute(name?: string, requiredParams?: string[], requiredHeaders?: string[], signatureVerification?: SignatureVerification, action?: (params: {
+        [key: string]: any;
+    }, ctx: {
+        logger: any;
+        headers: {
+            [key: string]: any;
+        };
+    }) => Promise<RuntimeActionResponseType>): (params: {
+        [key: string]: any;
+    }) => Promise<RuntimeActionResponseType>;
+}
+
+declare enum WebhookOperation {
+    SUCCESS = "success",
+    EXCEPTION = "exception",
+    ADD = "add",
+    REPLACE = "replace",
+    REMOVE = "remove"
+}
+interface SuccessResponse {
+    op: typeof WebhookOperation.SUCCESS;
+}
+interface ExceptionResponse {
+    op: typeof WebhookOperation.EXCEPTION;
+    class?: string | undefined;
+    message?: string | undefined;
+}
+interface AddResponse {
+    op: typeof WebhookOperation.ADD;
+    path: string;
+    value: any;
+    instance?: string | undefined;
+}
+interface ReplaceResponse {
+    op: typeof WebhookOperation.REPLACE;
+    path: string;
+    value: any;
+    instance?: string | undefined;
+}
+interface RemoveResponse {
+    op: typeof WebhookOperation.REMOVE;
+    path: string;
+}
+
+declare class WebhookResponse {
+    static success(): SuccessResponse;
+    static exception(exceptionClass?: string, message?: string): ExceptionResponse;
+    static add(path: string, value: any, instance?: string): AddResponse;
+    static replace(path: string, value: any, instance?: string): ReplaceResponse;
+    static remove(path: string): RemoveResponse;
 }
 
 declare class Openwhisk {
@@ -103,4 +162,4 @@ declare class Validator {
     }, requiredParams?: string[], requiredHeaders?: string[]): string | null;
 }
 
-export { type ErrorResponse, EventAction, HttpMethod, HttpStatus, Openwhisk, OpenwhiskAction, Parameters, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, type SuccessResponse, Validator };
+export { type ErrorResponse, EventAction, HttpMethod, HttpStatus, Openwhisk, OpenwhiskAction, Parameters, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, Webhook, type AddResponse as WebhookAddResponse, type ExceptionResponse as WebhookExceptionResponse, WebhookOperation, type RemoveResponse as WebhookRemoveResponse, type ReplaceResponse as WebhookReplaceResponse, WebhookResponse, type SuccessResponse as WebhookSuccessResponse };

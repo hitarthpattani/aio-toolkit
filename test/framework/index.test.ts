@@ -21,6 +21,16 @@ describe('Framework', () => {
     expect(typeof framework.EventAction).toBe('function');
   });
 
+  it('should export Webhook class', () => {
+    expect(framework.Webhook).toBeDefined();
+    expect(typeof framework.Webhook).toBe('function');
+  });
+
+  it('should export WebhookResponse class', () => {
+    expect(framework.WebhookResponse).toBeDefined();
+    expect(typeof framework.WebhookResponse).toBe('function');
+  });
+
   it('should export Openwhisk class', () => {
     expect(framework.Openwhisk).toBeDefined();
     expect(typeof framework.Openwhisk).toBe('function');
@@ -49,5 +59,15 @@ describe('Framework', () => {
   it('should export HttpMethod enum', () => {
     expect(framework.HttpMethod).toBeDefined();
     expect(typeof framework.HttpMethod).toBe('object');
+  });
+
+  it('should export SignatureVerification enum', () => {
+    expect(framework.SignatureVerification).toBeDefined();
+    expect(typeof framework.SignatureVerification).toBe('object');
+  });
+
+  it('should export WebhookOperation enum', () => {
+    expect(framework.WebhookOperation).toBeDefined();
+    expect(typeof framework.WebhookOperation).toBe('object');
   });
 });

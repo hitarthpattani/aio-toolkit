@@ -39,7 +39,11 @@ __export(index_exports, {
   Parameters: () => parameters_default,
   RuntimeAction: () => runtime_action_default,
   RuntimeActionResponse: () => response_default,
-  Validator: () => validator_default
+  SignatureVerification: () => SignatureVerification,
+  Validator: () => validator_default,
+  Webhook: () => webhook_default,
+  WebhookOperation: () => WebhookOperation,
+  WebhookResponse: () => response_default2
 });
 module.exports = __toCommonJS(index_exports);
 
@@ -286,6 +290,148 @@ __name(_EventAction, "EventAction");
 var EventAction = _EventAction;
 var event_action_default = EventAction;
 
+// src/framework/webhook/index.ts
+var crypto = __toESM(require("crypto"));
+
+// src/framework/webhook/response/types.ts
+var WebhookOperation = /* @__PURE__ */ ((WebhookOperation2) => {
+  WebhookOperation2["SUCCESS"] = "success";
+  WebhookOperation2["EXCEPTION"] = "exception";
+  WebhookOperation2["ADD"] = "add";
+  WebhookOperation2["REPLACE"] = "replace";
+  WebhookOperation2["REMOVE"] = "remove";
+  return WebhookOperation2;
+})(WebhookOperation || {});
+
+// src/framework/webhook/response/index.ts
+var _WebhookResponse = class _WebhookResponse {
+  static success() {
+    return {
+      op: "success" /* SUCCESS */
+    };
+  }
+  static exception(exceptionClass, message) {
+    return {
+      op: "exception" /* EXCEPTION */,
+      class: exceptionClass,
+      message
+    };
+  }
+  static add(path, value, instance) {
+    return {
+      op: "add" /* ADD */,
+      path,
+      value,
+      instance
+    };
+  }
+  static replace(path, value, instance) {
+    return {
+      op: "replace" /* REPLACE */,
+      path,
+      value,
+      instance
+    };
+  }
+  static remove(path) {
+    return {
+      op: "remove" /* REMOVE */,
+      path
+    };
+  }
+};
+__name(_WebhookResponse, "WebhookResponse");
+var WebhookResponse = _WebhookResponse;
+var response_default2 = WebhookResponse;
+
+// src/framework/webhook/types.ts
+var SignatureVerification = /* @__PURE__ */ ((SignatureVerification2) => {
+  SignatureVerification2[SignatureVerification2["DISABLED"] = 0] = "DISABLED";
+  SignatureVerification2[SignatureVerification2["ENABLED"] = 1] = "ENABLED";
+  SignatureVerification2[SignatureVerification2["ENABLED_WITH_BASE64"] = 2] = "ENABLED_WITH_BASE64";
+  return SignatureVerification2;
+})(SignatureVerification || {});
+
+// src/framework/webhook/index.ts
+var _Webhook = class _Webhook {
+  /**
+   * @param name
+   * @param requiredParams
+   * @param requiredHeaders
+   * @param signatureVerification
+   * @param action
+   * @returns {(function(*): Promise<any>)|*}
+   */
+  static execute(name = "main", requiredParams = [], requiredHeaders = ["Authorization"], signatureVerification = 0 /* DISABLED */, action = async (_params) => {
+    return { statusCode: 200 /* OK */, body: {} };
+  }) {
+    return runtime_action_default.execute(
+      `webhook-${name}`,
+      ["get" /* GET */, "post" /* POST */],
+      [],
+      [],
+      async (params, ctx) => {
+        const operations = [];
+        if (params.__ow_body !== null) {
+          let payload = {};
+          try {
+            payload = JSON.parse(atob(params.__ow_body));
+          } catch {
+          }
+          params = {
+            ...params,
+            ...payload
+          };
+          ctx.logger.debug(parameters_default.stringify(payload));
+        }
+        if (signatureVerification !== 0 /* DISABLED */) {
+          if (params.PUBLIC_KEY === void 0) {
+            operations.push(
+              response_default2.exception(
+                "Magento\\Framework\\Exception\\LocalizedException",
+                "The public key is invalid"
+              )
+            );
+          } else {
+            const errorMessage = validator_default.checkMissingRequestInputs(params, requiredParams, requiredHeaders) || "";
+            if (errorMessage) {
+              return response_default.error(400 /* BAD_REQUEST */, errorMessage);
+            }
+            const signature = params.__ow_headers["x-adobe-commerce-webhook-signature"] || "";
+            const verifier = crypto.createVerify("SHA256");
+            verifier.update(params.__ow_body);
+            let publicKey = params.PUBLIC_KEY;
+            if (signatureVerification === 2 /* ENABLED_WITH_BASE64 */) {
+              publicKey = atob(publicKey);
+            }
+            const isSignatureValid = verifier.verify(publicKey, signature, "base64");
+            if (isSignatureValid) {
+              operations.push(await action(params, ctx));
+            } else {
+              operations.push(
+                response_default2.exception(
+                  "Magento\\Framework\\Exception\\LocalizedException",
+                  `The signature is invalid.`
+                )
+              );
+            }
+          }
+        } else {
+          const errorMessage = validator_default.checkMissingRequestInputs(params, requiredParams, requiredHeaders) || "";
+          if (errorMessage) {
+            return response_default.error(400 /* BAD_REQUEST */, errorMessage);
+          }
+          operations.push(await action(params, ctx));
+        }
+        return response_default.success(JSON.stringify(operations));
+      }
+    );
+  }
+};
+__name(_Webhook, "Webhook");
+var Webhook = _Webhook;
+var webhook_default = Webhook;
+
 // src/framework/openwhisk/index.ts
 var import_openwhisk = __toESM(require("openwhisk"));
 var _Openwhisk = class _Openwhisk {
@@ -352,6 +498,10 @@ var openwhisk_action_default = OpenwhiskAction;
   Parameters,
   RuntimeAction,
   RuntimeActionResponse,
-  Validator
+  SignatureVerification,
+  Validator,
+  Webhook,
+  WebhookOperation,
+  WebhookResponse
 });
 //# sourceMappingURL=index.js.map
