@@ -21,9 +21,9 @@ describe('Adobe Commerce AIO Toolkit', () => {
     expect(typeof toolkit.RuntimeActionResponse).toBe('function');
   });
 
-  it('should export EventAction class', () => {
-    expect(toolkit.EventAction).toBeDefined();
-    expect(typeof toolkit.EventAction).toBe('function');
+  it('should export EventConsumerAction class', () => {
+    expect(toolkit.EventConsumerAction).toBeDefined();
+    expect(typeof toolkit.EventConsumerAction).toBe('function');
   });
 
   it('should export GraphQlAction class', () => {

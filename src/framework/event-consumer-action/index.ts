@@ -1,5 +1,5 @@
 /**
- * Adobe App Builder Event Action handler
+ * Adobe App Builder Event Consumer Action handler
  *
  * Copyright © Adobe, Inc. All rights reserved.
  */
@@ -13,7 +13,7 @@ import Validator from '../runtime-action/validator';
 import { HttpStatus } from '../runtime-action/types';
 import { RuntimeActionResponseType } from '../runtime-action/response/types';
 
-class EventAction {
+class EventConsumerAction {
   /**
    * @param name
    * @param requiredParams
@@ -67,4 +67,4 @@ class EventAction {
   }
 }
 
-export default EventAction;
+export default EventConsumerAction;

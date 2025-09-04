@@ -1,20 +1,20 @@
 /**
- * Test for EventAction class
+ * Test for EventConsumerAction class
  * Copyright © Adobe, Inc. All rights reserved.
  */
 
-import EventAction from '../../../src/framework/event-action';
+import EventConsumerAction from '../../../src/framework/event-consumer-action';
 import { HttpStatus } from '../../../src/framework/runtime-action/types';
 
-describe('EventAction', () => {
+describe('EventConsumerAction', () => {
   it('should be a class with execute static method', () => {
-    expect(typeof EventAction).toBe('function');
-    expect(EventAction.name).toBe('EventAction');
-    expect(typeof EventAction.execute).toBe('function');
+    expect(typeof EventConsumerAction).toBe('function');
+    expect(EventConsumerAction.name).toBe('EventConsumerAction');
+    expect(typeof EventConsumerAction.execute).toBe('function');
   });
 
   it('should create an action handler function using execute method', () => {
-    const actionHandler = EventAction.execute(
+    const actionHandler = EventConsumerAction.execute(
       'test-event-action',
       ['name'],
       ['Authorization'],
@@ -27,7 +27,7 @@ describe('EventAction', () => {
   });
 
   it('should handle event action execution with valid parameters', async () => {
-    const actionHandler = EventAction.execute(
+    const actionHandler = EventConsumerAction.execute(
       'test-event-action',
       ['name'],
       ['Authorization'],
@@ -52,7 +52,7 @@ describe('EventAction', () => {
   });
 
   it('should handle missing required parameters', async () => {
-    const actionHandler = EventAction.execute(
+    const actionHandler = EventConsumerAction.execute(
       'test-event-action',
       ['requiredParam'],
       ['Authorization']
@@ -72,7 +72,11 @@ describe('EventAction', () => {
   });
 
   it('should handle missing required headers', async () => {
-    const actionHandler = EventAction.execute('test-event-action', ['name'], ['Authorization']);
+    const actionHandler = EventConsumerAction.execute(
+      'test-event-action',
+      ['name'],
+      ['Authorization']
+    );
 
     const params = {
       name: 'test',
@@ -87,7 +91,7 @@ describe('EventAction', () => {
   });
 
   it('should use default values when parameters are not provided', async () => {
-    const actionHandler = EventAction.execute();
+    const actionHandler = EventConsumerAction.execute();
 
     const params = {
       __ow_headers: {},
@@ -102,7 +106,7 @@ describe('EventAction', () => {
   });
 
   it('should handle event action execution without required params and headers', async () => {
-    const actionHandler = EventAction.execute('simple-event-action');
+    const actionHandler = EventConsumerAction.execute('simple-event-action');
 
     const params = {};
 
@@ -115,7 +119,7 @@ describe('EventAction', () => {
   });
 
   it('should handle event action execution errors and return 500 response', async () => {
-    const actionHandler = EventAction.execute('error-event-action', [], [], async () => {
+    const actionHandler = EventConsumerAction.execute('error-event-action', [], [], async () => {
       throw new Error('Something went wrong in event action');
     });
 
@@ -130,9 +134,14 @@ describe('EventAction', () => {
   });
 
   it('should use default log level when LOG_LEVEL is not provided', async () => {
-    const actionHandler = EventAction.execute('default-log-event-action', [], [], async () => {
-      return { statusCode: HttpStatus.OK, body: { message: 'No log level provided' } };
-    });
+    const actionHandler = EventConsumerAction.execute(
+      'default-log-event-action',
+      [],
+      [],
+      async () => {
+        return { statusCode: HttpStatus.OK, body: { message: 'No log level provided' } };
+      }
+    );
 
     const params = {};
 

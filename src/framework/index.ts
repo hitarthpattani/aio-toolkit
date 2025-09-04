@@ -12,8 +12,8 @@ export * from './runtime-action/response/types';
 export { default as Parameters } from './runtime-action/parameters';
 export { default as Validator } from './runtime-action/validator';
 
-// Export EventAction class
-export { default as EventAction } from './event-action';
+// Export EventConsumerAction class
+export { default as EventConsumerAction } from './event-consumer-action';
 
 // Export GraphQL utilities
 export { default as GraphQlAction } from './graphql-action';

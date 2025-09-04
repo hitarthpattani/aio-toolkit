@@ -16,9 +16,9 @@ describe('Framework', () => {
     expect(typeof framework.RuntimeActionResponse).toBe('function');
   });
 
-  it('should export EventAction class', () => {
-    expect(framework.EventAction).toBeDefined();
-    expect(typeof framework.EventAction).toBe('function');
+  it('should export EventConsumerAction class', () => {
+    expect(framework.EventConsumerAction).toBeDefined();
+    expect(typeof framework.EventConsumerAction).toBe('function');
   });
 
   it('should export GraphQlAction class', () => {

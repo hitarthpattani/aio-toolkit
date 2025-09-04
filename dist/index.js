@@ -32,7 +32,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var index_exports = {};
 __export(index_exports, {
   BearerToken: () => bearer_token_default,
-  EventAction: () => event_action_default,
+  EventConsumerAction: () => event_consumer_action_default,
   GraphQlAction: () => graphql_action_default,
   HttpMethod: () => HttpMethod,
   HttpStatus: () => HttpStatus,
@@ -257,9 +257,9 @@ __name(_RuntimeAction, "RuntimeAction");
 var RuntimeAction = _RuntimeAction;
 var runtime_action_default = RuntimeAction;
 
-// src/framework/event-action/index.ts
+// src/framework/event-consumer-action/index.ts
 var import_aio_sdk2 = require("@adobe/aio-sdk");
-var _EventAction = class _EventAction {
+var _EventConsumerAction = class _EventConsumerAction {
   /**
    * @param name
    * @param requiredParams
@@ -289,9 +289,9 @@ var _EventAction = class _EventAction {
     };
   }
 };
-__name(_EventAction, "EventAction");
-var EventAction = _EventAction;
-var event_action_default = EventAction;
+__name(_EventConsumerAction, "EventConsumerAction");
+var EventConsumerAction = _EventConsumerAction;
+var event_consumer_action_default = EventConsumerAction;
 
 // src/framework/graphql-action/index.ts
 var import_graphql = require("graphql");
@@ -698,7 +698,7 @@ var rest_client_default = RestClient;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   BearerToken,
-  EventAction,
+  EventConsumerAction,
   GraphQlAction,
   HttpMethod,
   HttpStatus,
