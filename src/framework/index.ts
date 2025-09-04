@@ -16,7 +16,7 @@ export { default as Validator } from './runtime-action/validator';
 export { default as EventAction } from './event-action';
 
 // Export GraphQL utilities
-export { default as GraphQlAction } from './graphql';
+export { default as GraphQlAction } from './graphql-action';
 
 // Export WebhookAction classes and types
 export { default as WebhookAction } from './webhook-action';

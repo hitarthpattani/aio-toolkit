@@ -84,7 +84,7 @@ declare class EventAction {
     }) => Promise<RuntimeActionResponseType>;
 }
 
-declare class GraphQl {
+declare class GraphQlAction {
     static execute(schema?: string, resolvers?: (ctx: {
         logger: any;
         headers: {
@@ -176,4 +176,4 @@ declare class OpenwhiskAction {
     }) => Promise<RuntimeActionResponseType>;
 }
 
-export { type ErrorResponse, EventAction, GraphQl as GraphQL, HttpMethod, HttpStatus, Openwhisk, OpenwhiskAction, Parameters, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };
+export { type ErrorResponse, EventAction, GraphQlAction, HttpMethod, HttpStatus, Openwhisk, OpenwhiskAction, Parameters, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };

@@ -32,7 +32,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var index_exports = {};
 __export(index_exports, {
   EventAction: () => event_action_default,
-  GraphQL: () => graphql_default,
+  GraphQlAction: () => graphql_action_default,
   HttpMethod: () => HttpMethod,
   HttpStatus: () => HttpStatus,
   Openwhisk: () => openwhisk_default,
@@ -291,9 +291,9 @@ __name(_EventAction, "EventAction");
 var EventAction = _EventAction;
 var event_action_default = EventAction;
 
-// src/framework/graphql/index.ts
+// src/framework/graphql-action/index.ts
 var import_graphql = require("graphql");
-var _GraphQl = class _GraphQl {
+var _GraphQlAction = class _GraphQlAction {
   static execute(schema = `
       type Query {
         hello: String
@@ -364,9 +364,9 @@ var _GraphQl = class _GraphQl {
     );
   }
 };
-__name(_GraphQl, "GraphQl");
-var GraphQl = _GraphQl;
-var graphql_default = GraphQl;
+__name(_GraphQlAction, "GraphQlAction");
+var GraphQlAction = _GraphQlAction;
+var graphql_action_default = GraphQlAction;
 
 // src/framework/webhook-action/index.ts
 var crypto = __toESM(require("crypto"));
@@ -569,7 +569,7 @@ var openwhisk_action_default = OpenwhiskAction;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   EventAction,
-  GraphQL,
+  GraphQlAction,
   HttpMethod,
   HttpStatus,
   Openwhisk,

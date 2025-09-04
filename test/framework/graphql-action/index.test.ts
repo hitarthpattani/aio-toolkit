@@ -4,7 +4,7 @@
  * Copyright © Adobe, Inc. All rights reserved.
  */
 
-import GraphQlAction from '../../../src/framework/graphql';
+import GraphQlAction from '../../../src/framework/graphql-action';
 import { RuntimeActionResponseType } from '../../../src/framework/runtime-action/response/types';
 
 // Helper functions to safely access properties on union types
