@@ -520,6 +520,35 @@ __name(_OpenwhiskAction, "OpenwhiskAction");
 var OpenwhiskAction = _OpenwhiskAction;
 var openwhisk_action_default = OpenwhiskAction;
 
+// src/integration/bearer-token/index.ts
+var _BearerToken = class _BearerToken {
+  /**
+   * Extracts the Bearer token from OpenWhisk action parameters.
+   * Looks for the authorization header in __ow_headers and extracts the token value
+   * after the "Bearer " prefix.
+   *
+   * @param params - OpenWhisk action input parameters containing headers
+   * @returns The Bearer token string if found, undefined otherwise
+   *
+   * @example
+   * const params = {
+   *   __ow_headers: {
+   *     authorization: 'Bearer abc123token'
+   *   }
+   * };
+   * const token = BearerToken.extract(params); // returns 'abc123token'
+   */
+  static extract(params) {
+    if (params.__ow_headers?.authorization?.startsWith("Bearer ")) {
+      return params.__ow_headers.authorization.substring("Bearer ".length);
+    }
+    return void 0;
+  }
+};
+__name(_BearerToken, "BearerToken");
+var BearerToken = _BearerToken;
+var bearer_token_default = BearerToken;
+
 // src/integration/rest-client/index.ts
 import fetch from "node-fetch";
 var _RestClient = class _RestClient {
@@ -618,6 +647,7 @@ __name(_RestClient, "RestClient");
 var RestClient = _RestClient;
 var rest_client_default = RestClient;
 export {
+  bearer_token_default as BearerToken,
   event_action_default as EventAction,
   graphql_action_default as GraphQlAction,
   HttpMethod,

@@ -11,6 +11,15 @@ describe('Integration Module', () => {
     expect(typeof integration).toBe('object');
   });
 
+  it('should export BearerToken class', () => {
+    expect(integration.BearerToken).toBeDefined();
+    expect(typeof integration.BearerToken).toBe('function');
+  });
+
+  it('should have BearerToken static methods', () => {
+    expect(typeof integration.BearerToken.extract).toBe('function');
+  });
+
   it('should export RestClient class', () => {
     expect(integration.RestClient).toBeDefined();
     expect(typeof integration.RestClient).toBe('function');
