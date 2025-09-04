@@ -84,6 +84,20 @@ declare class EventAction {
     }) => Promise<RuntimeActionResponseType>;
 }
 
+declare class GraphQl {
+    static execute(schema?: string, resolvers?: (ctx: {
+        logger: any;
+        headers: {
+            [key: string]: any;
+        };
+        params: {
+            [key: string]: any;
+        };
+    }) => Promise<any>, name?: string, disableIntrospection?: boolean): (params: {
+        [key: string]: any;
+    }) => Promise<RuntimeActionResponseType>;
+}
+
 declare enum SignatureVerification {
     DISABLED = 0,
     ENABLED = 1,
@@ -162,4 +176,4 @@ declare class OpenwhiskAction {
     }) => Promise<RuntimeActionResponseType>;
 }
 
-export { type ErrorResponse, EventAction, HttpMethod, HttpStatus, Openwhisk, OpenwhiskAction, Parameters, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };
+export { type ErrorResponse, EventAction, GraphQl as GraphQL, HttpMethod, HttpStatus, Openwhisk, OpenwhiskAction, Parameters, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };

@@ -26,6 +26,11 @@ describe('Adobe Commerce AIO Toolkit', () => {
     expect(typeof toolkit.EventAction).toBe('function');
   });
 
+  it('should export GraphQL class', () => {
+    expect(toolkit.GraphQL).toBeDefined();
+    expect(typeof toolkit.GraphQL).toBe('function');
+  });
+
   it('should export WebhookAction class', () => {
     expect(toolkit.WebhookAction).toBeDefined();
     expect(typeof toolkit.WebhookAction).toBe('function');

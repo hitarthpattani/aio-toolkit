@@ -47,6 +47,7 @@
   "license": "MIT",
   "dependencies": {
     "@adobe/aio-sdk": "^5.0.0",
+    "graphql": "^16.11.0",
     "openwhisk": "^3.21.8"
   },
   "lint-staged": {
@@ -58,6 +59,7 @@
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
+    "@types/graphql": "^14.2.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",

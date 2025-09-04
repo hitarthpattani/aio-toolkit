@@ -32,6 +32,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var index_exports = {};
 __export(index_exports, {
   EventAction: () => event_action_default,
+  GraphQL: () => graphql_default,
   HttpMethod: () => HttpMethod,
   HttpStatus: () => HttpStatus,
   Openwhisk: () => openwhisk_default,
@@ -290,6 +291,83 @@ __name(_EventAction, "EventAction");
 var EventAction = _EventAction;
 var event_action_default = EventAction;
 
+// src/framework/graphql/index.ts
+var import_graphql = require("graphql");
+var _GraphQl = class _GraphQl {
+  static execute(schema = `
+      type Query {
+        hello: String
+      }
+    `, resolvers = async (_params) => {
+    return {
+      hello: /* @__PURE__ */ __name(() => "Hello World!", "hello")
+    };
+  }, name = "main", disableIntrospection = false) {
+    return runtime_action_default.execute(
+      `graphql-${name}`,
+      ["get" /* GET */, "post" /* POST */],
+      ["query"],
+      [],
+      async (params, ctx) => {
+        let graphqlSchema;
+        try {
+          graphqlSchema = (0, import_graphql.buildSchema)(schema);
+        } catch (error) {
+          return response_default.error(400 /* BAD_REQUEST */, error.message);
+        }
+        const graphqlResolvers = await resolvers({
+          ...ctx,
+          ...{
+            params
+          }
+        });
+        const context = {};
+        const query = params.query;
+        let parsedQuery;
+        try {
+          parsedQuery = (0, import_graphql.parse)(query);
+        } catch (error) {
+          return response_default.error(400 /* BAD_REQUEST */, error.message);
+        }
+        const validationErrors = (0, import_graphql.validate)(graphqlSchema, parsedQuery);
+        if (validationErrors.length) {
+          return response_default.error(
+            400 /* BAD_REQUEST */,
+            validationErrors.map((err) => err.message).join(", ")
+          );
+        }
+        if (disableIntrospection) {
+          const isIntrospectionQuery = parsedQuery.definitions.some(
+            (definition) => definition.selectionSet.selections.some(
+              (selection) => selection.name.value.startsWith("__")
+            )
+          );
+          if (isIntrospectionQuery) {
+            return response_default.error(
+              400 /* BAD_REQUEST */,
+              "Introspection is disabled for security reasons."
+            );
+          }
+        }
+        const variables = typeof params.variables === "string" ? JSON.parse(params.variables) : params.variables;
+        return response_default.success(
+          await (0, import_graphql.graphql)({
+            schema: graphqlSchema,
+            source: query,
+            rootValue: graphqlResolvers,
+            contextValue: context,
+            variableValues: variables,
+            operationName: params.operationName
+          })
+        );
+      }
+    );
+  }
+};
+__name(_GraphQl, "GraphQl");
+var GraphQl = _GraphQl;
+var graphql_default = GraphQl;
+
 // src/framework/webhook-action/index.ts
 var crypto = __toESM(require("crypto"));
 
@@ -491,6 +569,7 @@ var openwhisk_action_default = OpenwhiskAction;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   EventAction,
+  GraphQL,
   HttpMethod,
   HttpStatus,
   Openwhisk,
