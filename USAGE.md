@@ -110,7 +110,7 @@ import {
   HttpMethod, 
   HttpStatus, 
   ActionResponse,
-  ActionResponseType 
+  RuntimeActionResponseType 
 } from '@adobe-commerce/aio-toolkit';
 
 const handler = Action.execute(
@@ -118,7 +118,7 @@ const handler = Action.execute(
   [HttpMethod.POST],
   ['userId'],
   [],
-  async (params: { [key: string]: any }, ctx): Promise<ActionResponseType> => {
+  async (params: { [key: string]: any }, ctx): Promise<RuntimeActionResponseType> => {
     const userId = params.userId as string;
     
     return ActionResponse.success({

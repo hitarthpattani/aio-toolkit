@@ -9,7 +9,7 @@ import Parameters from '../utils/parameters';
 import Validator from '../utils/validator';
 
 import { HttpStatus, HttpMethod } from './types';
-import { ActionResponseType } from './response/types';
+import { RuntimeActionResponseType } from './response/types';
 
 class RuntimeAction {
   /**
@@ -28,10 +28,12 @@ class RuntimeAction {
     action: (
       params: { [key: string]: any },
       ctx: { logger: any; headers: { [key: string]: any } }
-    ) => Promise<ActionResponseType> = async (_params): Promise<ActionResponseType> => {
+    ) => Promise<RuntimeActionResponseType> = async (
+      _params
+    ): Promise<RuntimeActionResponseType> => {
       return { statusCode: HttpStatus.OK, body: {} };
     }
-  ): (params: { [key: string]: any }) => Promise<ActionResponseType> {
+  ): (params: { [key: string]: any }) => Promise<RuntimeActionResponseType> {
     return async (params: { [key: string]: any }) => {
       // create a Logger
       const logger = Core.Logger(name, { level: params.LOG_LEVEL || 'info' });
@@ -74,7 +76,7 @@ class RuntimeAction {
     requiredHeaders: string[],
     httpMethods: HttpMethod[],
     logger: any
-  ): ActionResponseType | null {
+  ): RuntimeActionResponseType | null {
     // check for missing request input parameters and headers
     const errorMessage =
       Validator.checkMissingRequestInputs(params, requiredParams, requiredHeaders) ?? '';

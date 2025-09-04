@@ -19,4 +19,4 @@ export interface ErrorResponse {
   };
 }
 
-export type ActionResponseType = SuccessResponse | ErrorResponse;
+export type RuntimeActionResponseType = SuccessResponse | ErrorResponse;

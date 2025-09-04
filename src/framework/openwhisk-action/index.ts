@@ -11,7 +11,7 @@ import RuntimeActionResponse from '../runtime-action/response';
 import Parameters from '../utils/parameters';
 
 import { HttpStatus } from '../runtime-action/types';
-import { ActionResponseType } from '../runtime-action/response/types';
+import { RuntimeActionResponseType } from '../runtime-action/response/types';
 
 class OpenwhiskAction {
   /**
@@ -24,10 +24,12 @@ class OpenwhiskAction {
     action: (
       params: { [key: string]: any },
       ctx: { logger: any; headers: { [key: string]: any } }
-    ) => Promise<ActionResponseType> = async (_params): Promise<ActionResponseType> => {
+    ) => Promise<RuntimeActionResponseType> = async (
+      _params
+    ): Promise<RuntimeActionResponseType> => {
       return { statusCode: HttpStatus.OK, body: {} };
     }
-  ): (params: { [key: string]: any }) => Promise<ActionResponseType> {
+  ): (params: { [key: string]: any }) => Promise<RuntimeActionResponseType> {
     return async (params: { [key: string]: any }) => {
       // create a Logger
       const logger = Core.Logger(name, { level: params.LOG_LEVEL || 'info' });

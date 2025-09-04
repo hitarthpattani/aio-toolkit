@@ -33,7 +33,7 @@ interface ErrorResponse {
         };
     };
 }
-type ActionResponseType = SuccessResponse | ErrorResponse;
+type RuntimeActionResponseType = SuccessResponse | ErrorResponse;
 
 declare class RuntimeAction {
     static execute(name?: string, httpMethods?: HttpMethod[], requiredParams?: string[], requiredHeaders?: string[], action?: (params: {
@@ -43,9 +43,9 @@ declare class RuntimeAction {
         headers: {
             [key: string]: any;
         };
-    }) => Promise<ActionResponseType>): (params: {
+    }) => Promise<RuntimeActionResponseType>): (params: {
         [key: string]: any;
-    }) => Promise<ActionResponseType>;
+    }) => Promise<RuntimeActionResponseType>;
     private static validateRequest;
 }
 
@@ -64,9 +64,9 @@ declare class EventAction {
         headers: {
             [key: string]: any;
         };
-    }) => Promise<ActionResponseType>): (params: {
+    }) => Promise<RuntimeActionResponseType>): (params: {
         [key: string]: any;
-    }) => Promise<ActionResponseType>;
+    }) => Promise<RuntimeActionResponseType>;
 }
 
 declare class Openwhisk {
@@ -83,9 +83,9 @@ declare class OpenwhiskAction {
         headers: {
             [key: string]: any;
         };
-    }) => Promise<ActionResponseType>): (params: {
+    }) => Promise<RuntimeActionResponseType>): (params: {
         [key: string]: any;
-    }) => Promise<ActionResponseType>;
+    }) => Promise<RuntimeActionResponseType>;
 }
 
 declare class Parameters {
@@ -103,4 +103,4 @@ declare class Validator {
     }, requiredParams?: string[], requiredHeaders?: string[]): string | null;
 }
 
-export { type ActionResponseType, type ErrorResponse, EventAction, HttpMethod, HttpStatus, Openwhisk, OpenwhiskAction, Parameters, RuntimeAction, RuntimeActionResponse, type SuccessResponse, Validator };
+export { type ErrorResponse, EventAction, HttpMethod, HttpStatus, Openwhisk, OpenwhiskAction, Parameters, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, type SuccessResponse, Validator };
