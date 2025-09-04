@@ -26,6 +26,16 @@ describe('Adobe Commerce AIO Toolkit', () => {
     expect(typeof toolkit.EventAction).toBe('function');
   });
 
+  it('should export Openwhisk class', () => {
+    expect(toolkit.Openwhisk).toBeDefined();
+    expect(typeof toolkit.Openwhisk).toBe('function');
+  });
+
+  it('should export OpenwhiskAction class', () => {
+    expect(toolkit.OpenwhiskAction).toBeDefined();
+    expect(typeof toolkit.OpenwhiskAction).toBe('function');
+  });
+
   it('should export Parameters utility', () => {
     expect(toolkit.Parameters).toBeDefined();
     expect(typeof toolkit.Parameters).toBe('function');

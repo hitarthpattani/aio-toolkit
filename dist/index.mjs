@@ -207,9 +207,105 @@ var _RuntimeAction = class _RuntimeAction {
 __name(_RuntimeAction, "RuntimeAction");
 var RuntimeAction = _RuntimeAction;
 var runtime_action_default = RuntimeAction;
+
+// src/framework/event-action/index.ts
+import { Core as Core2 } from "@adobe/aio-sdk";
+var _EventAction = class _EventAction {
+  /**
+   * @param name
+   * @param requiredParams
+   * @param requiredHeaders
+   * @param action
+   * @returns {(function(*): Promise<any>)|*}
+   */
+  static execute(name = "main", requiredParams = [], requiredHeaders = [], action = async (_params) => {
+    return { statusCode: 200 /* OK */, body: {} };
+  }) {
+    return async (params) => {
+      const logger = Core2.Logger(name, { level: params.LOG_LEVEL || "info" });
+      try {
+        logger.info(`Calling the ${name} action`);
+        logger.debug(parameters_default.stringify(params));
+        const errorMessage = validator_default.checkMissingRequestInputs(params, requiredParams, requiredHeaders) || "";
+        if (errorMessage) {
+          return response_default.error(400 /* BAD_REQUEST */, errorMessage);
+        }
+        const result = await action(params, { logger, headers: params.__ow_headers || {} });
+        logger.info(result);
+        return result;
+      } catch (error) {
+        logger.error(error);
+        return response_default.error(500 /* INTERNAL_ERROR */, "server error");
+      }
+    };
+  }
+};
+__name(_EventAction, "EventAction");
+var EventAction = _EventAction;
+var event_action_default = EventAction;
+
+// src/framework/openwhisk/index.ts
+import openwhisk from "openwhisk";
+var _Openwhisk = class _Openwhisk {
+  /**
+   * @param host
+   * @param apiKey
+   */
+  constructor(host, apiKey) {
+    this.openwhiskClient = openwhisk({ apihost: host, api_key: apiKey });
+  }
+  /**
+   * @param action
+   * @param params
+   * @returns {Promise<Activation<Dict>>}
+   */
+  async execute(action, params) {
+    return await this.openwhiskClient.actions.invoke({
+      name: action,
+      blocking: true,
+      params
+    });
+  }
+};
+__name(_Openwhisk, "Openwhisk");
+var Openwhisk = _Openwhisk;
+var openwhisk_default = Openwhisk;
+
+// src/framework/openwhisk-action/index.ts
+import { Core as Core3 } from "@adobe/aio-sdk";
+var _OpenwhiskAction = class _OpenwhiskAction {
+  /**
+   * @param name
+   * @param action
+   * @returns {(function(*): Promise<any>)|*}
+   */
+  static execute(name = "main", action = async (_params) => {
+    return { statusCode: 200 /* OK */, body: {} };
+  }) {
+    return async (params) => {
+      const logger = Core3.Logger(name, { level: params.LOG_LEVEL || "info" });
+      try {
+        logger.info(`Calling the ${name} webhook action`);
+        logger.debug(parameters_default.stringify(params));
+        const result = await action(params, { logger, headers: params.__ow_headers || {} });
+        logger.info(result);
+        return result;
+      } catch (error) {
+        logger.error(error);
+        return response_default.error(500 /* INTERNAL_ERROR */, "server error");
+      }
+    };
+  }
+};
+__name(_OpenwhiskAction, "OpenwhiskAction");
+var OpenwhiskAction = _OpenwhiskAction;
+var openwhisk_action_default = OpenwhiskAction;
 export {
+  event_action_default as EventAction,
   HttpMethod,
   HttpStatus,
+  openwhisk_default as Openwhisk,
+  openwhisk_action_default as OpenwhiskAction,
   parameters_default as Parameters,
   runtime_action_default as RuntimeAction,
   response_default as RuntimeActionResponse,

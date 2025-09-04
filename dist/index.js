@@ -1,7 +1,9 @@
 "use strict";
+var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 var __export = (target, all) => {
@@ -16,13 +18,24 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // src/index.ts
 var index_exports = {};
 __export(index_exports, {
+  EventAction: () => event_action_default,
   HttpMethod: () => HttpMethod,
   HttpStatus: () => HttpStatus,
+  Openwhisk: () => openwhisk_default,
+  OpenwhiskAction: () => openwhisk_action_default,
   Parameters: () => parameters_default,
   RuntimeAction: () => runtime_action_default,
   RuntimeActionResponse: () => response_default,
@@ -236,10 +249,106 @@ var _RuntimeAction = class _RuntimeAction {
 __name(_RuntimeAction, "RuntimeAction");
 var RuntimeAction = _RuntimeAction;
 var runtime_action_default = RuntimeAction;
+
+// src/framework/event-action/index.ts
+var import_aio_sdk2 = require("@adobe/aio-sdk");
+var _EventAction = class _EventAction {
+  /**
+   * @param name
+   * @param requiredParams
+   * @param requiredHeaders
+   * @param action
+   * @returns {(function(*): Promise<any>)|*}
+   */
+  static execute(name = "main", requiredParams = [], requiredHeaders = [], action = async (_params) => {
+    return { statusCode: 200 /* OK */, body: {} };
+  }) {
+    return async (params) => {
+      const logger = import_aio_sdk2.Core.Logger(name, { level: params.LOG_LEVEL || "info" });
+      try {
+        logger.info(`Calling the ${name} action`);
+        logger.debug(parameters_default.stringify(params));
+        const errorMessage = validator_default.checkMissingRequestInputs(params, requiredParams, requiredHeaders) || "";
+        if (errorMessage) {
+          return response_default.error(400 /* BAD_REQUEST */, errorMessage);
+        }
+        const result = await action(params, { logger, headers: params.__ow_headers || {} });
+        logger.info(result);
+        return result;
+      } catch (error) {
+        logger.error(error);
+        return response_default.error(500 /* INTERNAL_ERROR */, "server error");
+      }
+    };
+  }
+};
+__name(_EventAction, "EventAction");
+var EventAction = _EventAction;
+var event_action_default = EventAction;
+
+// src/framework/openwhisk/index.ts
+var import_openwhisk = __toESM(require("openwhisk"));
+var _Openwhisk = class _Openwhisk {
+  /**
+   * @param host
+   * @param apiKey
+   */
+  constructor(host, apiKey) {
+    this.openwhiskClient = (0, import_openwhisk.default)({ apihost: host, api_key: apiKey });
+  }
+  /**
+   * @param action
+   * @param params
+   * @returns {Promise<Activation<Dict>>}
+   */
+  async execute(action, params) {
+    return await this.openwhiskClient.actions.invoke({
+      name: action,
+      blocking: true,
+      params
+    });
+  }
+};
+__name(_Openwhisk, "Openwhisk");
+var Openwhisk = _Openwhisk;
+var openwhisk_default = Openwhisk;
+
+// src/framework/openwhisk-action/index.ts
+var import_aio_sdk3 = require("@adobe/aio-sdk");
+var _OpenwhiskAction = class _OpenwhiskAction {
+  /**
+   * @param name
+   * @param action
+   * @returns {(function(*): Promise<any>)|*}
+   */
+  static execute(name = "main", action = async (_params) => {
+    return { statusCode: 200 /* OK */, body: {} };
+  }) {
+    return async (params) => {
+      const logger = import_aio_sdk3.Core.Logger(name, { level: params.LOG_LEVEL || "info" });
+      try {
+        logger.info(`Calling the ${name} webhook action`);
+        logger.debug(parameters_default.stringify(params));
+        const result = await action(params, { logger, headers: params.__ow_headers || {} });
+        logger.info(result);
+        return result;
+      } catch (error) {
+        logger.error(error);
+        return response_default.error(500 /* INTERNAL_ERROR */, "server error");
+      }
+    };
+  }
+};
+__name(_OpenwhiskAction, "OpenwhiskAction");
+var OpenwhiskAction = _OpenwhiskAction;
+var openwhisk_action_default = OpenwhiskAction;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  EventAction,
   HttpMethod,
   HttpStatus,
+  Openwhisk,
+  OpenwhiskAction,
   Parameters,
   RuntimeAction,
   RuntimeActionResponse,

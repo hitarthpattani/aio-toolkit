@@ -21,6 +21,16 @@ describe('Framework', () => {
     expect(typeof framework.EventAction).toBe('function');
   });
 
+  it('should export Openwhisk class', () => {
+    expect(framework.Openwhisk).toBeDefined();
+    expect(typeof framework.Openwhisk).toBe('function');
+  });
+
+  it('should export OpenwhiskAction class', () => {
+    expect(framework.OpenwhiskAction).toBeDefined();
+    expect(typeof framework.OpenwhiskAction).toBe('function');
+  });
+
   it('should export Parameters utility', () => {
     expect(framework.Parameters).toBeDefined();
     expect(typeof framework.Parameters).toBe('function');

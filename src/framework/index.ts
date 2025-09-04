@@ -13,6 +13,10 @@ export * from './runtime-action/response/types';
 // Export EventAction class
 export { default as EventAction } from './event-action';
 
+// Export OpenWhisk classes
+export { default as Openwhisk } from './openwhisk';
+export { default as OpenwhiskAction } from './openwhisk-action';
+
 // Export utilities
 export { default as Parameters } from './utils/parameters';
 export { default as Validator } from './utils/validator';
