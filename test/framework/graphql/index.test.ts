@@ -4,7 +4,7 @@
  * Copyright © Adobe, Inc. All rights reserved.
  */
 
-import GraphQL from '../../../src/framework/graphql';
+import GraphQlAction from '../../../src/framework/graphql';
 import { RuntimeActionResponseType } from '../../../src/framework/runtime-action/response/types';
 
 // Helper functions to safely access properties on union types
@@ -20,7 +20,7 @@ const getErrorMessage = (result: RuntimeActionResponseType): string | undefined 
   return 'error' in result ? result.error.body.error : undefined;
 };
 
-describe('GraphQL', () => {
+describe('GraphQlAction', () => {
   const testSchema = `
     type Query {
       hello(name: String): String
@@ -57,18 +57,18 @@ describe('GraphQL', () => {
   };
 
   it('should be a class with execute static method', () => {
-    expect(typeof GraphQL).toBe('function');
-    expect(GraphQL.name).toBe('GraphQl');
-    expect(typeof GraphQL.execute).toBe('function');
+    expect(typeof GraphQlAction).toBe('function');
+    expect(GraphQlAction.name).toBe('GraphQlAction');
+    expect(typeof GraphQlAction.execute).toBe('function');
   });
 
   it('should create a GraphQL handler function using execute method', () => {
-    const handler = GraphQL.execute(testSchema, testResolvers);
+    const handler = GraphQlAction.execute(testSchema, testResolvers);
     expect(typeof handler).toBe('function');
   });
 
   it('should handle simple GraphQL query execution', async () => {
-    const handler = GraphQL.execute(testSchema, testResolvers, 'test-graphql');
+    const handler = GraphQlAction.execute(testSchema, testResolvers, 'test-graphql');
 
     const result = await handler({
       query: '{ hello }',
@@ -84,7 +84,7 @@ describe('GraphQL', () => {
   });
 
   it('should handle GraphQL query with arguments', async () => {
-    const handler = GraphQL.execute(testSchema, testResolvers, 'test-args-graphql');
+    const handler = GraphQlAction.execute(testSchema, testResolvers, 'test-args-graphql');
 
     const result = await handler({
       query: '{ hello(name: "Test User") }',
@@ -100,7 +100,7 @@ describe('GraphQL', () => {
   });
 
   it('should handle GraphQL query with variables', async () => {
-    const handler = GraphQL.execute(testSchema, testResolvers, 'test-variables-graphql');
+    const handler = GraphQlAction.execute(testSchema, testResolvers, 'test-variables-graphql');
 
     const result = await handler({
       query: 'query GetUser($id: ID!) { user(id: $id) { id name email } }',
@@ -123,7 +123,11 @@ describe('GraphQL', () => {
   });
 
   it('should handle GraphQL query with string variables', async () => {
-    const handler = GraphQL.execute(testSchema, testResolvers, 'test-string-variables-graphql');
+    const handler = GraphQlAction.execute(
+      testSchema,
+      testResolvers,
+      'test-string-variables-graphql'
+    );
 
     const result = await handler({
       query: 'query GetUser($id: ID!) { user(id: $id) { id name } }',
@@ -145,7 +149,7 @@ describe('GraphQL', () => {
   });
 
   it('should handle GraphQL query with operation name', async () => {
-    const handler = GraphQL.execute(testSchema, testResolvers, 'test-operation-graphql');
+    const handler = GraphQlAction.execute(testSchema, testResolvers, 'test-operation-graphql');
 
     const result = await handler({
       query: `
@@ -165,7 +169,7 @@ describe('GraphQL', () => {
   });
 
   it('should handle GraphQL syntax errors', async () => {
-    const handler = GraphQL.execute(testSchema, testResolvers, 'test-syntax-error-graphql');
+    const handler = GraphQlAction.execute(testSchema, testResolvers, 'test-syntax-error-graphql');
 
     const result = await handler({
       query: '{ hello syntax error }',
@@ -180,7 +184,7 @@ describe('GraphQL', () => {
   });
 
   it('should handle GraphQL parse errors', async () => {
-    const handler = GraphQL.execute(testSchema, testResolvers, 'test-parse-error-graphql');
+    const handler = GraphQlAction.execute(testSchema, testResolvers, 'test-parse-error-graphql');
 
     const result = await handler({
       query: '{ hello', // Missing closing brace
@@ -196,7 +200,11 @@ describe('GraphQL', () => {
   });
 
   it('should handle GraphQL validation errors', async () => {
-    const handler = GraphQL.execute(testSchema, testResolvers, 'test-validation-error-graphql');
+    const handler = GraphQlAction.execute(
+      testSchema,
+      testResolvers,
+      'test-validation-error-graphql'
+    );
 
     const result = await handler({
       query: '{ nonExistentField }',
@@ -212,7 +220,11 @@ describe('GraphQL', () => {
 
   it('should handle invalid schema errors', async () => {
     const invalidSchema = 'invalid schema syntax';
-    const handler = GraphQL.execute(invalidSchema, testResolvers, 'test-invalid-schema-graphql');
+    const handler = GraphQlAction.execute(
+      invalidSchema,
+      testResolvers,
+      'test-invalid-schema-graphql'
+    );
 
     const result = await handler({
       query: '{ hello }',
@@ -227,7 +239,7 @@ describe('GraphQL', () => {
   });
 
   it('should support introspection by default', async () => {
-    const handler = GraphQL.execute(testSchema, testResolvers, 'test-introspection-graphql');
+    const handler = GraphQlAction.execute(testSchema, testResolvers, 'test-introspection-graphql');
 
     const result = await handler({
       query: '{ __schema { types { name } } }',
@@ -242,7 +254,7 @@ describe('GraphQL', () => {
   });
 
   it('should disable introspection when configured', async () => {
-    const handler = GraphQL.execute(
+    const handler = GraphQlAction.execute(
       testSchema,
       testResolvers,
       'test-no-introspection-graphql',
@@ -264,7 +276,7 @@ describe('GraphQL', () => {
   });
 
   it('should disable __type introspection when configured', async () => {
-    const handler = GraphQL.execute(
+    const handler = GraphQlAction.execute(
       testSchema,
       testResolvers,
       'test-no-type-introspection-graphql',
@@ -286,7 +298,7 @@ describe('GraphQL', () => {
   });
 
   it('should disable simple introspection fields when configured', async () => {
-    const handler = GraphQL.execute(
+    const handler = GraphQlAction.execute(
       testSchema,
       testResolvers,
       'test-simple-introspection-graphql',
@@ -307,7 +319,7 @@ describe('GraphQL', () => {
   });
 
   it('should allow normal queries when introspection is disabled', async () => {
-    const handler = GraphQL.execute(
+    const handler = GraphQlAction.execute(
       testSchema,
       testResolvers,
       'test-normal-with-introspection-disabled-graphql',
@@ -326,7 +338,7 @@ describe('GraphQL', () => {
   });
 
   it('should handle missing required query parameter', async () => {
-    const handler = GraphQL.execute(testSchema, testResolvers, 'test-missing-query-graphql');
+    const handler = GraphQlAction.execute(testSchema, testResolvers, 'test-missing-query-graphql');
 
     const result = await handler({
       __ow_headers: {},
@@ -342,7 +354,7 @@ describe('GraphQL', () => {
   });
 
   it('should support GET method', async () => {
-    const handler = GraphQL.execute(testSchema, testResolvers, 'test-get-graphql');
+    const handler = GraphQlAction.execute(testSchema, testResolvers, 'test-get-graphql');
 
     const result = await handler({
       query: '{ hello }',
@@ -358,7 +370,7 @@ describe('GraphQL', () => {
   });
 
   it('should support POST method', async () => {
-    const handler = GraphQL.execute(testSchema, testResolvers, 'test-post-graphql');
+    const handler = GraphQlAction.execute(testSchema, testResolvers, 'test-post-graphql');
 
     const result = await handler({
       query: '{ hello }',
@@ -374,7 +386,7 @@ describe('GraphQL', () => {
   });
 
   it('should reject unsupported HTTP methods', async () => {
-    const handler = GraphQL.execute(testSchema, testResolvers, 'test-method-graphql');
+    const handler = GraphQlAction.execute(testSchema, testResolvers, 'test-method-graphql');
 
     const result = await handler({
       query: '{ hello }',
@@ -415,7 +427,7 @@ describe('GraphQL', () => {
       }
     `;
 
-    const handler = GraphQL.execute(contextSchema, contextResolver, 'test-context-graphql');
+    const handler = GraphQlAction.execute(contextSchema, contextResolver, 'test-context-graphql');
 
     const result = await handler({
       query: '{ contextTest { hasLogger hasHeaders hasParams } }',
@@ -447,7 +459,11 @@ describe('GraphQL', () => {
       }
     `;
 
-    const handler = GraphQL.execute(errorSchema, errorResolver, 'test-resolver-error-graphql');
+    const handler = GraphQlAction.execute(
+      errorSchema,
+      errorResolver,
+      'test-resolver-error-graphql'
+    );
 
     const result = await handler({
       query: '{ errorField }',
@@ -463,7 +479,7 @@ describe('GraphQL', () => {
   });
 
   it('should use default values when parameters are not provided', async () => {
-    const handler = GraphQL.execute(); // Using all defaults
+    const handler = GraphQlAction.execute(); // Using all defaults
 
     const result = await handler({
       query: '{ hello }',

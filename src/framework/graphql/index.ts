@@ -12,7 +12,7 @@ import RuntimeActionResponse from '../runtime-action/response';
 import { HttpMethod, HttpStatus } from '../runtime-action/types';
 import { RuntimeActionResponseType } from '../runtime-action/response/types';
 
-class GraphQl {
+class GraphQlAction {
   static execute(
     schema: string = `
       type Query {
@@ -102,4 +102,4 @@ class GraphQl {
   }
 }
 
-export default GraphQl;
+export default GraphQlAction;

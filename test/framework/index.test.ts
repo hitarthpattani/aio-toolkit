@@ -21,9 +21,9 @@ describe('Framework', () => {
     expect(typeof framework.EventAction).toBe('function');
   });
 
-  it('should export GraphQL class', () => {
-    expect(framework.GraphQL).toBeDefined();
-    expect(typeof framework.GraphQL).toBe('function');
+  it('should export GraphQlAction class', () => {
+    expect(framework.GraphQlAction).toBeDefined();
+    expect(typeof framework.GraphQlAction).toBe('function');
   });
 
   it('should export WebhookAction class', () => {
