@@ -7,7 +7,7 @@
 import * as crypto from 'crypto';
 import { Verify } from 'crypto';
 
-import WebhookResponse from './response';
+import WebhookActionResponse from './response';
 
 import RuntimeAction from '../runtime-action';
 import RuntimeActionResponse from '../runtime-action/response';
@@ -18,7 +18,7 @@ import { HttpMethod, HttpStatus } from '../runtime-action/types';
 import { SignatureVerification } from './types';
 import { RuntimeActionResponseType } from '../runtime-action/response/types';
 
-class Webhook {
+class WebhookAction {
   /**
    * @param name
    * @param requiredParams
@@ -67,7 +67,7 @@ class Webhook {
         if (signatureVerification !== SignatureVerification.DISABLED) {
           if (params.PUBLIC_KEY === undefined) {
             operations.push(
-              WebhookResponse.exception(
+              WebhookActionResponse.exception(
                 'Magento\\Framework\\Exception\\LocalizedException',
                 'The public key is invalid'
               )
@@ -96,7 +96,7 @@ class Webhook {
               operations.push(await action(params, ctx));
             } else {
               operations.push(
-                WebhookResponse.exception(
+                WebhookActionResponse.exception(
                   'Magento\\Framework\\Exception\\LocalizedException',
                   `The signature is invalid.`
                 )
@@ -121,4 +121,4 @@ class Webhook {
   }
 }
 
-export default Webhook;
+export default WebhookAction;

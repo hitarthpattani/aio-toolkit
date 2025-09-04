@@ -21,14 +21,14 @@ describe('Framework', () => {
     expect(typeof framework.EventAction).toBe('function');
   });
 
-  it('should export Webhook class', () => {
-    expect(framework.Webhook).toBeDefined();
-    expect(typeof framework.Webhook).toBe('function');
+  it('should export WebhookAction class', () => {
+    expect(framework.WebhookAction).toBeDefined();
+    expect(typeof framework.WebhookAction).toBe('function');
   });
 
-  it('should export WebhookResponse class', () => {
-    expect(framework.WebhookResponse).toBeDefined();
-    expect(typeof framework.WebhookResponse).toBe('function');
+  it('should export WebhookActionResponse class', () => {
+    expect(framework.WebhookActionResponse).toBeDefined();
+    expect(typeof framework.WebhookActionResponse).toBe('function');
   });
 
   it('should export Openwhisk class', () => {

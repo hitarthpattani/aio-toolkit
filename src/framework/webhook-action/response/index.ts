@@ -13,7 +13,7 @@ import {
   RemoveResponse,
 } from './types';
 
-class WebhookResponse {
+class WebhookActionResponse {
   static success(): SuccessResponse {
     return {
       op: WebhookOperation.SUCCESS,
@@ -54,4 +54,4 @@ class WebhookResponse {
   }
 }
 
-export default WebhookResponse;
+export default WebhookActionResponse;

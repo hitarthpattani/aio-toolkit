@@ -1,15 +1,15 @@
 /**
- * Test for WebhookResponse class
+ * Test for WebhookActionResponse class
  * Copyright © Adobe, Inc. All rights reserved.
  */
 
-import WebhookResponse from '../../../../src/framework/webhook/response';
-import { WebhookOperation } from '../../../../src/framework/webhook/response/types';
+import WebhookActionResponse from '../../../../src/framework/webhook-action/response';
+import { WebhookOperation } from '../../../../src/framework/webhook-action/response/types';
 
-describe('WebhookResponse', () => {
+describe('WebhookActionResponse', () => {
   describe('success', () => {
     it('should create a success response', () => {
-      const response = WebhookResponse.success();
+      const response = WebhookActionResponse.success();
       expect(response).toEqual({
         op: WebhookOperation.SUCCESS,
       });
@@ -18,7 +18,7 @@ describe('WebhookResponse', () => {
 
   describe('exception', () => {
     it('should create an exception response with class and message', () => {
-      const response = WebhookResponse.exception(
+      const response = WebhookActionResponse.exception(
         'Magento\\Framework\\Exception\\LocalizedException',
         'Test error message'
       );
@@ -30,7 +30,7 @@ describe('WebhookResponse', () => {
     });
 
     it('should create an exception response with only class', () => {
-      const response = WebhookResponse.exception('TestException');
+      const response = WebhookActionResponse.exception('TestException');
       expect(response).toEqual({
         op: WebhookOperation.EXCEPTION,
         class: 'TestException',
@@ -39,7 +39,7 @@ describe('WebhookResponse', () => {
     });
 
     it('should create an exception response with only message', () => {
-      const response = WebhookResponse.exception(undefined, 'Error occurred');
+      const response = WebhookActionResponse.exception(undefined, 'Error occurred');
       expect(response).toEqual({
         op: WebhookOperation.EXCEPTION,
         class: undefined,
@@ -48,7 +48,7 @@ describe('WebhookResponse', () => {
     });
 
     it('should create an exception response with no parameters', () => {
-      const response = WebhookResponse.exception();
+      const response = WebhookActionResponse.exception();
       expect(response).toEqual({
         op: WebhookOperation.EXCEPTION,
         class: undefined,
@@ -59,7 +59,7 @@ describe('WebhookResponse', () => {
 
   describe('add', () => {
     it('should create an add response with path, value, and instance', () => {
-      const response = WebhookResponse.add('/test/path', { key: 'value' }, 'instance1');
+      const response = WebhookActionResponse.add('/test/path', { key: 'value' }, 'instance1');
       expect(response).toEqual({
         op: WebhookOperation.ADD,
         path: '/test/path',
@@ -69,7 +69,7 @@ describe('WebhookResponse', () => {
     });
 
     it('should create an add response without instance', () => {
-      const response = WebhookResponse.add('/test/path', { key: 'value' });
+      const response = WebhookActionResponse.add('/test/path', { key: 'value' });
       expect(response).toEqual({
         op: WebhookOperation.ADD,
         path: '/test/path',
@@ -79,7 +79,7 @@ describe('WebhookResponse', () => {
     });
 
     it('should create an add response with string value', () => {
-      const response = WebhookResponse.add('/test/path', 'string value');
+      const response = WebhookActionResponse.add('/test/path', 'string value');
       expect(response).toEqual({
         op: WebhookOperation.ADD,
         path: '/test/path',
@@ -89,7 +89,7 @@ describe('WebhookResponse', () => {
     });
 
     it('should create an add response with number value', () => {
-      const response = WebhookResponse.add('/test/path', 42);
+      const response = WebhookActionResponse.add('/test/path', 42);
       expect(response).toEqual({
         op: WebhookOperation.ADD,
         path: '/test/path',
@@ -99,7 +99,7 @@ describe('WebhookResponse', () => {
     });
 
     it('should create an add response with boolean value', () => {
-      const response = WebhookResponse.add('/test/path', true);
+      const response = WebhookActionResponse.add('/test/path', true);
       expect(response).toEqual({
         op: WebhookOperation.ADD,
         path: '/test/path',
@@ -109,7 +109,7 @@ describe('WebhookResponse', () => {
     });
 
     it('should create an add response with array value', () => {
-      const response = WebhookResponse.add('/test/path', [1, 2, 3]);
+      const response = WebhookActionResponse.add('/test/path', [1, 2, 3]);
       expect(response).toEqual({
         op: WebhookOperation.ADD,
         path: '/test/path',
@@ -121,7 +121,11 @@ describe('WebhookResponse', () => {
 
   describe('replace', () => {
     it('should create a replace response with path, value, and instance', () => {
-      const response = WebhookResponse.replace('/test/path', { key: 'new value' }, 'instance1');
+      const response = WebhookActionResponse.replace(
+        '/test/path',
+        { key: 'new value' },
+        'instance1'
+      );
       expect(response).toEqual({
         op: WebhookOperation.REPLACE,
         path: '/test/path',
@@ -131,7 +135,7 @@ describe('WebhookResponse', () => {
     });
 
     it('should create a replace response without instance', () => {
-      const response = WebhookResponse.replace('/test/path', { key: 'new value' });
+      const response = WebhookActionResponse.replace('/test/path', { key: 'new value' });
       expect(response).toEqual({
         op: WebhookOperation.REPLACE,
         path: '/test/path',
@@ -141,7 +145,7 @@ describe('WebhookResponse', () => {
     });
 
     it('should create a replace response with string value', () => {
-      const response = WebhookResponse.replace('/test/path', 'new string value');
+      const response = WebhookActionResponse.replace('/test/path', 'new string value');
       expect(response).toEqual({
         op: WebhookOperation.REPLACE,
         path: '/test/path',
@@ -151,7 +155,7 @@ describe('WebhookResponse', () => {
     });
 
     it('should create a replace response with null value', () => {
-      const response = WebhookResponse.replace('/test/path', null);
+      const response = WebhookActionResponse.replace('/test/path', null);
       expect(response).toEqual({
         op: WebhookOperation.REPLACE,
         path: '/test/path',
@@ -163,7 +167,7 @@ describe('WebhookResponse', () => {
 
   describe('remove', () => {
     it('should create a remove response with path', () => {
-      const response = WebhookResponse.remove('/test/path');
+      const response = WebhookActionResponse.remove('/test/path');
       expect(response).toEqual({
         op: WebhookOperation.REMOVE,
         path: '/test/path',
@@ -171,7 +175,7 @@ describe('WebhookResponse', () => {
     });
 
     it('should create a remove response with nested path', () => {
-      const response = WebhookResponse.remove('/test/nested/path/item');
+      const response = WebhookActionResponse.remove('/test/nested/path/item');
       expect(response).toEqual({
         op: WebhookOperation.REMOVE,
         path: '/test/nested/path/item',
@@ -179,7 +183,7 @@ describe('WebhookResponse', () => {
     });
 
     it('should create a remove response with root path', () => {
-      const response = WebhookResponse.remove('/');
+      const response = WebhookActionResponse.remove('/');
       expect(response).toEqual({
         op: WebhookOperation.REMOVE,
         path: '/',

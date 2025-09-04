@@ -1,12 +1,12 @@
 /**
- * Test for Webhook class
+ * Test for WebhookAction class
  * Copyright © Adobe, Inc. All rights reserved.
  */
 
-import Webhook from '../../../src/framework/webhook';
-import WebhookResponse from '../../../src/framework/webhook/response';
+import WebhookAction from '../../../src/framework/webhook-action';
+import WebhookActionResponse from '../../../src/framework/webhook-action/response';
 import { HttpStatus } from '../../../src/framework/runtime-action/types';
-import { SignatureVerification } from '../../../src/framework/webhook/types';
+import { SignatureVerification } from '../../../src/framework/webhook-action/types';
 import * as crypto from 'crypto';
 
 // Mock the entire crypto module at the top level
@@ -18,7 +18,7 @@ jest.mock('crypto', () => {
   };
 });
 
-describe('Webhook', () => {
+describe('WebhookAction', () => {
   let mockCreateVerify: jest.MockedFunction<typeof crypto.createVerify>;
 
   beforeEach(() => {
@@ -27,32 +27,32 @@ describe('Webhook', () => {
   });
 
   it('should be a class with execute static method', () => {
-    expect(typeof Webhook).toBe('function');
-    expect(Webhook.name).toBe('Webhook');
-    expect(typeof Webhook.execute).toBe('function');
+    expect(typeof WebhookAction).toBe('function');
+    expect(WebhookAction.name).toBe('WebhookAction');
+    expect(typeof WebhookAction.execute).toBe('function');
   });
 
   it('should create a webhook handler function using execute method', () => {
-    const webhookHandler = Webhook.execute(
+    const webhookHandler = WebhookAction.execute(
       'test-webhook',
       ['name'],
       ['Authorization'],
       SignatureVerification.DISABLED,
       async _params => {
-        return { statusCode: HttpStatus.OK, body: { message: 'Hello Webhook World' } };
+        return { statusCode: HttpStatus.OK, body: { message: 'Hello WebhookAction World' } };
       }
     );
     expect(typeof webhookHandler).toBe('function');
   });
 
   it('should handle webhook execution with disabled signature verification', async () => {
-    const webhookHandler = Webhook.execute(
+    const webhookHandler = WebhookAction.execute(
       'test-webhook',
       [],
       [],
       SignatureVerification.DISABLED,
       (async (_params, _ctx) => {
-        return WebhookResponse.success();
+        return WebhookActionResponse.success();
       }) as any
     );
 
@@ -77,7 +77,7 @@ describe('Webhook', () => {
     const testPayload = { userId: '123', action: 'create' };
     const encodedPayload = btoa(JSON.stringify(testPayload));
 
-    const webhookHandler = Webhook.execute(
+    const webhookHandler = WebhookAction.execute(
       'test-webhook',
       [],
       [],
@@ -86,7 +86,7 @@ describe('Webhook', () => {
         // Check if payload was merged with params
         expect(params.userId).toBe('123');
         expect(params.action).toBe('create');
-        return WebhookResponse.success();
+        return WebhookActionResponse.success();
       }) as any
     );
 
@@ -102,13 +102,13 @@ describe('Webhook', () => {
   it('should handle invalid JSON payload gracefully', async () => {
     const invalidPayload = btoa('invalid-json');
 
-    const webhookHandler = Webhook.execute(
+    const webhookHandler = WebhookAction.execute(
       'test-webhook',
       [],
       [],
       SignatureVerification.DISABLED,
       (async (_params, _ctx) => {
-        return WebhookResponse.success();
+        return WebhookActionResponse.success();
       }) as any
     );
 
@@ -126,7 +126,7 @@ describe('Webhook', () => {
   });
 
   it('should handle missing required parameters', async () => {
-    const webhookHandler = Webhook.execute(
+    const webhookHandler = WebhookAction.execute(
       'test-webhook',
       ['requiredParam'],
       [],
@@ -148,7 +148,7 @@ describe('Webhook', () => {
   });
 
   it('should handle missing required headers', async () => {
-    const webhookHandler = Webhook.execute(
+    const webhookHandler = WebhookAction.execute(
       'test-webhook',
       [],
       ['Authorization'],
@@ -170,7 +170,12 @@ describe('Webhook', () => {
   });
 
   it('should handle signature verification with missing public key', async () => {
-    const webhookHandler = Webhook.execute('test-webhook', [], [], SignatureVerification.ENABLED);
+    const webhookHandler = WebhookAction.execute(
+      'test-webhook',
+      [],
+      [],
+      SignatureVerification.ENABLED
+    );
 
     const params = {
       __ow_headers: {},
@@ -190,7 +195,7 @@ describe('Webhook', () => {
   });
 
   it('should use default values when parameters are not provided', async () => {
-    const webhookHandler = Webhook.execute();
+    const webhookHandler = WebhookAction.execute();
 
     const params = {
       __ow_headers: {
@@ -208,7 +213,7 @@ describe('Webhook', () => {
   });
 
   it('should handle webhook execution errors and return error response', async () => {
-    const webhookHandler = Webhook.execute(
+    const webhookHandler = WebhookAction.execute(
       'error-webhook',
       [],
       [],
@@ -234,10 +239,10 @@ describe('Webhook', () => {
 
   it('should pass logger and headers context to action function', async () => {
     const mockAction = jest.fn(async (_params, _ctx) => {
-      return WebhookResponse.success();
+      return WebhookActionResponse.success();
     }) as any;
 
-    const webhookHandler = Webhook.execute(
+    const webhookHandler = WebhookAction.execute(
       'context-webhook',
       [],
       [],
@@ -262,13 +267,13 @@ describe('Webhook', () => {
     const testPayload = { test: 'data' };
     const encodedPayload = btoa(JSON.stringify(testPayload));
 
-    const webhookHandler = Webhook.execute(
+    const webhookHandler = WebhookAction.execute(
       'debug-webhook',
       [],
       [],
       SignatureVerification.DISABLED,
       (async (_params, _ctx) => {
-        return WebhookResponse.success();
+        return WebhookActionResponse.success();
       }) as any
     );
 
@@ -295,13 +300,13 @@ describe('Webhook', () => {
 
     mockCreateVerify.mockReturnValue(mockVerify as any);
 
-    const webhookHandler = Webhook.execute(
+    const webhookHandler = WebhookAction.execute(
       'signed-webhook',
       [],
       [],
       SignatureVerification.ENABLED,
       (async (_params, _ctx) => {
-        return WebhookResponse.success();
+        return WebhookActionResponse.success();
       }) as any
     );
 
@@ -340,13 +345,13 @@ describe('Webhook', () => {
 
     mockCreateVerify.mockReturnValue(mockVerify as any);
 
-    const webhookHandler = Webhook.execute(
+    const webhookHandler = WebhookAction.execute(
       'signed-webhook',
       [],
       [],
       SignatureVerification.ENABLED,
       (async (_params, _ctx) => {
-        return WebhookResponse.success();
+        return WebhookActionResponse.success();
       }) as any
     );
 
@@ -379,13 +384,13 @@ describe('Webhook', () => {
 
     mockCreateVerify.mockReturnValue(mockVerify as any);
 
-    const webhookHandler = Webhook.execute(
+    const webhookHandler = WebhookAction.execute(
       'base64-signed-webhook',
       [],
       [],
       SignatureVerification.ENABLED_WITH_BASE64,
       (async (_params, _ctx) => {
-        return WebhookResponse.add('/test', { key: 'value' });
+        return WebhookActionResponse.add('/test', { key: 'value' });
       }) as any
     );
 
@@ -427,14 +432,14 @@ describe('Webhook', () => {
 
     mockCreateVerify.mockReturnValue(mockVerify as any);
 
-    const webhookHandler = Webhook.execute(
+    const webhookHandler = WebhookAction.execute(
       'param-signed-webhook',
       ['userId'],
       ['x-custom-header'],
       SignatureVerification.ENABLED,
       (async (params, _ctx) => {
         expect(params.userId).toBe('123');
-        return WebhookResponse.replace('/user', { id: params.userId });
+        return WebhookActionResponse.replace('/user', { id: params.userId });
       }) as any
     );
 
@@ -469,13 +474,13 @@ describe('Webhook', () => {
 
     mockCreateVerify.mockReturnValue(mockVerify as any);
 
-    const webhookHandler = Webhook.execute(
+    const webhookHandler = WebhookAction.execute(
       'no-signature-webhook',
       [],
       [],
       SignatureVerification.ENABLED,
       (async (_params, _ctx) => {
-        return WebhookResponse.success();
+        return WebhookActionResponse.success();
       }) as any
     );
 
@@ -508,7 +513,7 @@ describe('Webhook', () => {
   });
 
   it('should handle signature verification with missing required parameters', async () => {
-    const webhookHandler = Webhook.execute(
+    const webhookHandler = WebhookAction.execute(
       'required-params-webhook',
       ['requiredParam'], // Required parameter
       [], // No required headers
@@ -534,7 +539,7 @@ describe('Webhook', () => {
   });
 
   it('should handle signature verification with missing required headers', async () => {
-    const webhookHandler = Webhook.execute(
+    const webhookHandler = WebhookAction.execute(
       'required-headers-webhook',
       [], // No required parameters
       ['x-custom-header'], // Required header

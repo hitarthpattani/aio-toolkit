@@ -3,8 +3,8 @@
  * Copyright © Adobe, Inc. All rights reserved.
  */
 
-import { SignatureVerification } from '../../../src/framework/webhook/types';
-import { WebhookOperation } from '../../../src/framework/webhook/response/types';
+import { SignatureVerification } from '../../../src/framework/webhook-action/types';
+import { WebhookOperation } from '../../../src/framework/webhook-action/response/types';
 
 describe('SignatureVerification', () => {
   it('should have correct signature verification values', () => {

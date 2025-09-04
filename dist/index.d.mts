@@ -75,7 +75,7 @@ declare enum SignatureVerification {
     ENABLED_WITH_BASE64 = 2
 }
 
-declare class Webhook {
+declare class WebhookAction {
     static execute(name?: string, requiredParams?: string[], requiredHeaders?: string[], signatureVerification?: SignatureVerification, action?: (params: {
         [key: string]: any;
     }, ctx: {
@@ -120,7 +120,7 @@ interface RemoveResponse {
     path: string;
 }
 
-declare class WebhookResponse {
+declare class WebhookActionResponse {
     static success(): SuccessResponse;
     static exception(exceptionClass?: string, message?: string): ExceptionResponse;
     static add(path: string, value: any, instance?: string): AddResponse;
@@ -162,4 +162,4 @@ declare class Validator {
     }, requiredParams?: string[], requiredHeaders?: string[]): string | null;
 }
 
-export { type ErrorResponse, EventAction, HttpMethod, HttpStatus, Openwhisk, OpenwhiskAction, Parameters, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, Webhook, type AddResponse as WebhookAddResponse, type ExceptionResponse as WebhookExceptionResponse, WebhookOperation, type RemoveResponse as WebhookRemoveResponse, type ReplaceResponse as WebhookReplaceResponse, WebhookResponse, type SuccessResponse as WebhookSuccessResponse };
+export { type ErrorResponse, EventAction, HttpMethod, HttpStatus, Openwhisk, OpenwhiskAction, Parameters, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, WebhookAction, WebhookActionResponse, type AddResponse as WebhookAddResponse, type ExceptionResponse as WebhookExceptionResponse, WebhookOperation, type RemoveResponse as WebhookRemoveResponse, type ReplaceResponse as WebhookReplaceResponse, type SuccessResponse as WebhookSuccessResponse };

@@ -41,9 +41,9 @@ __export(index_exports, {
   RuntimeActionResponse: () => response_default,
   SignatureVerification: () => SignatureVerification,
   Validator: () => validator_default,
-  Webhook: () => webhook_default,
-  WebhookOperation: () => WebhookOperation,
-  WebhookResponse: () => response_default2
+  WebhookAction: () => webhook_action_default,
+  WebhookActionResponse: () => response_default2,
+  WebhookOperation: () => WebhookOperation
 });
 module.exports = __toCommonJS(index_exports);
 
@@ -290,10 +290,10 @@ __name(_EventAction, "EventAction");
 var EventAction = _EventAction;
 var event_action_default = EventAction;
 
-// src/framework/webhook/index.ts
+// src/framework/webhook-action/index.ts
 var crypto = __toESM(require("crypto"));
 
-// src/framework/webhook/response/types.ts
+// src/framework/webhook-action/response/types.ts
 var WebhookOperation = /* @__PURE__ */ ((WebhookOperation2) => {
   WebhookOperation2["SUCCESS"] = "success";
   WebhookOperation2["EXCEPTION"] = "exception";
@@ -303,8 +303,8 @@ var WebhookOperation = /* @__PURE__ */ ((WebhookOperation2) => {
   return WebhookOperation2;
 })(WebhookOperation || {});
 
-// src/framework/webhook/response/index.ts
-var _WebhookResponse = class _WebhookResponse {
+// src/framework/webhook-action/response/index.ts
+var _WebhookActionResponse = class _WebhookActionResponse {
   static success() {
     return {
       op: "success" /* SUCCESS */
@@ -340,11 +340,11 @@ var _WebhookResponse = class _WebhookResponse {
     };
   }
 };
-__name(_WebhookResponse, "WebhookResponse");
-var WebhookResponse = _WebhookResponse;
-var response_default2 = WebhookResponse;
+__name(_WebhookActionResponse, "WebhookActionResponse");
+var WebhookActionResponse = _WebhookActionResponse;
+var response_default2 = WebhookActionResponse;
 
-// src/framework/webhook/types.ts
+// src/framework/webhook-action/types.ts
 var SignatureVerification = /* @__PURE__ */ ((SignatureVerification2) => {
   SignatureVerification2[SignatureVerification2["DISABLED"] = 0] = "DISABLED";
   SignatureVerification2[SignatureVerification2["ENABLED"] = 1] = "ENABLED";
@@ -352,8 +352,8 @@ var SignatureVerification = /* @__PURE__ */ ((SignatureVerification2) => {
   return SignatureVerification2;
 })(SignatureVerification || {});
 
-// src/framework/webhook/index.ts
-var _Webhook = class _Webhook {
+// src/framework/webhook-action/index.ts
+var _WebhookAction = class _WebhookAction {
   /**
    * @param name
    * @param requiredParams
@@ -428,9 +428,9 @@ var _Webhook = class _Webhook {
     );
   }
 };
-__name(_Webhook, "Webhook");
-var Webhook = _Webhook;
-var webhook_default = Webhook;
+__name(_WebhookAction, "WebhookAction");
+var WebhookAction = _WebhookAction;
+var webhook_action_default = WebhookAction;
 
 // src/framework/openwhisk/index.ts
 var import_openwhisk = __toESM(require("openwhisk"));
@@ -500,8 +500,8 @@ var openwhisk_action_default = OpenwhiskAction;
   RuntimeActionResponse,
   SignatureVerification,
   Validator,
-  Webhook,
-  WebhookOperation,
-  WebhookResponse
+  WebhookAction,
+  WebhookActionResponse,
+  WebhookOperation
 });
 //# sourceMappingURL=index.js.map
