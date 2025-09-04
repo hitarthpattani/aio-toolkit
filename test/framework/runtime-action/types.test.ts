@@ -3,7 +3,7 @@
  * Copyright © Adobe, Inc. All rights reserved.
  */
 
-import { HttpStatus, HttpMethod } from '../../../src/framework/action/types';
+import { HttpStatus, HttpMethod } from '../../../src/framework/runtime-action/types';
 
 describe('HttpStatus', () => {
   it('should have correct status codes', () => {

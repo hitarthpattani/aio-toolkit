@@ -6,14 +6,14 @@
 import * as framework from '../../src/framework';
 
 describe('Framework', () => {
-  it('should export Action class', () => {
-    expect(framework.Action).toBeDefined();
-    expect(typeof framework.Action).toBe('function');
+  it('should export RuntimeAction class', () => {
+    expect(framework.RuntimeAction).toBeDefined();
+    expect(typeof framework.RuntimeAction).toBe('function');
   });
 
-  it('should export ActionResponse class', () => {
-    expect(framework.ActionResponse).toBeDefined();
-    expect(typeof framework.ActionResponse).toBe('function');
+  it('should export RuntimeActionResponse class', () => {
+    expect(framework.RuntimeActionResponse).toBeDefined();
+    expect(typeof framework.RuntimeActionResponse).toBe('function');
   });
 
   it('should export Parameters utility', () => {

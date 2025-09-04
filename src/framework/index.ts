@@ -4,11 +4,11 @@
  * Copyright © Adobe, Inc. All rights reserved.
  */
 
-// Export Action class, types and response utilities
-export { default as Action } from './action';
-export { default as ActionResponse } from './action/response';
-export * from './action/types';
-export * from './action/response/types';
+// Export RuntimeAction class, types and response utilities
+export { default as RuntimeAction } from './runtime-action';
+export { default as RuntimeActionResponse } from './runtime-action/response';
+export * from './runtime-action/types';
+export * from './runtime-action/response/types';
 
 // Export utilities
 export { default as Parameters } from './utils/parameters';

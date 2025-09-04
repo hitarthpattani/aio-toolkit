@@ -1,20 +1,20 @@
 /**
- * Test for Action class
+ * Test for RuntimeAction class
  * Copyright © Adobe, Inc. All rights reserved.
  */
 
-import Action from '../../../src/framework/action';
-import { HttpMethod, HttpStatus } from '../../../src/framework/action/types';
+import RuntimeAction from '../../../src/framework/runtime-action';
+import { HttpMethod, HttpStatus } from '../../../src/framework/runtime-action/types';
 
-describe('Action', () => {
+describe('RuntimeAction', () => {
   it('should be a class with execute static method', () => {
-    expect(typeof Action).toBe('function');
-    expect(Action.name).toBe('Action');
-    expect(typeof Action.execute).toBe('function');
+    expect(typeof RuntimeAction).toBe('function');
+    expect(RuntimeAction.name).toBe('RuntimeAction');
+    expect(typeof RuntimeAction.execute).toBe('function');
   });
 
   it('should create an action handler function using execute method', () => {
-    const actionHandler = Action.execute(
+    const actionHandler = RuntimeAction.execute(
       'test-action',
       [HttpMethod.GET],
       ['name'],
@@ -28,7 +28,7 @@ describe('Action', () => {
   });
 
   it('should handle action execution with valid parameters', async () => {
-    const actionHandler = Action.execute(
+    const actionHandler = RuntimeAction.execute(
       'test-action',
       [HttpMethod.GET],
       ['name'],
@@ -53,7 +53,7 @@ describe('Action', () => {
   });
 
   it('should handle missing required parameters', async () => {
-    const actionHandler = Action.execute(
+    const actionHandler = RuntimeAction.execute(
       'test-action',
       [HttpMethod.GET],
       ['name', 'age'],
@@ -78,12 +78,12 @@ describe('Action', () => {
   });
 
   it('should use default values when parameters are not provided', () => {
-    const actionHandler = Action.execute();
+    const actionHandler = RuntimeAction.execute();
     expect(typeof actionHandler).toBe('function');
   });
 
   it('should handle action execution without required params and headers', async () => {
-    const actionHandler = Action.execute('simple-action');
+    const actionHandler = RuntimeAction.execute('simple-action');
 
     const params = {
       LOG_LEVEL: 'info',
@@ -98,9 +98,15 @@ describe('Action', () => {
   });
 
   it('should handle action execution errors and return 500 response', async () => {
-    const actionHandler = Action.execute('error-action', [HttpMethod.POST], [], [], async () => {
-      throw new Error('Something went wrong in action');
-    });
+    const actionHandler = RuntimeAction.execute(
+      'error-action',
+      [HttpMethod.POST],
+      [],
+      [],
+      async () => {
+        throw new Error('Something went wrong in action');
+      }
+    );
 
     const params = {
       LOG_LEVEL: 'info',
@@ -116,7 +122,7 @@ describe('Action', () => {
   });
 
   it('should handle invalid HTTP method and return 405 response', async () => {
-    const actionHandler = Action.execute(
+    const actionHandler = RuntimeAction.execute(
       'method-action',
       [HttpMethod.GET, HttpMethod.POST],
       [],
@@ -141,7 +147,7 @@ describe('Action', () => {
   });
 
   it('should use default log level when LOG_LEVEL is not provided', async () => {
-    const actionHandler = Action.execute('default-log-action', [], [], [], async () => {
+    const actionHandler = RuntimeAction.execute('default-log-action', [], [], [], async () => {
       return { statusCode: HttpStatus.OK, body: { message: 'No log level provided' } };
     });
 

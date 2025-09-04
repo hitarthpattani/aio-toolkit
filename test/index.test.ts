@@ -11,14 +11,14 @@ describe('Adobe Commerce AIO Toolkit', () => {
     expect(typeof toolkit).toBe('object');
   });
 
-  it('should export Action class', () => {
-    expect(toolkit.Action).toBeDefined();
-    expect(typeof toolkit.Action).toBe('function');
+  it('should export RuntimeAction class', () => {
+    expect(toolkit.RuntimeAction).toBeDefined();
+    expect(typeof toolkit.RuntimeAction).toBe('function');
   });
 
-  it('should export ActionResponse class', () => {
-    expect(toolkit.ActionResponse).toBeDefined();
-    expect(typeof toolkit.ActionResponse).toBe('function');
+  it('should export RuntimeActionResponse class', () => {
+    expect(toolkit.RuntimeActionResponse).toBeDefined();
+    expect(typeof toolkit.RuntimeActionResponse).toBe('function');
   });
 
   it('should export Parameters utility', () => {

@@ -4,14 +4,14 @@
 
 import { Core } from '@adobe/aio-sdk';
 
-import ActionResponse from './response';
+import RuntimeActionResponse from './response';
 import Parameters from '../utils/parameters';
 import Validator from '../utils/validator';
 
 import { HttpStatus, HttpMethod } from './types';
 import { ActionResponseType } from './response/types';
 
-class Action {
+class RuntimeAction {
   /**
    * @param name
    * @param httpMethods
@@ -44,7 +44,7 @@ class Action {
         logger.debug(Parameters.stringify(params));
 
         // validate request
-        const validationError = Action.validateRequest(
+        const validationError = RuntimeAction.validateRequest(
           params,
           requiredParams,
           requiredHeaders,
@@ -63,7 +63,7 @@ class Action {
         // log any server errors
         logger.error(error);
         // return with 500
-        return ActionResponse.error(HttpStatus.INTERNAL_ERROR, 'server error');
+        return RuntimeActionResponse.error(HttpStatus.INTERNAL_ERROR, 'server error');
       }
     };
   }
@@ -80,7 +80,7 @@ class Action {
       Validator.checkMissingRequestInputs(params, requiredParams, requiredHeaders) ?? '';
     if (errorMessage) {
       // return and log client errors
-      return ActionResponse.error(HttpStatus.BAD_REQUEST, errorMessage);
+      return RuntimeActionResponse.error(HttpStatus.BAD_REQUEST, errorMessage);
     }
 
     // validate HTTP method
@@ -88,11 +88,11 @@ class Action {
     if (httpMethods.length > 0 && !httpMethods.includes(requestMethod)) {
       const errorMessage = `Invalid HTTP method: ${requestMethod}. Allowed methods are: ${httpMethods.join(', ')}`;
       logger.error(errorMessage);
-      return ActionResponse.error(HttpStatus.METHOD_NOT_ALLOWED, errorMessage);
+      return RuntimeActionResponse.error(HttpStatus.METHOD_NOT_ALLOWED, errorMessage);
     }
 
     return null;
   }
 }
 
-export default Action;
+export default RuntimeAction;

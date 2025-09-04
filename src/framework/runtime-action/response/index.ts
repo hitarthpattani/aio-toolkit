@@ -5,7 +5,7 @@
 import { HttpStatus } from '../types';
 import { SuccessResponse, ErrorResponse } from './types';
 
-class ActionResponse {
+class RuntimeActionResponse {
   /**
    * Returns a success response object, this method should be called on the handlers actions
    *
@@ -46,4 +46,4 @@ class ActionResponse {
   }
 }
 
-export default ActionResponse;
+export default RuntimeActionResponse;
