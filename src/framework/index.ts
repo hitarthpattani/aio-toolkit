@@ -31,5 +31,5 @@ export { default as Openwhisk } from './openwhisk';
 export { default as OpenwhiskAction } from './openwhisk-action';
 
 // Export utilities
-export { default as Parameters } from './utils/parameters';
+export { default as Parameters } from './runtime-action/parameters';
 export { default as Validator } from './utils/validator';

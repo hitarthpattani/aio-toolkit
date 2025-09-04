@@ -3,7 +3,7 @@
  * Copyright © Adobe, Inc. All rights reserved.
  */
 
-import Parameters from '../../../../src/framework/utils/parameters';
+import Parameters from '../../../../src/framework/runtime-action/parameters';
 
 describe('Parameters', () => {
   describe('stringify', () => {

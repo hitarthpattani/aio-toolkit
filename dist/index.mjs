@@ -66,7 +66,7 @@ __name(_RuntimeActionResponse, "RuntimeActionResponse");
 var RuntimeActionResponse = _RuntimeActionResponse;
 var response_default = RuntimeActionResponse;
 
-// src/framework/utils/parameters/index.ts
+// src/framework/runtime-action/parameters/index.ts
 var _Parameters = class _Parameters {
   /**
    * Returns a log-ready string of the action input parameters.

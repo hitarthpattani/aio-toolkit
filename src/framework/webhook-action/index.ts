@@ -11,7 +11,7 @@ import WebhookActionResponse from './response';
 
 import RuntimeAction from '../runtime-action';
 import RuntimeActionResponse from '../runtime-action/response';
-import Parameters from '../utils/parameters';
+import Parameters from '../runtime-action/parameters';
 import Validator from '../utils/validator';
 
 import { HttpMethod, HttpStatus } from '../runtime-action/types';
