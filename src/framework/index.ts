@@ -19,7 +19,7 @@ export { default as WebhookActionResponse } from './webhook-action/response';
 export * from './webhook-action/types';
 export { WebhookOperation } from './webhook-action/response/types';
 export type {
-  ExceptionResponse as WebhookExceptionRes100ponse,
+  ExceptionResponse as WebhookExceptionResponse,
   AddResponse as WebhookAddResponse,
   ReplaceResponse as WebhookReplaceResponse,
   RemoveResponse as WebhookRemoveResponse,
