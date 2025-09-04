@@ -604,43 +604,38 @@ var _RestClient = class _RestClient {
    * @returns {Promise<any>}
    */
   async apiCall(endpoint, method = "POST", headers = {}, payload = null) {
-    try {
-      let options = {
-        method,
-        headers
-      };
-      if (payload !== null) {
-        options = {
-          ...options,
-          body: JSON.stringify(payload),
-          headers: {
-            ...headers,
-            "Content-Type": "application/json"
-          }
-        };
-      }
-      const response = await fetch(endpoint, options);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      if (response.status === 204 || response.headers?.get("content-length") === "0") {
-        return null;
-      }
-      if (typeof response.json === "function") {
-        const contentType = response.headers?.get("content-type");
-        if (!contentType || contentType.includes("application/json") || contentType.includes("application/hal+json")) {
-          return await response.json();
+    let options = {
+      method,
+      headers
+    };
+    if (payload !== null) {
+      options = {
+        ...options,
+        body: JSON.stringify(payload),
+        headers: {
+          ...headers,
+          "Content-Type": "application/json"
         }
-      }
-      if (typeof response.text === "function") {
-        const text = await response.text();
-        return text;
-      }
-      return null;
-    } catch (error) {
-      console.error("API call error:", error);
-      throw error;
+      };
     }
+    const response = await fetch(endpoint, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    if (response.status === 204 || response.headers?.get("content-length") === "0") {
+      return null;
+    }
+    if (typeof response.json === "function") {
+      const contentType = response.headers?.get("content-type");
+      if (!contentType || contentType.includes("application/json") || contentType.includes("application/hal+json")) {
+        return await response.json();
+      }
+    }
+    if (typeof response.text === "function") {
+      const text = await response.text();
+      return text;
+    }
+    return null;
   }
 };
 __name(_RestClient, "RestClient");
