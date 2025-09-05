@@ -1,6 +1,6 @@
 /**
  * Test for Openwhisk class
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import Openwhisk from '../../../src/framework/openwhisk';

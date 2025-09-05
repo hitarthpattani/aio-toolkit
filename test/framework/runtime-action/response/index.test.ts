@@ -1,6 +1,6 @@
 /**
  * Test for RuntimeActionResponse class
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import RuntimeActionResponse from '../../../../src/framework/runtime-action/response';

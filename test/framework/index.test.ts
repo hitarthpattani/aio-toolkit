@@ -1,6 +1,6 @@
 /**
  * Test for framework entry point
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import * as framework from '../../src/framework';

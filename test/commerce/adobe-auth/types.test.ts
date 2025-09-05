@@ -1,7 +1,7 @@
 /**
  * Adobe Commerce AdobeAuth types tests
  *
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import { AdobeIMSConfig } from '../../../src/commerce/adobe-auth/types';

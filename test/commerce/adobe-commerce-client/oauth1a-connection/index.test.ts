@@ -1,5 +1,5 @@
 /**
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import Oauth1aConnection from '../../../../src/commerce/adobe-commerce-client/oauth1a-connection';

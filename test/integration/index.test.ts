@@ -1,6 +1,6 @@
 /**
  * Test for integration entry point
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import * as integration from '../../src/integration';

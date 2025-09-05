@@ -1,5 +1,5 @@
 /**
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import { IOEventsApiError, IoEventsGlobals } from '../../src/io-events/types';

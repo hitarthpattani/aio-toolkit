@@ -1,5 +1,5 @@
 /**
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import AdobeCommerceClient from '../../../src/commerce/adobe-commerce-client';

@@ -1,5 +1,5 @@
 /**
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import type { EventMetadataInputModel } from '../../../../src/io-events/event-metadata/create/types';

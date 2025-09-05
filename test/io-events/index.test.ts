@@ -1,5 +1,5 @@
 /**
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import * as IOEventsModule from '../../src/io-events';
@@ -182,8 +182,8 @@ describe('IO Events Module', () => {
         },
       };
 
-      expect(listResponse._embedded.eventmetadata).toHaveLength(1);
-      expect(listResponse._embedded.eventmetadata[0].event_code).toBe('com.example.user.created');
+      expect(listResponse._embedded!.eventmetadata).toHaveLength(1);
+      expect(listResponse._embedded!.eventmetadata[0].event_code).toBe('com.example.user.created');
     });
   });
 

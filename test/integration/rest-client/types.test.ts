@@ -1,7 +1,7 @@
 /**
  * Adobe App Builder REST Client types tests
  *
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import { Headers } from '../../../src/integration/rest-client/types';

@@ -1,6 +1,6 @@
 /**
  * Test for Validator utility class
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import Validator from '../../../../src/framework/runtime-action/validator';

@@ -1,7 +1,7 @@
 /**
  * Adobe App Builder Bearer Token utility tests
  *
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import BearerToken from '../../../src/integration/bearer-token';

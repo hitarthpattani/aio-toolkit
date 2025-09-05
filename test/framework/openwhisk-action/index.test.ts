@@ -1,6 +1,6 @@
 /**
  * Test for OpenwhiskAction class
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import OpenwhiskAction from '../../../src/framework/openwhisk-action';

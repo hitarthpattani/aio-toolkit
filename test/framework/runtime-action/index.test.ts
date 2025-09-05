@@ -1,6 +1,6 @@
 /**
  * Test for RuntimeAction class
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import RuntimeAction from '../../../src/framework/runtime-action';

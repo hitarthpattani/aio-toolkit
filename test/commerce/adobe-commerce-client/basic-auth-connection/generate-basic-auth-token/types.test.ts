@@ -1,5 +1,5 @@
 /**
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import { TokenResult } from '../../../../../src/commerce/adobe-commerce-client/basic-auth-connection/generate-basic-auth-token/types';

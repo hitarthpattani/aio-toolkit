@@ -1,6 +1,6 @@
 /**
  * Test for Parameters utility class
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import Parameters from '../../../../src/framework/runtime-action/parameters';

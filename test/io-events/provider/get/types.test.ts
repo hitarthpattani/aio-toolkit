@@ -1,5 +1,5 @@
 /**
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import type { GetProviderQueryParams } from '../../../../src/io-events/provider/get/types';

@@ -1,5 +1,5 @@
 /**
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import type { GetRegistrationQueryParams } from '../../../../src/io-events/registration/get/types';

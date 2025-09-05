@@ -1,6 +1,6 @@
 /**
  * Test for Action types and enums
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import { HttpStatus, HttpMethod } from '../../../src/framework/runtime-action/types';

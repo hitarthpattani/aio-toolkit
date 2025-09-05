@@ -1,7 +1,7 @@
 /**
  * Adobe App Builder REST Client tests
  *
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import fetch from 'node-fetch';

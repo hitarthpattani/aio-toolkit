@@ -1,6 +1,6 @@
 /**
  * Test for Webhook types and enums
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import { SignatureVerification } from '../../../src/framework/webhook-action/types';

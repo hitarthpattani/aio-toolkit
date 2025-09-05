@@ -1,7 +1,7 @@
 /**
  * Adobe Commerce AdobeAuth tests
  *
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import AdobeAuth from '../../../src/commerce/adobe-auth';

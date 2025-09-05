@@ -1,6 +1,6 @@
 /**
  * Test for WebhookAction class
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import WebhookAction from '../../../src/framework/webhook-action';

@@ -1,6 +1,6 @@
 /**
  * Test for EventConsumerAction class
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import EventConsumerAction from '../../../src/framework/event-consumer-action';

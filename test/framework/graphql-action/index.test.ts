@@ -1,7 +1,7 @@
 /**
  * Adobe App Builder GraphQL framework utilities tests
  *
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import GraphQlAction from '../../../src/framework/graphql-action';

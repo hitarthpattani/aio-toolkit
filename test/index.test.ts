@@ -1,6 +1,6 @@
 /**
  * Test for main entry point
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import * as toolkit from '../src/index';
