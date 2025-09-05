@@ -1051,6 +1051,60 @@ __name(_Oauth1aConnection, "Oauth1aConnection");
 var Oauth1aConnection = _Oauth1aConnection;
 var oauth1a_connection_default = Oauth1aConnection;
 
+// src/commerce/adobe-commerce-client/ims-connection/index.ts
+import { Core as Core8 } from "@adobe/aio-sdk";
+var _ImsConnection = class _ImsConnection {
+  /**
+   * @param clientId
+   * @param clientSecret
+   * @param technicalAccountId
+   * @param technicalAccountEmail
+   * @param imsOrgId
+   * @param scopes
+   * @param logger
+   * @param currentContext
+   */
+  constructor(clientId, clientSecret, technicalAccountId, technicalAccountEmail, imsOrgId, scopes, logger = null, currentContext = "adobe-commerce-client") {
+    this.clientId = clientId;
+    this.clientSecret = clientSecret;
+    this.technicalAccountId = technicalAccountId;
+    this.technicalAccountEmail = technicalAccountEmail;
+    this.imsOrgId = imsOrgId;
+    this.scopes = scopes;
+    this.currentContext = currentContext;
+    if (logger === null) {
+      logger = Core8.Logger(currentContext, {
+        level: "debug"
+      });
+    }
+    this.logger = logger;
+  }
+  /**
+   * @param commerceGot
+   */
+  async extend(commerceGot) {
+    this.logger.debug("Using Commerce client with IMS authentication");
+    const token = await adobe_auth_default.getToken(
+      this.clientId,
+      this.clientSecret,
+      this.technicalAccountId,
+      this.technicalAccountEmail,
+      this.imsOrgId,
+      this.scopes,
+      this.currentContext
+    );
+    this.logger.debug(`IMS token being extended to header: ${token}`);
+    return commerceGot.extend({
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  }
+};
+__name(_ImsConnection, "ImsConnection");
+var ImsConnection = _ImsConnection;
+var ims_connection_default = ImsConnection;
+
 // src/io-events/types.ts
 var IoEventsGlobals = {
   BASE_URL: "https://api.adobe.io",
@@ -3565,6 +3619,7 @@ export {
   HttpMethod,
   HttpStatus,
   IOEventsApiError,
+  ims_connection_default as ImsConnection,
   IoEventsGlobals,
   oauth1a_connection_default as Oauth1aConnection,
   openwhisk_default as Openwhisk,

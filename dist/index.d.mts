@@ -239,6 +239,19 @@ declare class Oauth1aConnection implements Connection {
     headersProvider(): (url: string, method: string) => any;
 }
 
+declare class ImsConnection implements Connection {
+    private clientId;
+    private clientSecret;
+    private technicalAccountId;
+    private technicalAccountEmail;
+    private imsOrgId;
+    private scopes;
+    private logger;
+    private currentContext;
+    constructor(clientId: string, clientSecret: string, technicalAccountId: string, technicalAccountEmail: string, imsOrgId: string, scopes: Array<string>, logger?: any, currentContext?: string);
+    extend(commerceGot: any): Promise<any>;
+}
+
 interface TokenResult {
     token: string | null;
     expire_in: number;
@@ -480,4 +493,4 @@ interface GetRegistrationQueryParams {
     registrationId: string;
 }
 
-export { AdobeAuth, AdobeCommerceClient, type AdobeIMSConfig, BasicAuthConnection, BearerToken, type Connection, type CreateProviderParams, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type ExtendedRequestError, GenerateBasicAuthToken, type GetProviderQueryParams, type GetRegistrationQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, IoEventsGlobals, type ListProvidersQueryParams, type ListRegistrationQueryParams, Oauth1aConnection, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, type Registration, type RegistrationCreateModel, type RegistrationListResponse, RegistrationManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, type TokenResult, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };
+export { AdobeAuth, AdobeCommerceClient, type AdobeIMSConfig, BasicAuthConnection, BearerToken, type Connection, type CreateProviderParams, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type ExtendedRequestError, GenerateBasicAuthToken, type GetProviderQueryParams, type GetRegistrationQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, ImsConnection, IoEventsGlobals, type ListProvidersQueryParams, type ListRegistrationQueryParams, Oauth1aConnection, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, type Registration, type RegistrationCreateModel, type RegistrationListResponse, RegistrationManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, type TokenResult, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };

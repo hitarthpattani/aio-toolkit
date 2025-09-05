@@ -15,6 +15,7 @@ export { default as AdobeCommerceClient } from './adobe-commerce-client';
 // Export Adobe Commerce Client connection implementations
 export { default as BasicAuthConnection } from './adobe-commerce-client/basic-auth-connection';
 export { default as Oauth1aConnection } from './adobe-commerce-client/oauth1a-connection';
+export { default as ImsConnection } from './adobe-commerce-client/ims-connection';
 export { default as GenerateBasicAuthToken } from './adobe-commerce-client/basic-auth-connection/generate-basic-auth-token';
 
 // Export Adobe Auth types

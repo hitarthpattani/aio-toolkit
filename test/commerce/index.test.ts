@@ -47,6 +47,12 @@ describe('Commerce Module', () => {
     expect(commerce.Oauth1aConnection.name).toBe('Oauth1aConnection');
   });
 
+  it('should export ImsConnection class', () => {
+    expect(commerce.ImsConnection).toBeDefined();
+    expect(typeof commerce.ImsConnection).toBe('function');
+    expect(commerce.ImsConnection.name).toBe('ImsConnection');
+  });
+
   it('should export GenerateBasicAuthToken class', () => {
     expect(commerce.GenerateBasicAuthToken).toBeDefined();
     expect(typeof commerce.GenerateBasicAuthToken).toBe('function');
@@ -59,6 +65,7 @@ describe('Commerce Module', () => {
       'AdobeCommerceClient',
       'BasicAuthConnection',
       'Oauth1aConnection',
+      'ImsConnection',
       'GenerateBasicAuthToken',
     ];
 
@@ -74,6 +81,7 @@ describe('Commerce Module', () => {
     expect(typeof commerce.AdobeCommerceClient).toBe('function');
     expect(typeof commerce.BasicAuthConnection).toBe('function');
     expect(typeof commerce.Oauth1aConnection).toBe('function');
+    expect(typeof commerce.ImsConnection).toBe('function');
     expect(typeof commerce.GenerateBasicAuthToken).toBe('function');
   });
 
