@@ -12,6 +12,9 @@ export { default as ProviderManager } from './provider';
 // Export Event Metadata utilities
 export { default as EventMetadataManager } from './event-metadata';
 
+// Export Registration utilities
+export { default as RegistrationManager } from './registration';
+
 // Export types and error classes
 export * from './types';
 
@@ -25,3 +28,12 @@ export type { ListProvidersQueryParams } from './provider/list/types';
 export type { EventMetadata } from './event-metadata/types';
 export type { EventMetadataInputModel } from './event-metadata/create/types';
 export type { EventMetadataListResponse } from './event-metadata/list/types';
+
+// Export registration-specific types
+export type { Registration } from './registration/types';
+export type { RegistrationCreateModel } from './registration/create/types';
+export type { GetRegistrationQueryParams } from './registration/get/types';
+export type {
+  ListRegistrationQueryParams,
+  RegistrationListResponse,
+} from './registration/list/types';

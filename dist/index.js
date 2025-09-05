@@ -44,6 +44,7 @@ __export(index_exports, {
   OpenwhiskAction: () => openwhisk_action_default,
   Parameters: () => parameters_default,
   ProviderManager: () => provider_default,
+  RegistrationManager: () => registration_default,
   RestClient: () => rest_client_default,
   RuntimeAction: () => runtime_action_default,
   RuntimeActionResponse: () => response_default,
@@ -2578,6 +2579,669 @@ var _EventMetadataManager = class _EventMetadataManager {
 __name(_EventMetadataManager, "EventMetadataManager");
 var EventMetadataManager = _EventMetadataManager;
 var event_metadata_default = EventMetadataManager;
+
+// src/io-events/registration/create/index.ts
+var _Create3 = class _Create3 {
+  /**
+   * Initialize the Create service
+   */
+  constructor(clientId, consumerId, projectId, workspaceId, accessToken) {
+    if (!clientId?.trim()) {
+      throw new IOEventsApiError("clientId is required and cannot be empty", 400);
+    }
+    if (!consumerId?.trim()) {
+      throw new IOEventsApiError("consumerId is required and cannot be empty", 400);
+    }
+    if (!projectId?.trim()) {
+      throw new IOEventsApiError("projectId is required and cannot be empty", 400);
+    }
+    if (!workspaceId?.trim()) {
+      throw new IOEventsApiError("workspaceId is required and cannot be empty", 400);
+    }
+    if (!accessToken?.trim()) {
+      throw new IOEventsApiError("accessToken is required and cannot be empty", 400);
+    }
+    this.restClient = new rest_client_default();
+    this.endpoint = IoEventsGlobals.BASE_URL;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.accessToken = accessToken;
+  }
+  /**
+   * Create a new registration
+   *
+   * @param registrationData - The registration data to create
+   * @returns Promise<Registration> - The created registration
+   * @throws IOEventsApiError - When the API call fails
+   *
+   * @example
+   * ```typescript
+   * const registration = await registrationManager.create({
+   *   client_id: 'your-client-id',
+   *   name: 'My Registration',
+   *   description: 'Registration for user events',
+   *   webhook_url: 'https://example.com/webhook',
+   *   events_of_interest: [
+   *     {
+   *       provider_id: 'provider-123',
+   *       event_code: 'com.example.user.created'
+   *     }
+   *   ],
+   *   delivery_type: 'webhook',
+   *   enabled: true
+   * });
+   * console.log(registration.registration_id);
+   * ```
+   */
+  async execute(registrationData) {
+    try {
+      this.validateRegistrationInput(registrationData);
+      const url = `${this.endpoint}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/registrations`;
+      const response = await this.restClient.post(
+        url,
+        {
+          Authorization: `Bearer ${this.accessToken}`,
+          "x-api-key": this.consumerId,
+          "Content-Type": "application/json",
+          Accept: "application/hal+json"
+        },
+        registrationData
+      );
+      return response;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+  /**
+   * Validates the registration input data
+   */
+  validateRegistrationInput(registrationData) {
+    if (!registrationData) {
+      throw new IOEventsApiError("Registration data is required", 400);
+    }
+    if (!registrationData.client_id?.trim()) {
+      throw new IOEventsApiError("Client ID is required", 400);
+    }
+    if (registrationData.client_id.length < 3 || registrationData.client_id.length > 255) {
+      throw new IOEventsApiError("Client ID must be between 3 and 255 characters", 400);
+    }
+    if (!registrationData.name?.trim()) {
+      throw new IOEventsApiError("Registration name is required", 400);
+    }
+    if (registrationData.name.length < 3 || registrationData.name.length > 255) {
+      throw new IOEventsApiError("Registration name must be between 3 and 255 characters", 400);
+    }
+    if (registrationData.description && registrationData.description.length > 5e3) {
+      throw new IOEventsApiError("Description must not exceed 5000 characters", 400);
+    }
+    if (registrationData.webhook_url && registrationData.webhook_url.length > 4e3) {
+      throw new IOEventsApiError("Webhook URL must not exceed 4000 characters", 400);
+    }
+    if (!registrationData.events_of_interest || !Array.isArray(registrationData.events_of_interest)) {
+      throw new IOEventsApiError("Events of interest is required and must be an array", 400);
+    }
+    if (registrationData.events_of_interest.length === 0) {
+      throw new IOEventsApiError("At least one event of interest is required", 400);
+    }
+    registrationData.events_of_interest.forEach((event, index) => {
+      if (!event.provider_id?.trim()) {
+        throw new IOEventsApiError(`Provider ID is required for event at index ${index}`, 400);
+      }
+      if (!event.event_code?.trim()) {
+        throw new IOEventsApiError(`Event code is required for event at index ${index}`, 400);
+      }
+    });
+    if (!registrationData.delivery_type?.trim()) {
+      throw new IOEventsApiError("Delivery type is required", 400);
+    }
+    const validDeliveryTypes = ["webhook", "webhook_batch", "journal", "aws_eventbridge"];
+    if (!validDeliveryTypes.includes(registrationData.delivery_type)) {
+      throw new IOEventsApiError(
+        `Delivery type must be one of: ${validDeliveryTypes.join(", ")}`,
+        400
+      );
+    }
+    if (registrationData.runtime_action && registrationData.runtime_action.length > 255) {
+      throw new IOEventsApiError("Runtime action must not exceed 255 characters", 400);
+    }
+  }
+  /**
+   * Handles errors from the API call
+   */
+  handleError(error) {
+    if (error instanceof IOEventsApiError) {
+      throw error;
+    }
+    if (error instanceof Error && error.message.includes("HTTP error! status:")) {
+      const statusCode = this.extractStatusCodeFromMessage(error.message);
+      const errorMessage = this.getErrorMessageForStatus(statusCode);
+      throw new IOEventsApiError(errorMessage, statusCode);
+    }
+    if (error.response?.status) {
+      const statusCode = error.response.status;
+      const errorMessage = this.getErrorMessageForStatus(statusCode);
+      throw new IOEventsApiError(errorMessage, statusCode);
+    }
+    if (error.status) {
+      const statusCode = error.status;
+      const errorMessage = this.getErrorMessageForStatus(statusCode);
+      throw new IOEventsApiError(errorMessage, statusCode);
+    }
+    throw new IOEventsApiError("Network error occurred", 500);
+  }
+  /**
+   * Extracts status code from HTTP error message
+   */
+  extractStatusCodeFromMessage(message) {
+    const match = message.match(/HTTP error! status:\s*(\d+)/);
+    return match ? parseInt(match[1], 10) : 500;
+  }
+  /**
+   * Gets appropriate error message for HTTP status code
+   */
+  getErrorMessageForStatus(statusCode) {
+    switch (statusCode) {
+      case 400:
+        return "Bad request: Invalid registration data provided";
+      case 401:
+        return "Unauthorized: Invalid or missing authentication";
+      case 403:
+        return "Forbidden: Insufficient permissions";
+      case 409:
+        return "Conflict: Registration with this name already exists";
+      case 422:
+        return "Unprocessable entity: Invalid registration data";
+      case 500:
+        return "Internal server error";
+      default:
+        return `API error: HTTP ${statusCode}`;
+    }
+  }
+};
+__name(_Create3, "Create");
+var Create3 = _Create3;
+var create_default3 = Create3;
+
+// src/io-events/registration/delete/index.ts
+var _Delete3 = class _Delete3 {
+  /**
+   * Initialize the Delete service
+   */
+  constructor(clientId, consumerId, projectId, workspaceId, accessToken) {
+    if (!clientId?.trim()) {
+      throw new IOEventsApiError("clientId is required and cannot be empty", 400);
+    }
+    if (!consumerId?.trim()) {
+      throw new IOEventsApiError("consumerId is required and cannot be empty", 400);
+    }
+    if (!projectId?.trim()) {
+      throw new IOEventsApiError("projectId is required and cannot be empty", 400);
+    }
+    if (!workspaceId?.trim()) {
+      throw new IOEventsApiError("workspaceId is required and cannot be empty", 400);
+    }
+    if (!accessToken?.trim()) {
+      throw new IOEventsApiError("accessToken is required and cannot be empty", 400);
+    }
+    this.restClient = new rest_client_default();
+    this.endpoint = IoEventsGlobals.BASE_URL;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.accessToken = accessToken;
+  }
+  /**
+   * Delete a registration by ID
+   *
+   * @param registrationId - The registration ID to delete
+   * @returns Promise<void> - Resolves when deletion is successful
+   * @throws IOEventsApiError - When the API call fails
+   *
+   * @example
+   * ```typescript
+   * await registrationManager.delete('your-registration-id');
+   * console.log('Registration deleted successfully');
+   * ```
+   */
+  async execute(registrationId) {
+    try {
+      this.validateInputs(registrationId);
+      const url = `${this.endpoint}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/registrations/${registrationId}`;
+      await this.restClient.delete(url, {
+        Authorization: `Bearer ${this.accessToken}`,
+        "x-api-key": this.consumerId,
+        Accept: "text/plain"
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+  /**
+   * Validates the input parameters
+   */
+  validateInputs(registrationId) {
+    if (!registrationId?.trim()) {
+      throw new IOEventsApiError("Registration ID is required", 400);
+    }
+  }
+  /**
+   * Handles errors from the API call
+   */
+  handleError(error) {
+    if (error instanceof IOEventsApiError) {
+      throw error;
+    }
+    if (error instanceof Error && error.message.includes("HTTP error! status:")) {
+      const statusCode = this.extractStatusCodeFromMessage(error.message);
+      const errorMessage = this.getErrorMessageForStatus(statusCode);
+      throw new IOEventsApiError(errorMessage, statusCode);
+    }
+    if (error.response?.status) {
+      const statusCode = error.response.status;
+      const errorMessage = this.getErrorMessageForStatus(statusCode);
+      throw new IOEventsApiError(errorMessage, statusCode);
+    }
+    if (error.status) {
+      const statusCode = error.status;
+      const errorMessage = this.getErrorMessageForStatus(statusCode);
+      throw new IOEventsApiError(errorMessage, statusCode);
+    }
+    throw new IOEventsApiError("Network error occurred", 500);
+  }
+  /**
+   * Extracts status code from HTTP error message
+   */
+  extractStatusCodeFromMessage(message) {
+    const match = message.match(/HTTP error! status:\s*(\d+)/);
+    return match ? parseInt(match[1], 10) : 500;
+  }
+  /**
+   * Gets appropriate error message for HTTP status code
+   */
+  getErrorMessageForStatus(statusCode) {
+    switch (statusCode) {
+      case 400:
+        return "Bad request: Invalid registration ID provided";
+      case 401:
+        return "Unauthorized: Invalid or missing authentication";
+      case 403:
+        return "Forbidden: Insufficient permissions";
+      case 404:
+        return "Registration not found";
+      case 500:
+        return "Internal server error";
+      default:
+        return `API error: HTTP ${statusCode}`;
+    }
+  }
+};
+__name(_Delete3, "Delete");
+var Delete3 = _Delete3;
+var delete_default2 = Delete3;
+
+// src/io-events/registration/get/index.ts
+var _Get3 = class _Get3 {
+  /**
+   * Initialize the Get service
+   */
+  constructor(clientId, consumerId, projectId, workspaceId, accessToken) {
+    if (!clientId?.trim()) {
+      throw new IOEventsApiError("clientId is required and cannot be empty", 400);
+    }
+    if (!consumerId?.trim()) {
+      throw new IOEventsApiError("consumerId is required and cannot be empty", 400);
+    }
+    if (!projectId?.trim()) {
+      throw new IOEventsApiError("projectId is required and cannot be empty", 400);
+    }
+    if (!workspaceId?.trim()) {
+      throw new IOEventsApiError("workspaceId is required and cannot be empty", 400);
+    }
+    if (!accessToken?.trim()) {
+      throw new IOEventsApiError("accessToken is required and cannot be empty", 400);
+    }
+    this.restClient = new rest_client_default();
+    this.endpoint = IoEventsGlobals.BASE_URL;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.accessToken = accessToken;
+  }
+  /**
+   * Get a registration by ID
+   *
+   * @param registrationId - The registration ID to retrieve
+   * @returns Promise<Registration> - The registration data
+   * @throws IOEventsApiError - When the API call fails
+   *
+   * @example
+   * ```typescript
+   * const registration = await registrationManager.get('your-registration-id');
+   * console.log(registration.name);
+   * ```
+   */
+  async execute(registrationId) {
+    try {
+      this.validateInputs(registrationId);
+      const url = `${this.endpoint}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/registrations/${registrationId}`;
+      const response = await this.restClient.get(url, {
+        Authorization: `Bearer ${this.accessToken}`,
+        "x-api-key": this.consumerId,
+        Accept: "application/hal+json"
+      });
+      return response;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+  /**
+   * Validates the input parameters
+   */
+  validateInputs(registrationId) {
+    if (!registrationId?.trim()) {
+      throw new IOEventsApiError("Registration ID is required", 400);
+    }
+  }
+  /**
+   * Handles errors from the API call
+   */
+  handleError(error) {
+    if (error instanceof IOEventsApiError) {
+      throw error;
+    }
+    if (error instanceof Error && error.message.includes("HTTP error! status:")) {
+      const statusCode = this.extractStatusCodeFromMessage(error.message);
+      const errorMessage = this.getErrorMessageForStatus(statusCode);
+      throw new IOEventsApiError(errorMessage, statusCode);
+    }
+    if (error.response?.status) {
+      const statusCode = error.response.status;
+      const errorMessage = this.getErrorMessageForStatus(statusCode);
+      throw new IOEventsApiError(errorMessage, statusCode);
+    }
+    if (error.status) {
+      const statusCode = error.status;
+      const errorMessage = this.getErrorMessageForStatus(statusCode);
+      throw new IOEventsApiError(errorMessage, statusCode);
+    }
+    throw new IOEventsApiError("Network error occurred", 500);
+  }
+  /**
+   * Extracts status code from HTTP error message
+   */
+  extractStatusCodeFromMessage(message) {
+    const match = message.match(/HTTP error! status:\s*(\d+)/);
+    return match ? parseInt(match[1], 10) : 500;
+  }
+  /**
+   * Gets appropriate error message for HTTP status code
+   */
+  getErrorMessageForStatus(statusCode) {
+    switch (statusCode) {
+      case 400:
+        return "Bad request: Invalid parameters provided";
+      case 401:
+        return "Unauthorized: Invalid or missing authentication";
+      case 403:
+        return "Forbidden: Insufficient permissions";
+      case 404:
+        return "Registration not found";
+      case 500:
+        return "Internal server error";
+      default:
+        return `API error: HTTP ${statusCode}`;
+    }
+  }
+};
+__name(_Get3, "Get");
+var Get3 = _Get3;
+var get_default2 = Get3;
+
+// src/io-events/registration/list/index.ts
+var _List3 = class _List3 {
+  /**
+   * Initialize the List service
+   */
+  constructor(clientId, consumerId, projectId, workspaceId, accessToken) {
+    if (!clientId?.trim()) {
+      throw new IOEventsApiError("clientId is required and cannot be empty", 400);
+    }
+    if (!consumerId?.trim()) {
+      throw new IOEventsApiError("consumerId is required and cannot be empty", 400);
+    }
+    if (!projectId?.trim()) {
+      throw new IOEventsApiError("projectId is required and cannot be empty", 400);
+    }
+    if (!workspaceId?.trim()) {
+      throw new IOEventsApiError("workspaceId is required and cannot be empty", 400);
+    }
+    if (!accessToken?.trim()) {
+      throw new IOEventsApiError("accessToken is required and cannot be empty", 400);
+    }
+    this.restClient = new rest_client_default();
+    this.endpoint = IoEventsGlobals.BASE_URL;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.accessToken = accessToken;
+  }
+  /**
+   * Execute registration list with automatic pagination
+   */
+  async execute(queryParams) {
+    try {
+      this.validateInputs();
+      let url = `${this.endpoint}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/registrations`;
+      if (queryParams && Object.keys(queryParams).length > 0) {
+        const searchParams = new URLSearchParams();
+        Object.entries(queryParams).forEach(([key, value]) => {
+          if (value !== void 0 && value !== null) {
+            searchParams.append(key, String(value));
+          }
+        });
+        if (searchParams.toString()) {
+          url += `?${searchParams.toString()}`;
+        }
+      }
+      return await this.fetchAllPages(url);
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+  /**
+   * Fetch all pages recursively
+   */
+  async fetchAllPages(url, accumulatedResults = []) {
+    const headers = {
+      Authorization: `Bearer ${this.accessToken}`,
+      "x-api-key": this.consumerId,
+      "Content-Type": "application/json"
+    };
+    const data = await this.restClient.get(url, headers);
+    const currentPageRegistrations = data._embedded?.registrations || [];
+    const allResults = [...accumulatedResults, ...currentPageRegistrations];
+    const nextPageUrl = data._links?.next?.href;
+    if (nextPageUrl) {
+      return await this.fetchAllPages(nextPageUrl, allResults);
+    }
+    return allResults;
+  }
+  /**
+   * Validate required inputs
+   */
+  validateInputs() {
+    if (!this.consumerId?.trim()) {
+      throw new IOEventsApiError(
+        "Consumer ID is required",
+        IoEventsGlobals.STATUS_CODES.BAD_REQUEST
+      );
+    }
+    if (!this.projectId?.trim()) {
+      throw new IOEventsApiError(
+        "Project ID is required",
+        IoEventsGlobals.STATUS_CODES.BAD_REQUEST
+      );
+    }
+    if (!this.workspaceId?.trim()) {
+      throw new IOEventsApiError(
+        "Workspace ID is required",
+        IoEventsGlobals.STATUS_CODES.BAD_REQUEST
+      );
+    }
+    if (!this.accessToken?.trim()) {
+      throw new IOEventsApiError(
+        "Access token is required",
+        IoEventsGlobals.STATUS_CODES.BAD_REQUEST
+      );
+    }
+  }
+  /**
+   * Handle and categorize errors
+   */
+  handleError(error) {
+    if (error instanceof Error && error.message.includes("HTTP error! status:")) {
+      const statusCode = this.extractStatusCodeFromMessage(error.message);
+      const errorMessage = this.getErrorMessageForStatus(statusCode);
+      throw new IOEventsApiError(errorMessage, statusCode);
+    }
+    if (error.response) {
+      const statusCode = error.response.status || error.status || IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+      const errorMessage = this.getErrorMessageForStatus(statusCode);
+      throw new IOEventsApiError(errorMessage, statusCode);
+    }
+    if (error instanceof IOEventsApiError) {
+      throw error;
+    }
+    throw new IOEventsApiError(
+      error.message || "An unexpected error occurred while listing registrations",
+      IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR
+    );
+  }
+  /**
+   * Extract status code from error message
+   */
+  extractStatusCodeFromMessage(errorMessage) {
+    const match = errorMessage.match(/HTTP error! status:\s*(\d+)/);
+    return match ? parseInt(match[1], 10) : IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+  }
+  /**
+   * Get appropriate error message for status code
+   */
+  getErrorMessageForStatus(statusCode) {
+    switch (statusCode) {
+      case IoEventsGlobals.STATUS_CODES.BAD_REQUEST:
+        return "Bad request. Please check your input parameters";
+      case IoEventsGlobals.STATUS_CODES.UNAUTHORIZED:
+        return "Unauthorized. Please check your access token";
+      case IoEventsGlobals.STATUS_CODES.FORBIDDEN:
+        return "Forbidden. You do not have permission to access registrations";
+      case IoEventsGlobals.STATUS_CODES.NOT_FOUND:
+        return "Registrations not found. The specified workspace may not exist or have no registrations";
+      case IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR:
+        return "Internal server error. Please try again later";
+      default:
+        return `API request failed with status ${statusCode}`;
+    }
+  }
+};
+__name(_List3, "List");
+var List3 = _List3;
+var list_default2 = List3;
+
+// src/io-events/registration/index.ts
+var _RegistrationManager = class _RegistrationManager {
+  /**
+   * Initialize the RegistrationManager
+   */
+  constructor(clientId, consumerId, projectId, workspaceId, accessToken) {
+    this.createService = new create_default3(clientId, consumerId, projectId, workspaceId, accessToken);
+    this.deleteService = new delete_default2(clientId, consumerId, projectId, workspaceId, accessToken);
+    this.getService = new get_default2(clientId, consumerId, projectId, workspaceId, accessToken);
+    this.listService = new list_default2(clientId, consumerId, projectId, workspaceId, accessToken);
+  }
+  /**
+   * Create a new registration
+   *
+   * @param registrationData - The registration data to create
+   * @returns Promise<Registration> - The created registration
+   *
+   * @example
+   * ```typescript
+   * const registration = await registrationManager.create({
+   *   client_id: 'your-client-id',
+   *   name: 'My Registration',
+   *   description: 'Registration for user events',
+   *   webhook_url: 'https://example.com/webhook',
+   *   events_of_interest: [
+   *     {
+   *       provider_id: 'provider-123',
+   *       event_code: 'com.example.user.created'
+   *     }
+   *   ],
+   *   delivery_type: 'webhook',
+   *   enabled: true
+   * });
+   * console.log(registration.registration_id);
+   * ```
+   */
+  async create(registrationData) {
+    return await this.createService.execute(registrationData);
+  }
+  /**
+   * Delete a registration by ID
+   *
+   * @param registrationId - The registration ID to delete
+   * @returns Promise<void> - Resolves when deletion is successful
+   *
+   * @example
+   * ```typescript
+   * await registrationManager.delete('your-registration-id');
+   * console.log('Registration deleted successfully');
+   * ```
+   */
+  async delete(registrationId) {
+    return await this.deleteService.execute(registrationId);
+  }
+  /**
+   * Get a registration by ID
+   *
+   * @param registrationId - The registration ID to retrieve
+   * @returns Promise<Registration> - The registration data
+   *
+   * @example
+   * ```typescript
+   * const registration = await registrationManager.get('your-registration-id');
+   * console.log(registration.name);
+   * ```
+   */
+  async get(registrationId) {
+    return await this.getService.execute(registrationId);
+  }
+  /**
+   * List all registrations with automatic pagination
+   *
+   * @param queryParams - Optional query parameters for filtering
+   * @returns Promise<Registration[]> - Array of all registrations across all pages
+   *
+   * @example
+   * ```typescript
+   * // List all registrations
+   * const registrations = await registrationManager.list();
+   *
+   * // List with query parameters
+   * const filteredRegistrations = await registrationManager.list({
+   *   enabled: true
+   * });
+   * ```
+   */
+  async list(queryParams) {
+    return await this.listService.execute(queryParams);
+  }
+};
+__name(_RegistrationManager, "RegistrationManager");
+var RegistrationManager = _RegistrationManager;
+var registration_default = RegistrationManager;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   AdobeAuth,
@@ -2593,6 +3257,7 @@ var event_metadata_default = EventMetadataManager;
   OpenwhiskAction,
   Parameters,
   ProviderManager,
+  RegistrationManager,
   RestClient,
   RuntimeAction,
   RuntimeActionResponse,

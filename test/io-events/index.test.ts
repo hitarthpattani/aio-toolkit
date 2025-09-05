@@ -6,6 +6,7 @@ import * as IOEventsModule from '../../src/io-events';
 import { IOEventsApiError, IoEventsGlobals } from '../../src/io-events/types';
 import ProviderManager from '../../src/io-events/provider';
 import EventMetadataManager from '../../src/io-events/event-metadata';
+import RegistrationManager from '../../src/io-events/registration';
 import type { Provider } from '../../src/io-events/provider/types';
 import type {
   ProviderInputModel,
@@ -29,6 +30,11 @@ describe('IO Events Module', () => {
       expect(IOEventsModule.EventMetadataManager).toBe(EventMetadataManager);
     });
 
+    it('should export RegistrationManager', () => {
+      expect(IOEventsModule.RegistrationManager).toBeDefined();
+      expect(IOEventsModule.RegistrationManager).toBe(RegistrationManager);
+    });
+
     it('should export IOEventsApiError', () => {
       expect(IOEventsModule.IOEventsApiError).toBeDefined();
       expect(IOEventsModule.IOEventsApiError).toBe(IOEventsApiError);
@@ -47,6 +53,11 @@ describe('IO Events Module', () => {
     it('should have EventMetadataManager as a class', () => {
       expect(typeof IOEventsModule.EventMetadataManager).toBe('function');
       expect(IOEventsModule.EventMetadataManager.prototype).toBeDefined();
+    });
+
+    it('should have RegistrationManager as a class', () => {
+      expect(typeof IOEventsModule.RegistrationManager).toBe('function');
+      expect(IOEventsModule.RegistrationManager.prototype).toBeDefined();
     });
 
     it('should have IOEventsApiError as a class', () => {
@@ -203,6 +214,19 @@ describe('IO Events Module', () => {
       expect(manager).toBeInstanceOf(EventMetadataManager);
     });
 
+    it('should create RegistrationManager instance', () => {
+      const manager = new IOEventsModule.RegistrationManager(
+        'client-id',
+        'consumer-id',
+        'project-id',
+        'workspace-id',
+        'access-token'
+      );
+
+      expect(manager).toBeInstanceOf(IOEventsModule.RegistrationManager);
+      expect(manager).toBeInstanceOf(RegistrationManager);
+    });
+
     it('should create IOEventsApiError instance', () => {
       const error = new IOEventsModule.IOEventsApiError('Test error', 400, 'TEST_ERROR');
 
@@ -333,7 +357,13 @@ describe('IO Events Module', () => {
     });
 
     it('should export all expected public API items', () => {
-      const expectedExports = ['ProviderManager', 'IOEventsApiError', 'IoEventsGlobals'];
+      const expectedExports = [
+        'ProviderManager',
+        'EventMetadataManager',
+        'RegistrationManager',
+        'IOEventsApiError',
+        'IoEventsGlobals',
+      ];
 
       expectedExports.forEach(exportName => {
         expect(IOEventsModule).toHaveProperty(exportName);
@@ -344,6 +374,8 @@ describe('IO Events Module', () => {
     it('should maintain consistent export types', () => {
       // Class exports should be constructable
       expect(() => new IOEventsModule.ProviderManager('a', 'b', 'c', 'd', 'e')).not.toThrow();
+      expect(() => new IOEventsModule.EventMetadataManager('a', 'b', 'c', 'd', 'e')).not.toThrow();
+      expect(() => new IOEventsModule.RegistrationManager('a', 'b', 'c', 'd', 'e')).not.toThrow();
       expect(() => new IOEventsModule.IOEventsApiError('msg', 400)).not.toThrow();
 
       // Object exports should be objects

@@ -1,17 +1,50 @@
-# Husky pre-commit hook
+#!/bin/sh
+# Husky pre-commit hook - STRICT MODE
+set -e  # Exit immediately on any error
 
-echo "🔍 Running pre-commit checks..."
+echo "🛡️ STRICT PRE-COMMIT VALIDATION STARTING..."
+echo "⚠️  Any failure will STOP the commit process!"
+echo ""
 
-# Run lint-staged to automatically fix lint and format issues on staged files
-echo "🛠️ Auto-fixing linting and formatting issues..."
-npx lint-staged
+# Step 1: Compile check first (fail fast)
+echo "🔨 Step 1/4: Compile validation..."
+if ! npm run type-check; then
+    echo "❌ COMMIT BLOCKED: TypeScript compilation failed!"
+    echo "💡 Fix compilation errors before committing."
+    exit 1
+fi
+echo "✅ Compilation successful"
+echo ""
 
-# Run type checking
-echo "🔧 Running type check..."
-npm run type-check
+# Step 2: Auto-fix linting and formatting on staged files
+echo "🛠️ Step 2/4: Auto-fixing linting and formatting..."
+if ! npx lint-staged; then
+    echo "❌ COMMIT BLOCKED: Linting/formatting failed!"
+    echo "💡 Check the errors above and fix them manually."
+    exit 1
+fi
+echo "✅ Linting and formatting completed"
+echo ""
 
-# Run tests without coverage report
-echo "🧪 Validating tests..."
-npm run test -- --passWithNoTests
+# Step 3: Run tests (without coverage) - fast validation
+echo "🧪 Step 3/4: Running tests (no coverage)..."
+if ! npm run test:fast; then
+    echo "❌ COMMIT BLOCKED: Tests failed!"
+    echo "💡 Fix failing tests before committing."
+    exit 1
+fi
+echo "✅ All tests passed"
+echo ""
 
-echo "✅ Pre-commit checks passed!"
+# Step 4: Final validation
+echo "🔍 Step 4/4: Final validation..."
+if ! npm run format:check; then
+    echo "❌ COMMIT BLOCKED: Code formatting issues detected!"
+    echo "💡 Run 'npm run format' to fix formatting."
+    exit 1
+fi
+echo "✅ Format validation passed"
+echo ""
+
+echo "🎉 PRE-COMMIT VALIDATION COMPLETED SUCCESSFULLY!"
+echo "✅ Your code is ready to commit!"

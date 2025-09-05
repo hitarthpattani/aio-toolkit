@@ -334,6 +334,68 @@ declare class EventMetadataManager {
     delete(providerId: string, eventCode?: string): Promise<void>;
 }
 
+interface Registration {
+    registration_id: string;
+    name: string;
+    description?: string;
+    webhook_url?: string;
+    events_of_interest?: Array<{
+        provider_id: string;
+        event_code: string;
+    }>;
+    delivery_type: string;
+    enabled: boolean;
+    created_date: string;
+    updated_date: string;
+    runtime_action?: string;
+    [key: string]: any;
+}
+
+interface EventsOfInterestInputModel {
+    provider_id: string;
+    event_code: string;
+}
+interface RegistrationCreateModel {
+    client_id: string;
+    name: string;
+    description?: string;
+    webhook_url?: string;
+    events_of_interest: EventsOfInterestInputModel[];
+    delivery_type: 'webhook' | 'webhook_batch' | 'journal' | 'aws_eventbridge';
+    runtime_action?: string;
+    enabled?: boolean;
+}
+
+interface RegistrationListResponse {
+    _embedded?: {
+        registrations?: Registration[];
+    };
+    _links?: {
+        self?: {
+            href: string;
+        };
+        next?: {
+            href: string;
+        };
+    };
+    [key: string]: any;
+}
+interface ListRegistrationQueryParams {
+    [key: string]: string | number | boolean | undefined;
+}
+
+declare class RegistrationManager {
+    private createService;
+    private deleteService;
+    private getService;
+    private listService;
+    constructor(clientId: string, consumerId: string, projectId: string, workspaceId: string, accessToken: string);
+    create(registrationData: RegistrationCreateModel): Promise<Registration>;
+    delete(registrationId: string): Promise<void>;
+    get(registrationId: string): Promise<Registration>;
+    list(queryParams?: ListRegistrationQueryParams): Promise<Registration[]>;
+}
+
 interface EventMetadataListResponse {
     _embedded?: {
         eventmetadata: EventMetadata[];
@@ -349,4 +411,11 @@ interface EventMetadataListResponse {
     [key: string]: any;
 }
 
-export { AdobeAuth, type AdobeIMSConfig, BearerToken, type CreateProviderParams, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type GetProviderQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, IoEventsGlobals, type ListProvidersQueryParams, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };
+interface GetRegistrationQueryParams {
+    consumerOrgId: string;
+    projectId: string;
+    workspaceId: string;
+    registrationId: string;
+}
+
+export { AdobeAuth, type AdobeIMSConfig, BearerToken, type CreateProviderParams, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type GetProviderQueryParams, type GetRegistrationQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, IoEventsGlobals, type ListProvidersQueryParams, type ListRegistrationQueryParams, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, type Registration, type RegistrationCreateModel, type RegistrationListResponse, RegistrationManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };
