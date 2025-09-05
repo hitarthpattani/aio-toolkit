@@ -7,67 +7,12 @@ echo "⛔ Any failure will BLOCK the push completely!"
 echo "🎯 This is your final quality gate before code goes to remote!"
 echo ""
 
-# Step 1: Format validation (strict - no auto-fix)
-echo "💅 Step 1/6: Strict formatting validation..."
-if ! npm run format:check; then
-    echo "❌ PUSH BLOCKED: Code formatting issues detected!"
-    echo "💡 Run 'npm run format' to fix formatting issues."
-    exit 1
-fi
-echo "✅ All files properly formatted"
-echo ""
-
-# Step 2: Linting validation (strict - no auto-fix)
-echo "🔍 Step 2/6: Strict linting validation..."
-if ! npm run lint; then
-    echo "❌ PUSH BLOCKED: Linting errors detected!"
-    echo "💡 Run 'npm run lint:fix' to fix linting issues."
-    exit 1
-fi
-echo "✅ All linting rules satisfied"
-echo ""
-
-# Step 3: TypeScript compilation check
-echo "🔧 Step 3/6: TypeScript compilation validation..."
-if ! npm run type-check; then
-    echo "❌ PUSH BLOCKED: TypeScript compilation failed!"
-    echo "💡 Fix all TypeScript errors before pushing."
-    exit 1
-fi
-echo "✅ TypeScript compilation successful"
-echo ""
-
-# Step 4: Full test suite WITH coverage (most critical)
-echo "🧪 Step 4/6: Full test suite with coverage requirements..."
-echo "📊 Testing with strict coverage thresholds..."
-if ! npm run test:ci; then
-    echo "❌ PUSH BLOCKED: Tests failed or coverage below threshold!"
-    echo "💡 Fix failing tests and ensure 100% coverage before pushing."
-    exit 1
-fi
-echo "✅ All tests passed with required coverage"
-echo ""
-
-# Step 5: Build validation
-echo "🏗️ Step 5/6: Production build validation..."
-if ! npm run build; then
-    echo "❌ PUSH BLOCKED: Production build failed!"
-    echo "💡 Fix build errors before pushing."
-    exit 1
-fi
-echo "✅ Production build successful"
-echo ""
-
-# Step 6: Final comprehensive check
-echo "🎯 Step 6/6: Final comprehensive validation..."
 echo "🔄 Running complete validation pipeline..."
 if ! npm run validate:push; then
-    echo "❌ PUSH BLOCKED: Final validation failed!"
-    echo "💡 Something changed during the process. Re-run all checks."
+    echo "❌ PUSH BLOCKED: Validation failed!"
+    echo "💡 Fix all issues before pushing."
     exit 1
 fi
-echo "✅ Final validation completed successfully"
-echo ""
 
 echo "🎉🚀 ULTRA-STRICT PRE-PUSH VALIDATION COMPLETED! 🚀🎉"
 echo "✅ Your code meets ALL quality standards!"
