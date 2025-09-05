@@ -32,6 +32,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var index_exports = {};
 __export(index_exports, {
   AdobeAuth: () => adobe_auth_default,
+  AdobeCommerceClient: () => adobe_commerce_client_default,
   BearerToken: () => bearer_token_default,
   EventConsumerAction: () => event_consumer_action_default,
   EventMetadataManager: () => event_metadata_default,
@@ -739,6 +740,148 @@ var _AdobeAuth = class _AdobeAuth {
 __name(_AdobeAuth, "AdobeAuth");
 var AdobeAuth = _AdobeAuth;
 var adobe_auth_default = AdobeAuth;
+
+// src/commerce/adobe-commerce-client/index.ts
+var import_aio_sdk4 = require("@adobe/aio-sdk");
+var import_got = __toESM(require("got"));
+var _AdobeCommerceClient = class _AdobeCommerceClient {
+  /**
+   * @param baseUrl
+   * @param connection
+   * @param logger
+   */
+  constructor(baseUrl, connection, logger = null) {
+    if (!baseUrl) {
+      throw new Error("Commerce URL must be provided");
+    }
+    this.baseUrl = baseUrl;
+    this.connection = connection;
+    if (logger === null) {
+      logger = import_aio_sdk4.Core.Logger("adobe-commerce-client", {
+        level: "debug"
+      });
+    }
+    this.logger = logger;
+  }
+  /**
+   * @param endpoint
+   * @param headers
+   */
+  async get(endpoint, headers = {}) {
+    return await this.apiCall(endpoint, "GET", headers);
+  }
+  /**
+   * @param endpoint
+   * @param headers
+   * @param payload
+   */
+  async post(endpoint, headers = {}, payload = null) {
+    return await this.apiCall(endpoint, "POST", headers, payload);
+  }
+  /**
+   * @param endpoint
+   * @param headers
+   * @param payload
+   */
+  async put(endpoint, headers = {}, payload = null) {
+    return await this.apiCall(endpoint, "PUT", headers, payload);
+  }
+  /**
+   * @param endpoint
+   * @param headers
+   */
+  async delete(endpoint, headers = {}) {
+    return await this.apiCall(endpoint, "DELETE", headers);
+  }
+  /**
+   * @param endpoint
+   * @param method
+   * @param headers
+   * @param payload
+   * @private
+   */
+  async apiCall(endpoint, method = "POST", headers = {}, payload = null) {
+    const commerceGot = await this.getHttpClient();
+    commerceGot.extend({
+      headers
+    });
+    const wrapper = /* @__PURE__ */ __name(async (callable) => {
+      try {
+        const message = await callable();
+        return { success: true, message };
+      } catch (e) {
+        if (e.code === "ERR_GOT_REQUEST_ERROR") {
+          this.logger.error("Error while calling Commerce API", e);
+          return {
+            success: false,
+            statusCode: 500 /* INTERNAL_ERROR */,
+            message: `Unexpected error, check logs. Original error "${e.message}"`
+          };
+        }
+        return {
+          success: false,
+          statusCode: e.response?.statusCode || 500 /* INTERNAL_ERROR */,
+          message: e.message,
+          body: e.responseBody
+        };
+      }
+    }, "wrapper");
+    let options = {
+      method
+    };
+    if (payload !== null) {
+      options = {
+        ...options,
+        json: payload
+      };
+    }
+    return await wrapper(() => commerceGot(endpoint, options).json());
+  }
+  /**
+   * @private
+   */
+  async getHttpClient() {
+    const commerceGot = import_got.default.extend({
+      http2: true,
+      responseType: "json",
+      prefixUrl: this.baseUrl,
+      headers: {
+        "Content-Type": "application/json"
+      },
+      hooks: {
+        beforeRequest: [
+          (options) => this.logger.debug(`Request [${options.method}] ${options.url}`)
+        ],
+        beforeRetry: [
+          (options, error, retryCount) => this.logger.debug(
+            `Retrying request [${options.method}] ${options.url} - count: ${retryCount} - error: ${error?.code} - ${error?.message}`
+          )
+        ],
+        beforeError: [
+          (error) => {
+            const { response } = error;
+            if (response?.body) {
+              error.responseBody = response.body;
+            }
+            return error;
+          }
+        ],
+        afterResponse: [
+          (response) => {
+            this.logger.debug(
+              `Response [${response.request.options.method}] ${response.request.options.url} - ${response.statusCode} ${response.statusMessage}`
+            );
+            return response;
+          }
+        ]
+      }
+    });
+    return await this.connection.extend(commerceGot);
+  }
+};
+__name(_AdobeCommerceClient, "AdobeCommerceClient");
+var AdobeCommerceClient = _AdobeCommerceClient;
+var adobe_commerce_client_default = AdobeCommerceClient;
 
 // src/io-events/types.ts
 var IoEventsGlobals = {
@@ -3245,6 +3388,7 @@ var registration_default = RegistrationManager;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   AdobeAuth,
+  AdobeCommerceClient,
   BearerToken,
   EventConsumerAction,
   EventMetadataManager,

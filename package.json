@@ -53,6 +53,7 @@
   "dependencies": {
     "@adobe/aio-lib-ims": "^7.0.2",
     "@adobe/aio-sdk": "^5.0.0",
+    "got": "^11.8.6",
     "graphql": "^16.11.0",
     "node-fetch": "^2.7.0",
     "openwhisk": "^3.21.8"
