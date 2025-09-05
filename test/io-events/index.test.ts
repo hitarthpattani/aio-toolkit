@@ -5,6 +5,7 @@
 import * as IOEventsModule from '../../src/io-events';
 import { IOEventsApiError, IoEventsGlobals } from '../../src/io-events/types';
 import ProviderManager from '../../src/io-events/provider';
+import EventMetadataManager from '../../src/io-events/event-metadata';
 import type { Provider } from '../../src/io-events/provider/types';
 import type {
   ProviderInputModel,
@@ -12,12 +13,20 @@ import type {
 } from '../../src/io-events/provider/create/types';
 import type { GetProviderQueryParams } from '../../src/io-events/provider/get/types';
 import type { ListProvidersQueryParams } from '../../src/io-events/provider/list/types';
+import type { EventMetadata } from '../../src/io-events/event-metadata/types';
+import type { EventMetadataInputModel } from '../../src/io-events/event-metadata/create/types';
+import type { EventMetadataListResponse } from '../../src/io-events/event-metadata/list/types';
 
 describe('IO Events Module', () => {
   describe('Module Exports', () => {
     it('should export ProviderManager', () => {
       expect(IOEventsModule.ProviderManager).toBeDefined();
       expect(IOEventsModule.ProviderManager).toBe(ProviderManager);
+    });
+
+    it('should export EventMetadataManager', () => {
+      expect(IOEventsModule.EventMetadataManager).toBeDefined();
+      expect(IOEventsModule.EventMetadataManager).toBe(EventMetadataManager);
     });
 
     it('should export IOEventsApiError', () => {
@@ -33,6 +42,11 @@ describe('IO Events Module', () => {
     it('should have ProviderManager as a class', () => {
       expect(typeof IOEventsModule.ProviderManager).toBe('function');
       expect(IOEventsModule.ProviderManager.prototype).toBeDefined();
+    });
+
+    it('should have EventMetadataManager as a class', () => {
+      expect(typeof IOEventsModule.EventMetadataManager).toBe('function');
+      expect(IOEventsModule.EventMetadataManager.prototype).toBeDefined();
     });
 
     it('should have IOEventsApiError as a class', () => {
@@ -106,6 +120,60 @@ describe('IO Events Module', () => {
       expect(listParams.providerMetadataId).toBe('3rd_party_custom_events');
       expect(listParams.eventmetadata).toBe(false);
     });
+
+    it('should make EventMetadata type available for import', () => {
+      const eventMetadata: EventMetadata = {
+        event_code: 'com.example.user.created',
+        label: 'User Created',
+        description: 'Triggered when a new user is created',
+        sample_event_template: '{"user_id":"123","name":"John Doe"}',
+      };
+
+      expect(eventMetadata.event_code).toBe('com.example.user.created');
+      expect(eventMetadata.label).toBe('User Created');
+      expect(eventMetadata.description).toBe('Triggered when a new user is created');
+    });
+
+    it('should make EventMetadataInputModel type available for import', () => {
+      const inputModel: EventMetadataInputModel = {
+        event_code: 'com.example.user.updated',
+        label: 'User Updated',
+        description: 'Triggered when user information is updated',
+        sample_event_template: {
+          user_id: '456',
+          updated_fields: ['name', 'email'],
+        },
+      };
+
+      expect(inputModel.event_code).toBe('com.example.user.updated');
+      expect(inputModel.label).toBe('User Updated');
+      expect(inputModel.sample_event_template).toEqual({
+        user_id: '456',
+        updated_fields: ['name', 'email'],
+      });
+    });
+
+    it('should make EventMetadataListResponse type available for import', () => {
+      const listResponse: EventMetadataListResponse = {
+        _embedded: {
+          eventmetadata: [
+            {
+              event_code: 'com.example.user.created',
+              label: 'User Created',
+              description: 'Triggered when a new user is created',
+            },
+          ],
+        },
+        _links: {
+          self: {
+            href: '/events/providers/test-provider/eventmetadata',
+          },
+        },
+      };
+
+      expect(listResponse._embedded.eventmetadata).toHaveLength(1);
+      expect(listResponse._embedded.eventmetadata[0].event_code).toBe('com.example.user.created');
+    });
   });
 
   describe('Functional Integration', () => {
@@ -120,6 +188,19 @@ describe('IO Events Module', () => {
 
       expect(manager).toBeInstanceOf(IOEventsModule.ProviderManager);
       expect(manager).toBeInstanceOf(ProviderManager);
+    });
+
+    it('should create EventMetadataManager instance', () => {
+      const manager = new IOEventsModule.EventMetadataManager(
+        'client-id',
+        'consumer-id',
+        'project-id',
+        'workspace-id',
+        'access-token'
+      );
+
+      expect(manager).toBeInstanceOf(IOEventsModule.EventMetadataManager);
+      expect(manager).toBeInstanceOf(EventMetadataManager);
     });
 
     it('should create IOEventsApiError instance', () => {

@@ -302,4 +302,51 @@ declare class ProviderManager {
     delete(providerId: string): Promise<void>;
 }
 
-export { AdobeAuth, type AdobeIMSConfig, BearerToken, type CreateProviderParams, type ErrorResponse, EventConsumerAction, type GetProviderQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, IoEventsGlobals, type ListProvidersQueryParams, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };
+interface EventMetadata {
+    event_code: string;
+    label?: string;
+    description?: string;
+    sample_event_template?: string;
+    [key: string]: any;
+}
+
+interface EventMetadataInputModel {
+    description: string;
+    label: string;
+    event_code: string;
+    sample_event_template?: Record<string, any>;
+}
+
+declare class EventMetadataManager {
+    private readonly clientId;
+    private readonly consumerId;
+    private readonly projectId;
+    private readonly workspaceId;
+    private readonly accessToken;
+    private readonly listService;
+    private readonly getService;
+    private readonly createService;
+    private readonly deleteService;
+    constructor(clientId: string, consumerId: string, projectId: string, workspaceId: string, accessToken: string);
+    list(providerId: string): Promise<EventMetadata[]>;
+    get(providerId: string, eventCode: string): Promise<EventMetadata>;
+    create(providerId: string, eventMetadataData: EventMetadataInputModel): Promise<EventMetadata>;
+    delete(providerId: string, eventCode?: string): Promise<void>;
+}
+
+interface EventMetadataListResponse {
+    _embedded?: {
+        eventmetadata: EventMetadata[];
+    };
+    _links?: {
+        self?: {
+            href: string;
+        };
+        next?: {
+            href: string;
+        };
+    };
+    [key: string]: any;
+}
+
+export { AdobeAuth, type AdobeIMSConfig, BearerToken, type CreateProviderParams, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type GetProviderQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, IoEventsGlobals, type ListProvidersQueryParams, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };

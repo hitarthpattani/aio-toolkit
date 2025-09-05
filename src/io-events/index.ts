@@ -9,6 +9,9 @@
 // Export Provider utilities
 export { default as ProviderManager } from './provider';
 
+// Export Event Metadata utilities
+export { default as EventMetadataManager } from './event-metadata';
+
 // Export types and error classes
 export * from './types';
 
@@ -17,3 +20,8 @@ export type { Provider } from './provider/types';
 export type { ProviderInputModel, CreateProviderParams } from './provider/create/types';
 export type { GetProviderQueryParams } from './provider/get/types';
 export type { ListProvidersQueryParams } from './provider/list/types';
+
+// Export event metadata types
+export type { EventMetadata } from './event-metadata/types';
+export type { EventMetadataInputModel } from './event-metadata/create/types';
+export type { EventMetadataListResponse } from './event-metadata/list/types';

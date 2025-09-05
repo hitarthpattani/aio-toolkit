@@ -1590,10 +1590,945 @@ var _ProviderManager = class _ProviderManager {
 __name(_ProviderManager, "ProviderManager");
 var ProviderManager = _ProviderManager;
 var provider_default = ProviderManager;
+
+// src/io-events/event-metadata/list/index.ts
+var _List2 = class _List2 {
+  /**
+   * Creates an instance of List service
+   *
+   * @param clientId - The Adobe I/O client ID (API key)
+   * @param consumerId - The consumer organization ID
+   * @param projectId - The project ID
+   * @param workspaceId - The workspace ID
+   * @param accessToken - The access token for authentication
+   */
+  constructor(clientId, consumerId, projectId, workspaceId, accessToken) {
+    this.clientId = clientId;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.accessToken = accessToken;
+    if (!clientId?.trim()) {
+      throw new Error("clientId is required and cannot be empty");
+    }
+    if (!consumerId?.trim()) {
+      throw new Error("consumerId is required and cannot be empty");
+    }
+    if (!projectId?.trim()) {
+      throw new Error("projectId is required and cannot be empty");
+    }
+    if (!workspaceId?.trim()) {
+      throw new Error("workspaceId is required and cannot be empty");
+    }
+    if (!accessToken?.trim()) {
+      throw new Error("accessToken is required and cannot be empty");
+    }
+    this.restClient = new rest_client_default();
+  }
+  /**
+   * Retrieves all event metadata for a provider with automatic pagination
+   *
+   * This method automatically follows pagination links to fetch all event metadata
+   * across multiple pages, returning a complete array of all event metadata.
+   *
+   * @param providerId - The ID of the provider to fetch event metadata for
+   * @returns Promise<EventMetadata[]> - Array of all event metadata across all pages
+   * @throws IOEventsApiError - When the API request fails
+   */
+  async execute(providerId) {
+    if (!providerId?.trim()) {
+      throw new IOEventsApiError(
+        "providerId is required and cannot be empty",
+        400,
+        "VALIDATION_ERROR"
+      );
+    }
+    try {
+      const url = `${IoEventsGlobals.BASE_URL}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/providers/${providerId}/eventmetadata`;
+      return await this.fetchAllPages(url);
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+  /**
+   * Recursively fetches all pages of event metadata using pagination links
+   *
+   * @param url - The URL to fetch (either initial URL or next page URL)
+   * @param accumulatedResults - Array to accumulate results across pages
+   * @returns Promise<EventMetadata[]> - Complete array of all event metadata
+   * @private
+   */
+  async fetchAllPages(url, accumulatedResults = []) {
+    const response = await this.restClient.get(url, {
+      Authorization: `Bearer ${this.accessToken}`,
+      "x-api-key": this.clientId,
+      Accept: "application/hal+json"
+    });
+    if (response === null || response === void 0) {
+      throw new IOEventsApiError(
+        "Invalid response format: Expected object",
+        IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR,
+        "PARSE_ERROR"
+      );
+    }
+    if (typeof response !== "object") {
+      throw new IOEventsApiError(
+        "Invalid response format: Expected object",
+        IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR,
+        "PARSE_ERROR"
+      );
+    }
+    const data = response;
+    if (!data._embedded || !Array.isArray(data._embedded.eventmetadata)) {
+      throw new IOEventsApiError(
+        "Invalid response format: Expected eventmetadata array",
+        IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR,
+        "PARSE_ERROR"
+      );
+    }
+    const currentPageResults = data._embedded.eventmetadata;
+    const allResults = [...accumulatedResults, ...currentPageResults];
+    const nextPageUrl = data._links?.next?.href;
+    if (nextPageUrl) {
+      return await this.fetchAllPages(nextPageUrl, allResults);
+    }
+    return allResults;
+  }
+  /**
+   * Handles errors from the API request
+   *
+   * @param error - The error object from the API request
+   * @throws IOEventsApiError - Always throws with appropriate error details
+   */
+  handleError(error) {
+    if (error instanceof Error && error.message.includes("HTTP error! status:")) {
+      const statusCode2 = this.extractStatusCodeFromMessage(error.message);
+      const errorMessage2 = this.getErrorMessageForStatus(statusCode2);
+      throw new IOEventsApiError(errorMessage2, statusCode2);
+    }
+    if (error.response) {
+      const statusCode2 = this.extractStatusCode(error);
+      const errorMessage2 = error.response.body?.message || this.getErrorMessageForStatus(statusCode2);
+      throw new IOEventsApiError(
+        errorMessage2,
+        statusCode2,
+        error.response.body,
+        error.response.headers
+      );
+    }
+    let errorMessage;
+    let statusCode;
+    if (error instanceof Error) {
+      if (error.message.includes("timeout") || error.message.includes("ETIMEDOUT")) {
+        errorMessage = "Request timeout while listing event metadata";
+        statusCode = IoEventsGlobals.STATUS_CODES.REQUEST_TIMEOUT;
+      } else if (error.message.includes("JSON") || error.message.includes("parse")) {
+        errorMessage = "Invalid response format from Adobe I/O Events API";
+        statusCode = IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+        throw new IOEventsApiError(errorMessage, statusCode, "PARSE_ERROR");
+      } else {
+        errorMessage = `Network error: ${error.message}`;
+        statusCode = IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+      }
+    } else {
+      errorMessage = `API Error: HTTP ${IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR}`;
+      statusCode = IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+    }
+    throw new IOEventsApiError(errorMessage, statusCode);
+  }
+  /**
+   * Extracts the status code from the error response
+   *
+   * @param error - The error object
+   * @returns The HTTP status code
+   */
+  extractStatusCode(error) {
+    return error.response?.status || IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+  }
+  /**
+   * Extracts the status code from RestClient error message
+   *
+   * @param errorMessage - Error message like "HTTP error! status: 404"
+   * @returns The HTTP status code
+   */
+  extractStatusCodeFromMessage(errorMessage) {
+    const match = errorMessage.match(/HTTP error! status:\s*(\d+)/);
+    return match ? parseInt(match[1], 10) : IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+  }
+  /**
+   * Gets a human-readable error message for a given HTTP status code
+   *
+   * @param statusCode - The HTTP status code
+   * @returns A descriptive error message
+   */
+  getErrorMessageForStatus(statusCode) {
+    switch (statusCode) {
+      case IoEventsGlobals.STATUS_CODES.BAD_REQUEST:
+        return "Invalid request parameters for listing event metadata";
+      case IoEventsGlobals.STATUS_CODES.UNAUTHORIZED:
+        return "Authentication failed. Please check your access token";
+      case IoEventsGlobals.STATUS_CODES.FORBIDDEN:
+        return "Access forbidden. You do not have permission to access event metadata";
+      case IoEventsGlobals.STATUS_CODES.NOT_FOUND:
+        return "Provider not found or no event metadata available";
+      case IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR:
+        return "Internal server error occurred while listing event metadata";
+      default:
+        return `Unexpected error occurred: HTTP ${statusCode}`;
+    }
+  }
+};
+__name(_List2, "List");
+var List2 = _List2;
+
+// src/io-events/event-metadata/get/index.ts
+var _Get2 = class _Get2 {
+  /**
+   * Creates an instance of Get service
+   *
+   * @param clientId - The Adobe I/O client ID (API key)
+   * @param consumerId - The consumer organization ID
+   * @param projectId - The project ID
+   * @param workspaceId - The workspace ID
+   * @param accessToken - The access token for authentication
+   */
+  constructor(clientId, consumerId, projectId, workspaceId, accessToken) {
+    this.clientId = clientId;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.accessToken = accessToken;
+    if (!clientId?.trim()) {
+      throw new Error("clientId is required and cannot be empty");
+    }
+    if (!consumerId?.trim()) {
+      throw new Error("consumerId is required and cannot be empty");
+    }
+    if (!projectId?.trim()) {
+      throw new Error("projectId is required and cannot be empty");
+    }
+    if (!workspaceId?.trim()) {
+      throw new Error("workspaceId is required and cannot be empty");
+    }
+    if (!accessToken?.trim()) {
+      throw new Error("accessToken is required and cannot be empty");
+    }
+    this.restClient = new rest_client_default();
+  }
+  /**
+   * Retrieves specific event metadata by provider ID and event code
+   *
+   * @param providerId - The ID of the provider
+   * @param eventCode - The event code to get metadata for
+   * @returns Promise<EventMetadata> - The event metadata
+   * @throws IOEventsApiError - When the API request fails
+   */
+  async execute(providerId, eventCode) {
+    if (!providerId?.trim()) {
+      throw new IOEventsApiError(
+        "providerId is required and cannot be empty",
+        400,
+        "VALIDATION_ERROR"
+      );
+    }
+    if (!eventCode?.trim()) {
+      throw new IOEventsApiError(
+        "eventCode is required and cannot be empty",
+        400,
+        "VALIDATION_ERROR"
+      );
+    }
+    try {
+      const url = `${IoEventsGlobals.BASE_URL}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/providers/${providerId}/eventmetadata/${encodeURIComponent(eventCode)}`;
+      const response = await this.restClient.get(url, {
+        Authorization: `Bearer ${this.accessToken}`,
+        "x-api-key": this.clientId,
+        Accept: "application/hal+json"
+      });
+      if (response === null || response === void 0) {
+        throw new IOEventsApiError(
+          "Invalid response format: Expected object",
+          IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR,
+          "PARSE_ERROR"
+        );
+      }
+      if (typeof response !== "object") {
+        throw new IOEventsApiError(
+          "Invalid response format: Expected object",
+          IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR,
+          "PARSE_ERROR"
+        );
+      }
+      return response;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+  /**
+   * Handles errors from the API request
+   *
+   * @param error - The error object from the API request
+   * @throws IOEventsApiError - Always throws with appropriate error details
+   */
+  handleError(error) {
+    if (error instanceof Error && error.message.includes("HTTP error! status:")) {
+      const statusCode2 = this.extractStatusCodeFromMessage(error.message);
+      const errorMessage2 = this.getErrorMessageForStatus(statusCode2);
+      throw new IOEventsApiError(errorMessage2, statusCode2);
+    }
+    if (error.response) {
+      const statusCode2 = this.extractStatusCode(error);
+      const errorMessage2 = error.response.body?.message || this.getErrorMessageForStatus(statusCode2);
+      throw new IOEventsApiError(
+        errorMessage2,
+        statusCode2,
+        error.response.body?.error_code,
+        error.response.body?.details
+      );
+    }
+    let errorMessage;
+    let statusCode;
+    if (error instanceof Error) {
+      if (error.message.includes("timeout") || error.message.includes("ETIMEDOUT")) {
+        errorMessage = "Request timeout while getting event metadata";
+        statusCode = IoEventsGlobals.STATUS_CODES.REQUEST_TIMEOUT;
+      } else if (error.message.includes("JSON") || error.message.includes("parse")) {
+        errorMessage = "Invalid response format from Adobe I/O Events API";
+        statusCode = IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+        throw new IOEventsApiError(errorMessage, statusCode, "PARSE_ERROR");
+      } else {
+        errorMessage = `Network error: ${error.message}`;
+        statusCode = IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+      }
+    } else {
+      errorMessage = `API Error: HTTP ${IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR}`;
+      statusCode = IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+    }
+    throw new IOEventsApiError(errorMessage, statusCode);
+  }
+  /**
+   * Extracts the status code from the error response
+   *
+   * @param error - The error object
+   * @returns The HTTP status code
+   */
+  extractStatusCode(error) {
+    return error.response?.status || IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+  }
+  /**
+   * Extracts the status code from RestClient error message
+   *
+   * @param errorMessage - Error message like "HTTP error! status: 404"
+   * @returns The HTTP status code
+   */
+  extractStatusCodeFromMessage(errorMessage) {
+    const match = errorMessage.match(/HTTP error! status:\s*(\d+)/);
+    return match ? parseInt(match[1], 10) : IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+  }
+  /**
+   * Gets a human-readable error message for a given HTTP status code
+   *
+   * @param statusCode - The HTTP status code
+   * @returns A descriptive error message
+   */
+  getErrorMessageForStatus(statusCode) {
+    switch (statusCode) {
+      case IoEventsGlobals.STATUS_CODES.BAD_REQUEST:
+        return "Invalid request parameters for getting event metadata";
+      case IoEventsGlobals.STATUS_CODES.UNAUTHORIZED:
+        return "Authentication failed. Please check your access token";
+      case IoEventsGlobals.STATUS_CODES.FORBIDDEN:
+        return "Access forbidden. You do not have permission to access this event metadata";
+      case IoEventsGlobals.STATUS_CODES.NOT_FOUND:
+        return "Event metadata not found for the specified provider and event code";
+      case IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR:
+        return "Internal server error occurred while getting event metadata";
+      default:
+        return `Unexpected error occurred: HTTP ${statusCode}`;
+    }
+  }
+};
+__name(_Get2, "Get");
+var Get2 = _Get2;
+
+// src/io-events/event-metadata/create/index.ts
+var _Create2 = class _Create2 {
+  /**
+   * Constructor for Create event metadata service
+   *
+   * @param clientId - Client ID from Adobe Developer Console (x-api-key header)
+   * @param consumerId - Project Organization ID from Adobe Developer Console
+   * @param projectId - Project ID from Adobe Developer Console
+   * @param workspaceId - Workspace ID from Adobe Developer Console
+   * @param accessToken - IMS token for authentication (Bearer token)
+   */
+  constructor(clientId, consumerId, projectId, workspaceId, accessToken) {
+    this.clientId = clientId;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.accessToken = accessToken;
+    this.endpoint = IoEventsGlobals.BASE_URL;
+    if (!clientId?.trim()) {
+      throw new Error("clientId is required and cannot be empty");
+    }
+    if (!consumerId?.trim()) {
+      throw new Error("consumerId is required and cannot be empty");
+    }
+    if (!projectId?.trim()) {
+      throw new Error("projectId is required and cannot be empty");
+    }
+    if (!workspaceId?.trim()) {
+      throw new Error("workspaceId is required and cannot be empty");
+    }
+    if (!accessToken?.trim()) {
+      throw new Error("accessToken is required and cannot be empty");
+    }
+    this.restClient = new rest_client_default();
+  }
+  /**
+   * Execute the create event metadata API call
+   *
+   * @param providerId - The ID of the provider to create event metadata for
+   * @param eventMetadataData - The event metadata input model
+   * @returns Promise<EventMetadata> - The created event metadata
+   * @throws IOEventsApiError - When API call fails with specific error details
+   */
+  async execute(providerId, eventMetadataData) {
+    try {
+      if (!providerId?.trim()) {
+        throw new IOEventsApiError(
+          "providerId is required and cannot be empty",
+          400,
+          "VALIDATION_ERROR"
+        );
+      }
+      if (!eventMetadataData) {
+        throw new IOEventsApiError("eventMetadataData is required", 400, "VALIDATION_ERROR");
+      }
+      this.validateEventMetadataInput(eventMetadataData);
+      const apiPayload = this.convertToApiPayload(eventMetadataData);
+      const url = `${this.endpoint}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/providers/${providerId}/eventmetadata`;
+      const headers = {
+        Authorization: `Bearer ${this.accessToken}`,
+        "x-api-key": this.clientId,
+        Accept: "application/hal+json",
+        "Content-Type": "application/json"
+      };
+      const response = await this.restClient.post(url, headers, apiPayload);
+      if (response === null || response === void 0) {
+        throw new IOEventsApiError(
+          "Invalid response format: Expected object",
+          IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR
+        );
+      }
+      if (typeof response !== "object") {
+        throw new IOEventsApiError(
+          "Invalid response format: Expected object",
+          IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR
+        );
+      }
+      return response;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+  /**
+   * Validates the event metadata input data
+   *
+   * @param eventMetadataData - The event metadata input to validate
+   * @throws Error - When validation fails
+   * @private
+   */
+  validateEventMetadataInput(eventMetadataData) {
+    const { description, label, event_code, sample_event_template } = eventMetadataData;
+    if (!description?.trim()) {
+      throw new IOEventsApiError(
+        "description is required and cannot be empty",
+        400,
+        "VALIDATION_ERROR"
+      );
+    }
+    if (!label?.trim()) {
+      throw new IOEventsApiError("label is required and cannot be empty", 400, "VALIDATION_ERROR");
+    }
+    if (!event_code?.trim()) {
+      throw new IOEventsApiError(
+        "event_code is required and cannot be empty",
+        400,
+        "VALIDATION_ERROR"
+      );
+    }
+    if (description.length > 255) {
+      throw new Error("description cannot exceed 255 characters");
+    }
+    if (label.length > 255) {
+      throw new Error("label cannot exceed 255 characters");
+    }
+    if (event_code.length > 255) {
+      throw new Error("event_code cannot exceed 255 characters");
+    }
+    const descriptionPattern = /^[\w\s\-_.(),:''`?#!]+$/;
+    if (!descriptionPattern.test(description)) {
+      throw new Error("description contains invalid characters");
+    }
+    const labelPattern = /^[\w\s\-_.(),:''`?#!]+$/;
+    if (!labelPattern.test(label)) {
+      throw new Error("label contains invalid characters");
+    }
+    const eventCodePattern = /^[\w\-_.]+$/;
+    if (!eventCodePattern.test(event_code)) {
+      throw new Error("event_code contains invalid characters");
+    }
+    if (sample_event_template !== void 0) {
+      if (typeof sample_event_template !== "object" || sample_event_template === null) {
+        throw new Error("sample_event_template must be a valid JSON object");
+      }
+      try {
+        const jsonString = JSON.stringify(sample_event_template);
+        const base64Length = Buffer.from(jsonString).toString("base64").length;
+        if (base64Length > 87382) {
+          throw new Error("sample_event_template JSON object is too large when base64 encoded");
+        }
+      } catch (error) {
+        if (error instanceof Error && error.message.includes("sample_event_template JSON object is too large")) {
+          throw error;
+        }
+        throw new Error("sample_event_template must be a valid JSON object");
+      }
+    }
+  }
+  /**
+   * Converts the input data to the format expected by the API
+   *
+   * @param eventMetadataData - The event metadata input data
+   * @returns The converted payload for the API
+   * @private
+   */
+  convertToApiPayload(eventMetadataData) {
+    const { sample_event_template, ...rest } = eventMetadataData;
+    const payload = { ...rest };
+    if (sample_event_template !== void 0) {
+      payload.sample_event_template = Buffer.from(JSON.stringify(sample_event_template)).toString(
+        "base64"
+      );
+    }
+    return payload;
+  }
+  /**
+   * Handles errors from the API request
+   *
+   * @param error - The error object from the API request
+   * @throws IOEventsApiError - Always throws with appropriate error details
+   * @private
+   */
+  handleError(error) {
+    if (error instanceof IOEventsApiError) {
+      throw error;
+    }
+    if (error instanceof Error && error.message.includes("HTTP error! status:")) {
+      const statusCode2 = this.extractStatusCodeFromMessage(error.message);
+      const errorMessage2 = this.getErrorMessageForStatus(statusCode2);
+      throw new IOEventsApiError(errorMessage2, statusCode2);
+    }
+    if (error.response) {
+      const statusCode2 = this.extractStatusCode(error);
+      const errorMessage2 = error.response.body?.message || this.getErrorMessageForStatus(statusCode2);
+      throw new IOEventsApiError(
+        errorMessage2,
+        statusCode2,
+        error.response.body?.error_code,
+        error.response.body?.details
+      );
+    }
+    let errorMessage;
+    let statusCode;
+    if (error instanceof Error) {
+      if (error.message.includes("timeout") || error.message.includes("ETIMEDOUT")) {
+        errorMessage = "Request timeout while creating event metadata";
+        statusCode = IoEventsGlobals.STATUS_CODES.REQUEST_TIMEOUT;
+      } else if (error.message.includes("is required") || error.message.includes("cannot be empty") || error.message.includes("cannot exceed") || error.message.includes("contains invalid characters") || error.message.includes("must be a valid") || error.message.includes("too large when base64 encoded")) {
+        throw new IOEventsApiError(
+          error.message,
+          IoEventsGlobals.STATUS_CODES.BAD_REQUEST,
+          "VALIDATION_ERROR"
+        );
+      } else if (error.message.includes("JSON") || error.message.includes("parse")) {
+        errorMessage = "Invalid response format from Adobe I/O Events API";
+        statusCode = IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+      } else {
+        errorMessage = `Network error: ${error.message}`;
+        statusCode = IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+      }
+    } else {
+      errorMessage = `API Error: HTTP ${IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR}`;
+      statusCode = IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+    }
+    throw new IOEventsApiError(errorMessage, statusCode);
+  }
+  /**
+   * Extracts the status code from the error response
+   *
+   * @param error - The error object
+   * @returns The HTTP status code
+   * @private
+   */
+  extractStatusCode(error) {
+    return error.response?.status || IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+  }
+  /**
+   * Extracts the status code from RestClient error message
+   *
+   * @param errorMessage - Error message like "HTTP error! status: 404"
+   * @returns The HTTP status code
+   * @private
+   */
+  extractStatusCodeFromMessage(errorMessage) {
+    const match = errorMessage.match(/HTTP error! status:\s*(\d+)/);
+    return match ? parseInt(match[1], 10) : IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+  }
+  /**
+   * Gets a human-readable error message based on HTTP status code
+   *
+   * @param statusCode - HTTP status code
+   * @returns string - User-friendly error message
+   * @private
+   */
+  getErrorMessageForStatus(statusCode) {
+    switch (statusCode) {
+      case IoEventsGlobals.STATUS_CODES.BAD_REQUEST:
+        return "Invalid request parameters for creating event metadata";
+      case IoEventsGlobals.STATUS_CODES.UNAUTHORIZED:
+        return "Authentication failed. Please check your access token";
+      case IoEventsGlobals.STATUS_CODES.FORBIDDEN:
+        return "Access forbidden. You do not have permission to create event metadata";
+      case IoEventsGlobals.STATUS_CODES.NOT_FOUND:
+        return "Provider not found. The specified provider ID does not exist";
+      case IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR:
+        return "Internal server error occurred while creating event metadata";
+      default:
+        return `Unexpected error occurred: HTTP ${statusCode}`;
+    }
+  }
+};
+__name(_Create2, "Create");
+var Create2 = _Create2;
+var create_default2 = Create2;
+
+// src/io-events/event-metadata/delete/index.ts
+var _Delete2 = class _Delete2 {
+  /**
+   * Constructor for Delete event metadata service
+   *
+   * @param clientId - Client ID from Adobe Developer Console (x-api-key header)
+   * @param consumerId - Project Organization ID from Adobe Developer Console
+   * @param projectId - Project ID from Adobe Developer Console
+   * @param workspaceId - Workspace ID from Adobe Developer Console
+   * @param accessToken - IMS token for authentication (Bearer token)
+   */
+  constructor(clientId, consumerId, projectId, workspaceId, accessToken) {
+    this.clientId = clientId;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.accessToken = accessToken;
+    this.endpoint = IoEventsGlobals.BASE_URL;
+    if (!clientId?.trim()) {
+      throw new Error("clientId is required and cannot be empty");
+    }
+    if (!consumerId?.trim()) {
+      throw new Error("consumerId is required and cannot be empty");
+    }
+    if (!projectId?.trim()) {
+      throw new Error("projectId is required and cannot be empty");
+    }
+    if (!workspaceId?.trim()) {
+      throw new Error("workspaceId is required and cannot be empty");
+    }
+    if (!accessToken?.trim()) {
+      throw new Error("accessToken is required and cannot be empty");
+    }
+    this.restClient = new rest_client_default();
+  }
+  /**
+   * Execute the delete event metadata API call
+   *
+   * @param providerId - The ID of the provider to delete event metadata for
+   * @param eventCode - Optional event code to delete specific event metadata. If not provided, deletes all event metadata for the provider
+   * @returns Promise<void> - No content returned on successful deletion (204)
+   * @throws IOEventsApiError - When API call fails with specific error details
+   */
+  async execute(providerId, eventCode) {
+    try {
+      if (!providerId?.trim()) {
+        throw new IOEventsApiError(
+          "providerId is required and cannot be empty",
+          400,
+          "VALIDATION_ERROR"
+        );
+      }
+      if (eventCode !== void 0 && !eventCode?.trim()) {
+        throw new IOEventsApiError(
+          "eventCode cannot be empty when provided",
+          400,
+          "VALIDATION_ERROR"
+        );
+      }
+      let url = `${this.endpoint}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/providers/${providerId}/eventmetadata`;
+      if (eventCode?.trim()) {
+        url += `/${encodeURIComponent(eventCode.trim())}`;
+      }
+      const headers = {
+        Authorization: `Bearer ${this.accessToken}`,
+        "x-api-key": this.clientId,
+        Accept: "application/hal+json"
+      };
+      await this.restClient.delete(url, headers);
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+  /**
+   * Handles errors from the API request
+   *
+   * @param error - The error object from the API request
+   * @throws IOEventsApiError - Always throws with appropriate error details
+   * @private
+   */
+  handleError(error) {
+    if (error instanceof IOEventsApiError) {
+      throw error;
+    }
+    if (error instanceof Error && error.message.includes("HTTP error! status:")) {
+      const statusCode2 = this.extractStatusCodeFromMessage(error.message);
+      const errorMessage2 = this.getErrorMessageForStatus(statusCode2);
+      throw new IOEventsApiError(errorMessage2, statusCode2);
+    }
+    if (error.response) {
+      const statusCode2 = this.extractStatusCode(error);
+      const errorMessage2 = error.response.body?.message || this.getErrorMessageForStatus(statusCode2);
+      throw new IOEventsApiError(
+        errorMessage2,
+        statusCode2,
+        error.response.body?.error_code,
+        error.response.body?.details
+      );
+    }
+    let errorMessage;
+    let statusCode;
+    if (error instanceof Error) {
+      if (error.message.includes("timeout") || error.message.includes("ETIMEDOUT")) {
+        errorMessage = "Request timeout while deleting event metadata";
+        statusCode = IoEventsGlobals.STATUS_CODES.REQUEST_TIMEOUT;
+      } else if (error.message.includes("is required") || error.message.includes("cannot be empty")) {
+        throw new IOEventsApiError(
+          error.message,
+          IoEventsGlobals.STATUS_CODES.BAD_REQUEST,
+          "VALIDATION_ERROR"
+        );
+      } else if (error.message.includes("JSON") || error.message.includes("parse")) {
+        errorMessage = "Invalid response format from Adobe I/O Events API";
+        statusCode = IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+      } else {
+        errorMessage = `Network error: ${error.message}`;
+        statusCode = IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+      }
+    } else {
+      errorMessage = `API Error: HTTP ${IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR}`;
+      statusCode = IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+    }
+    throw new IOEventsApiError(errorMessage, statusCode);
+  }
+  /**
+   * Extracts the status code from the error response
+   *
+   * @param error - The error object
+   * @returns The HTTP status code
+   * @private
+   */
+  extractStatusCode(error) {
+    return error.response?.status || IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+  }
+  /**
+   * Extracts the status code from RestClient error message
+   *
+   * @param errorMessage - Error message like "HTTP error! status: 404"
+   * @returns The HTTP status code
+   * @private
+   */
+  extractStatusCodeFromMessage(errorMessage) {
+    const match = errorMessage.match(/HTTP error! status:\s*(\d+)/);
+    return match ? parseInt(match[1], 10) : IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+  }
+  /**
+   * Gets a human-readable error message based on HTTP status code
+   *
+   * @param statusCode - HTTP status code
+   * @returns string - User-friendly error message
+   * @private
+   */
+  getErrorMessageForStatus(statusCode) {
+    switch (statusCode) {
+      case IoEventsGlobals.STATUS_CODES.UNAUTHORIZED:
+        return "Authentication failed. Please check your access token";
+      case IoEventsGlobals.STATUS_CODES.FORBIDDEN:
+        return "Access forbidden. You do not have permission to delete event metadata";
+      case IoEventsGlobals.STATUS_CODES.NOT_FOUND:
+        return "Provider or event metadata not found. The specified provider ID or event code does not exist";
+      case IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR:
+        return "Internal server error occurred while deleting event metadata";
+      default:
+        return `Unexpected error occurred: HTTP ${statusCode}`;
+    }
+  }
+};
+__name(_Delete2, "Delete");
+var Delete2 = _Delete2;
+var delete_default = Delete2;
+
+// src/io-events/event-metadata/index.ts
+var _EventMetadataManager = class _EventMetadataManager {
+  /**
+   * Creates an instance of EventMetadataManager
+   *
+   * @param clientId - Adobe I/O Client ID for API authentication
+   * @param consumerId - Consumer organization ID
+   * @param projectId - Project ID within the consumer organization
+   * @param workspaceId - Workspace ID within the project
+   * @param accessToken - Access token for API authentication
+   */
+  constructor(clientId, consumerId, projectId, workspaceId, accessToken) {
+    this.clientId = clientId;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.accessToken = accessToken;
+    this.listService = new List2(clientId, consumerId, projectId, workspaceId, accessToken);
+    this.getService = new Get2(clientId, consumerId, projectId, workspaceId, accessToken);
+    this.createService = new create_default2(clientId, consumerId, projectId, workspaceId, accessToken);
+    this.deleteService = new delete_default(clientId, consumerId, projectId, workspaceId, accessToken);
+  }
+  /**
+   * Lists all event metadata for a provider
+   *
+   * @param providerId - The ID of the provider to fetch event metadata for
+   * @returns Promise<EventMetadata[]> - Array of event metadata
+   * @throws IOEventsApiError - When the API request fails
+   *
+   * @example
+   * // List all event metadata for a provider
+   * const allMetadata = await eventMetadata.list('provider-123');
+   */
+  async list(providerId) {
+    try {
+      return await this.listService.execute(providerId);
+    } catch (error) {
+      if (error instanceof IOEventsApiError) {
+        throw error;
+      }
+      throw new IOEventsApiError(
+        `Unexpected error in event metadata list: ${error instanceof Error ? error.message : "Unknown error"}`,
+        500,
+        "UNEXPECTED_ERROR"
+      );
+    }
+  }
+  /**
+   * Gets specific event metadata by provider ID and event code
+   *
+   * @param providerId - The ID of the provider
+   * @param eventCode - The event code to get metadata for
+   * @returns Promise<EventMetadata> - The event metadata
+   * @throws IOEventsApiError - When the API request fails
+   *
+   * @example
+   * // Get specific event metadata by event code
+   * const specificMetadata = await eventMetadata.get('provider-123', 'user.created');
+   */
+  async get(providerId, eventCode) {
+    try {
+      return await this.getService.execute(providerId, eventCode);
+    } catch (error) {
+      if (error instanceof IOEventsApiError) {
+        throw error;
+      }
+      throw new IOEventsApiError(
+        `Unexpected error in event metadata get: ${error instanceof Error ? error.message : "Unknown error"}`,
+        500,
+        "UNEXPECTED_ERROR"
+      );
+    }
+  }
+  /**
+   * Creates new event metadata for a provider
+   *
+   * @param providerId - The ID of the provider to create event metadata for
+   * @param eventMetadataData - The event metadata input data
+   * @returns Promise<EventMetadata> - The created event metadata
+   * @throws IOEventsApiError - When the API request fails
+   *
+   * @example
+   * // Create new event metadata
+   * const newMetadata = await eventMetadata.create('provider-123', {
+   *   event_code: 'com.example.user.created',
+   *   label: 'User Created',
+   *   description: 'Triggered when a new user is created',
+   *   sample_event_template: { name: 'John Doe', email: 'john@example.com' } // JSON object
+   * });
+   */
+  async create(providerId, eventMetadataData) {
+    try {
+      return await this.createService.execute(providerId, eventMetadataData);
+    } catch (error) {
+      if (error instanceof IOEventsApiError) {
+        throw error;
+      }
+      throw new IOEventsApiError(
+        `Unexpected error in event metadata create: ${error instanceof Error ? error.message : "Unknown error"}`,
+        500,
+        "UNEXPECTED_ERROR"
+      );
+    }
+  }
+  /**
+   * Deletes event metadata for a provider
+   *
+   * @param providerId - The ID of the provider to delete event metadata for
+   * @param eventCode - Optional event code to delete specific event metadata. If not provided, deletes all event metadata for the provider
+   * @returns Promise<void> - No content returned on successful deletion
+   * @throws IOEventsApiError - When the API request fails
+   *
+   * @example
+   * // Delete all event metadata for a provider
+   * await eventMetadata.delete('provider-123');
+   *
+   * @example
+   * // Delete specific event metadata by event code
+   * await eventMetadata.delete('provider-123', 'com.example.user.created');
+   */
+  async delete(providerId, eventCode) {
+    try {
+      return await this.deleteService.execute(providerId, eventCode);
+    } catch (error) {
+      if (error instanceof IOEventsApiError) {
+        throw error;
+      }
+      throw new IOEventsApiError(
+        `Unexpected error in event metadata delete: ${error instanceof Error ? error.message : "Unknown error"}`,
+        500,
+        "UNEXPECTED_ERROR"
+      );
+    }
+  }
+};
+__name(_EventMetadataManager, "EventMetadataManager");
+var EventMetadataManager = _EventMetadataManager;
+var event_metadata_default = EventMetadataManager;
 export {
   adobe_auth_default as AdobeAuth,
   bearer_token_default as BearerToken,
   event_consumer_action_default as EventConsumerAction,
+  event_metadata_default as EventMetadataManager,
   graphql_action_default as GraphQlAction,
   HttpMethod,
   HttpStatus,

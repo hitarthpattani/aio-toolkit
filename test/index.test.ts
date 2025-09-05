@@ -75,4 +75,9 @@ describe('Adobe Commerce AIO Toolkit', () => {
     expect(toolkit.RestClient).toBeDefined();
     expect(typeof toolkit.RestClient).toBe('function');
   });
+
+  it('should export EventMetadataManager class', () => {
+    expect(toolkit.EventMetadataManager).toBeDefined();
+    expect(typeof toolkit.EventMetadataManager).toBe('function');
+  });
 });
