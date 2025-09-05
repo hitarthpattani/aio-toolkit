@@ -684,6 +684,912 @@ var _AdobeAuth = class _AdobeAuth {
 __name(_AdobeAuth, "AdobeAuth");
 var AdobeAuth = _AdobeAuth;
 var adobe_auth_default = AdobeAuth;
+
+// src/io-events/types.ts
+var IoEventsGlobals = {
+  BASE_URL: "https://api.adobe.io",
+  STATUS_CODES: {
+    OK: 200,
+    BAD_REQUEST: 400,
+    UNAUTHORIZED: 401,
+    FORBIDDEN: 403,
+    NOT_FOUND: 404,
+    REQUEST_TIMEOUT: 408,
+    TIMEOUT: 408,
+    CONFLICT: 409,
+    INTERNAL_SERVER_ERROR: 500
+  },
+  HEADERS: {
+    CONFLICTING_ID: "x-conflicting-id"
+  }
+};
+var _IOEventsApiError = class _IOEventsApiError extends Error {
+  constructor(message, statusCode, errorCode, details) {
+    super(message);
+    this.name = "IOEventsApiError";
+    this.statusCode = statusCode;
+    this.errorCode = errorCode;
+    this.details = details;
+  }
+};
+__name(_IOEventsApiError, "IOEventsApiError");
+var IOEventsApiError = _IOEventsApiError;
+
+// src/io-events/provider/list/index.ts
+var _List = class _List {
+  /**
+   * Constructor for List providers service
+   *
+   * @param clientId - Client ID from Adobe Developer Console (x-api-key header)
+   * @param consumerId - Project Organization ID from Adobe Developer Console
+   * @param projectId - Project ID from Adobe Developer Console
+   * @param workspaceId - Workspace ID from Adobe Developer Console
+   * @param accessToken - IMS token for authentication (Bearer token)
+   */
+  constructor(clientId, consumerId, projectId, workspaceId, accessToken) {
+    this.clientId = clientId;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.accessToken = accessToken;
+    this.endpoint = IoEventsGlobals.BASE_URL;
+    if (!clientId?.trim()) {
+      throw new Error("clientId is required and cannot be empty");
+    }
+    if (!consumerId?.trim()) {
+      throw new Error("consumerId is required and cannot be empty");
+    }
+    if (!projectId?.trim()) {
+      throw new Error("projectId is required and cannot be empty");
+    }
+    if (!workspaceId?.trim()) {
+      throw new Error("workspaceId is required and cannot be empty");
+    }
+    if (!accessToken?.trim()) {
+      throw new Error("accessToken is required and cannot be empty");
+    }
+    this.restClient = new rest_client_default();
+  }
+  /**
+   * Execute the list providers API call with automatic pagination
+   *
+   * This method automatically handles pagination by following the `_links.next.href` from the HAL+JSON response.
+   * It makes recursive API calls to fetch all pages and returns a complete array containing all providers
+   * across all pages.
+   *
+   * @param queryParams - Optional query parameters for filtering providers
+   * @param queryParams.providerMetadataId - Filter by provider metadata id
+   * @param queryParams.instanceId - Filter by instance id
+   * @param queryParams.providerMetadataIds - List of provider metadata ids to filter (mutually exclusive with providerMetadataId)
+   * @param queryParams.eventmetadata - Boolean to fetch provider's event metadata (default: false)
+   * @returns Promise<Provider[]> - Complete array of all providers across all pages
+   * @throws IOEventsApiError - When API call fails with specific error details
+   */
+  async execute(queryParams = {}) {
+    try {
+      if (queryParams.providerMetadataId && queryParams.providerMetadataIds) {
+        throw new Error("Cannot specify both providerMetadataId and providerMetadataIds");
+      }
+      const url = `${this.endpoint}/events/${this.consumerId}/providers`;
+      const queryString = this.buildQueryString(queryParams);
+      const fullUrl = queryString ? `${url}?${queryString}` : url;
+      const headers = {
+        Authorization: `Bearer ${this.accessToken}`,
+        "x-api-key": this.clientId,
+        Accept: "application/hal+json"
+      };
+      return await this.fetchAllPages(fullUrl, headers);
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+  /**
+   * Recursively fetches all pages of providers using pagination links
+   *
+   * @param url - The URL to fetch (either initial URL or next page URL)
+   * @param headers - Headers for the API request
+   * @param accumulatedResults - Array to accumulate results across pages
+   * @returns Promise<Provider[]> - Complete array of all providers
+   * @private
+   */
+  async fetchAllPages(url, headers, accumulatedResults = []) {
+    const response = await this.restClient.get(url, headers);
+    if (response === null || response === void 0) {
+      throw new Error("Invalid response format: Expected object");
+    }
+    if (typeof response !== "object") {
+      throw new Error("Invalid response format: Expected object");
+    }
+    const providers = response._embedded?.providers;
+    if (providers !== void 0 && !Array.isArray(providers)) {
+      throw new Error("Invalid response format: providers should be an array");
+    }
+    const currentPageResults = providers || [];
+    const allResults = [...accumulatedResults, ...currentPageResults];
+    const nextPageUrl = response._links?.next?.href;
+    if (nextPageUrl) {
+      return await this.fetchAllPages(nextPageUrl, headers, allResults);
+    }
+    return allResults;
+  }
+  /**
+   * Handle and transform errors from the API call
+   * @private
+   * @param error - The caught error
+   * @throws IOEventsApiError - Transformed error with proper details
+   */
+  handleError(error) {
+    if (error instanceof Error && error.message.includes("HTTP error! status:")) {
+      const statusCode = this.extractStatusCodeFromMessage(error.message);
+      const errorMessage = this.getErrorMessageForStatus(statusCode);
+      throw new IOEventsApiError(errorMessage, statusCode);
+    }
+    if (error.response?.body) {
+      const errorBody = error.response.body;
+      const statusCode = error.response.statusCode || IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+      const message = errorBody.message || errorBody.error || this.getErrorMessageForStatus(statusCode);
+      throw new IOEventsApiError(message, statusCode, errorBody.error_code, errorBody.details);
+    }
+    if (error.code === "ENOTFOUND" || error.code === "ECONNREFUSED") {
+      throw new IOEventsApiError(
+        "Network error: Unable to connect to Adobe I/O Events API. Please check your internet connection.",
+        0,
+        "NETWORK_ERROR"
+      );
+    }
+    if (error.code === "ETIMEDOUT") {
+      throw new IOEventsApiError(
+        "Request timeout: Adobe I/O Events API did not respond in time.",
+        0,
+        "TIMEOUT_ERROR"
+      );
+    }
+    if (error.message?.includes("JSON") || error.name === "SyntaxError") {
+      throw new IOEventsApiError(
+        "Invalid response format: Unable to parse API response.",
+        0,
+        "PARSE_ERROR"
+      );
+    }
+    if (error.message?.includes("Cannot specify both") || error.message?.includes("Invalid response format")) {
+      throw new IOEventsApiError(
+        error.message,
+        IoEventsGlobals.STATUS_CODES.BAD_REQUEST,
+        "VALIDATION_ERROR"
+      );
+    }
+    throw new IOEventsApiError(
+      `Failed to list providers: ${error.message || "Unknown error occurred"}`,
+      IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR,
+      "UNKNOWN_ERROR"
+    );
+  }
+  /**
+   * Extracts the status code from RestClient error message
+   *
+   * @param errorMessage - Error message like "HTTP error! status: 404"
+   * @returns The HTTP status code
+   */
+  extractStatusCodeFromMessage(errorMessage) {
+    const match = errorMessage.match(/HTTP error! status:\s*(\d+)/);
+    return match ? parseInt(match[1], 10) : IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+  }
+  /**
+   * Get user-friendly error message based on HTTP status code
+   * @private
+   * @param statusCode - HTTP status code
+   * @returns string - User-friendly error message
+   */
+  getErrorMessageForStatus(statusCode) {
+    switch (statusCode) {
+      case IoEventsGlobals.STATUS_CODES.UNAUTHORIZED:
+        return "Unauthorized: Invalid or expired access token";
+      case IoEventsGlobals.STATUS_CODES.FORBIDDEN:
+        return "Forbidden: Insufficient permissions or invalid API key";
+      case IoEventsGlobals.STATUS_CODES.NOT_FOUND:
+        return "Not Found: Provider associated with the consumerOrgId, providerMetadataId or instanceID does not exist";
+      case IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR:
+        return "Internal Server Error: Adobe I/O Events service is temporarily unavailable";
+      default:
+        return `API Error: HTTP ${statusCode}`;
+    }
+  }
+  /**
+   * Build query string from parameters
+   * @private
+   */
+  buildQueryString(params) {
+    const queryParts = [];
+    if (params.providerMetadataId) {
+      queryParts.push(`providerMetadataId=${encodeURIComponent(params.providerMetadataId)}`);
+    }
+    if (params.instanceId) {
+      queryParts.push(`instanceId=${encodeURIComponent(params.instanceId)}`);
+    }
+    if (params.providerMetadataIds && Array.isArray(params.providerMetadataIds)) {
+      params.providerMetadataIds.forEach((id) => {
+        queryParts.push(`providerMetadataIds=${encodeURIComponent(id)}`);
+      });
+    }
+    if (typeof params.eventmetadata === "boolean") {
+      queryParts.push(`eventmetadata=${params.eventmetadata}`);
+    }
+    return queryParts.join("&");
+  }
+};
+__name(_List, "List");
+var List = _List;
+var list_default = List;
+
+// src/io-events/provider/get/index.ts
+var _Get = class _Get {
+  /**
+   * Constructor for Get provider service
+   *
+   * @param clientId - Client ID from Adobe Developer Console (x-api-key header)
+   * @param consumerId - Project Organization ID from Adobe Developer Console
+   * @param projectId - Project ID from Adobe Developer Console
+   * @param workspaceId - Workspace ID from Adobe Developer Console
+   * @param accessToken - IMS token for authentication (Bearer token)
+   */
+  constructor(clientId, consumerId, projectId, workspaceId, accessToken) {
+    this.clientId = clientId;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.accessToken = accessToken;
+    this.endpoint = IoEventsGlobals.BASE_URL;
+    if (!clientId?.trim()) {
+      throw new Error("clientId is required and cannot be empty");
+    }
+    if (!consumerId?.trim()) {
+      throw new Error("consumerId is required and cannot be empty");
+    }
+    if (!projectId?.trim()) {
+      throw new Error("projectId is required and cannot be empty");
+    }
+    if (!workspaceId?.trim()) {
+      throw new Error("workspaceId is required and cannot be empty");
+    }
+    if (!accessToken?.trim()) {
+      throw new Error("accessToken is required and cannot be empty");
+    }
+    this.restClient = new rest_client_default();
+  }
+  /**
+   * Execute the get provider by ID API call
+   *
+   * @param providerId - The ID of the provider to retrieve
+   * @param queryParams - Optional query parameters
+   * @param queryParams.eventmetadata - Boolean to fetch provider's event metadata (default: false)
+   * @returns Promise<Provider> - The provider details
+   * @throws IOEventsApiError - When API call fails with specific error details
+   *
+   * @example
+   * ```typescript
+   * // Get basic provider details
+   * const provider = await getService.execute('provider-123');
+   *
+   * // Get provider details with event metadata
+   * const providerWithMetadata = await getService.execute('provider-123', {
+   *   eventmetadata: true
+   * });
+   * ```
+   */
+  async execute(providerId, queryParams = {}) {
+    try {
+      if (!providerId?.trim()) {
+        throw new Error("Provider ID is required and cannot be empty");
+      }
+      const url = `${this.endpoint}/events/providers/${encodeURIComponent(providerId)}`;
+      const queryString = this.buildQueryString(queryParams);
+      const fullUrl = queryString ? `${url}?${queryString}` : url;
+      const headers = {
+        Authorization: `Bearer ${this.accessToken}`,
+        "x-api-key": this.clientId,
+        Accept: "application/hal+json"
+      };
+      const response = await this.restClient.get(fullUrl, headers);
+      if (response === null || response === void 0) {
+        throw new Error("Invalid response format: Expected provider object");
+      }
+      if (typeof response !== "object") {
+        throw new Error("Invalid response format: Expected provider object");
+      }
+      return response;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+  /**
+   * Build query string from parameters
+   */
+  buildQueryString(queryParams) {
+    const params = new URLSearchParams();
+    if (queryParams.eventmetadata !== void 0) {
+      params.append("eventmetadata", String(queryParams.eventmetadata));
+    }
+    return params.toString();
+  }
+  /**
+   * Handle and transform errors into IOEventsApiError
+   */
+  handleError(error) {
+    if (error instanceof Error && error.message.includes("HTTP error! status:")) {
+      const statusCode = this.extractStatusCodeFromMessage(error.message);
+      const errorMessage = this.getErrorMessageForStatus(statusCode);
+      throw new IOEventsApiError(errorMessage, statusCode);
+    }
+    if (error.response) {
+      const status = this.extractStatusCode(error);
+      const errorMessage = this.getErrorMessageForStatus(status);
+      throw new IOEventsApiError(errorMessage, status, "API_ERROR");
+    }
+    if (error.code === "ENOTFOUND" || error.code === "ECONNREFUSED") {
+      throw new IOEventsApiError(
+        "Network error: Unable to connect to Adobe I/O Events API",
+        IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR,
+        "NETWORK_ERROR"
+      );
+    }
+    if (error.code === "ETIMEDOUT") {
+      throw new IOEventsApiError(
+        "Request timeout: Adobe I/O Events API did not respond in time",
+        IoEventsGlobals.STATUS_CODES.TIMEOUT,
+        "TIMEOUT_ERROR"
+      );
+    }
+    if (error.message?.includes("JSON")) {
+      throw new IOEventsApiError(
+        "Invalid response format from Adobe I/O Events API",
+        IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR,
+        "PARSE_ERROR"
+      );
+    }
+    if (error.message?.includes("Provider ID is required") || error.message?.includes("Invalid response format")) {
+      throw new IOEventsApiError(
+        error.message,
+        IoEventsGlobals.STATUS_CODES.BAD_REQUEST,
+        "VALIDATION_ERROR"
+      );
+    }
+    throw new IOEventsApiError(
+      `Unexpected error: ${error.message || "Unknown error occurred"}`,
+      IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR,
+      "UNKNOWN_ERROR"
+    );
+  }
+  /**
+   * Extract status code from error response
+   */
+  extractStatusCode(error) {
+    return error.response?.status || error.status || IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+  }
+  /**
+   * Extracts the status code from RestClient error message
+   *
+   * @param errorMessage - Error message like "HTTP error! status: 404"
+   * @returns The HTTP status code
+   */
+  extractStatusCodeFromMessage(errorMessage) {
+    const match = errorMessage.match(/HTTP error! status:\s*(\d+)/);
+    return match ? parseInt(match[1], 10) : IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+  }
+  /**
+   * Get specific error message based on HTTP status code
+   */
+  getErrorMessageForStatus(status) {
+    switch (status) {
+      case IoEventsGlobals.STATUS_CODES.UNAUTHORIZED:
+        return "Unauthorized: Invalid or expired access token";
+      case IoEventsGlobals.STATUS_CODES.FORBIDDEN:
+        return "Forbidden: Insufficient permissions to access this provider";
+      case IoEventsGlobals.STATUS_CODES.NOT_FOUND:
+        return "Provider ID does not exist";
+      case IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR:
+        return "Internal server error occurred while fetching provider";
+      default:
+        return `HTTP ${status}: Provider request failed`;
+    }
+  }
+};
+__name(_Get, "Get");
+var Get = _Get;
+var get_default = Get;
+
+// src/io-events/provider/create/index.ts
+var _Create = class _Create {
+  /**
+   * Constructor for Create provider service
+   *
+   * @param clientId - Client ID from Adobe Developer Console (x-api-key header)
+   * @param consumerId - Project Organization ID from Adobe Developer Console
+   * @param projectId - Project ID from Adobe Developer Console
+   * @param workspaceId - Workspace ID from Adobe Developer Console
+   * @param accessToken - IMS token for authentication (Bearer token)
+   */
+  constructor(clientId, consumerId, projectId, workspaceId, accessToken) {
+    this.clientId = clientId;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.accessToken = accessToken;
+    this.endpoint = IoEventsGlobals.BASE_URL;
+    if (!clientId?.trim()) {
+      throw new Error("clientId is required and cannot be empty");
+    }
+    if (!consumerId?.trim()) {
+      throw new Error("consumerId is required and cannot be empty");
+    }
+    if (!projectId?.trim()) {
+      throw new Error("projectId is required and cannot be empty");
+    }
+    if (!workspaceId?.trim()) {
+      throw new Error("workspaceId is required and cannot be empty");
+    }
+    if (!accessToken?.trim()) {
+      throw new Error("accessToken is required and cannot be empty");
+    }
+    this.restClient = new rest_client_default();
+  }
+  /**
+   * Execute the create provider API call
+   *
+   * @param providerData - Provider input data
+   * @returns Promise<Provider> - The created provider
+   * @throws IOEventsApiError - When API call fails with specific error details
+   */
+  async execute(providerData) {
+    try {
+      if (!providerData) {
+        throw new Error("providerData is required");
+      }
+      if (!providerData.label?.trim()) {
+        throw new Error("label is required in providerData");
+      }
+      const url = `${this.endpoint}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/providers`;
+      const headers = {
+        Authorization: `Bearer ${this.accessToken}`,
+        "x-api-key": this.clientId,
+        Accept: "application/hal+json",
+        "Content-Type": "application/json"
+      };
+      const response = await this.restClient.post(url, headers, providerData);
+      if (response === null || response === void 0) {
+        throw new Error("Invalid response format: Expected provider object");
+      }
+      if (typeof response !== "object") {
+        throw new Error("Invalid response format: Expected provider object");
+      }
+      if (!response.id) {
+        throw new Error("Invalid response format: Missing provider id");
+      }
+      return response;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+  /**
+   * Handle and transform errors from the API call
+   * @private
+   * @param error - The caught error
+   * @throws IOEventsApiError - Transformed error with proper details
+   */
+  handleError(error) {
+    if (error instanceof Error && error.message.includes("HTTP error! status:")) {
+      const statusCode = this.extractStatusCodeFromMessage(error.message);
+      const errorMessage = this.getErrorMessageForStatus(statusCode);
+      throw new IOEventsApiError(errorMessage, statusCode);
+    }
+    if (error.response?.body) {
+      const errorBody = error.response.body;
+      const statusCode = error.response.statusCode || IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+      const message = errorBody.message || errorBody.error || this.getErrorMessageForStatus(statusCode);
+      if (statusCode === IoEventsGlobals.STATUS_CODES.CONFLICT && error.response.headers?.[IoEventsGlobals.HEADERS.CONFLICTING_ID]) {
+        const conflictingId = error.response.headers[IoEventsGlobals.HEADERS.CONFLICTING_ID];
+        throw new IOEventsApiError(
+          `Provider already exists with conflicting ID: ${conflictingId}`,
+          statusCode,
+          "CONFLICT_ERROR",
+          `Conflicting provider ID: ${conflictingId}`
+        );
+      }
+      throw new IOEventsApiError(message, statusCode, errorBody.error_code, errorBody.details);
+    }
+    if (error.code === "ENOTFOUND" || error.code === "ECONNREFUSED") {
+      throw new IOEventsApiError(
+        "Network error: Unable to connect to Adobe I/O Events API",
+        IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR,
+        "NETWORK_ERROR"
+      );
+    }
+    if (error.code === "ETIMEDOUT") {
+      throw new IOEventsApiError(
+        "Request timeout: Adobe I/O Events API did not respond in time",
+        IoEventsGlobals.STATUS_CODES.TIMEOUT,
+        "TIMEOUT_ERROR"
+      );
+    }
+    if (error.message?.includes("JSON")) {
+      throw new IOEventsApiError(
+        "Invalid response format from Adobe I/O Events API",
+        IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR,
+        "PARSE_ERROR"
+      );
+    }
+    if (error.message?.includes("is required") || error.message?.includes("Invalid response format")) {
+      throw new IOEventsApiError(
+        error.message,
+        IoEventsGlobals.STATUS_CODES.BAD_REQUEST,
+        "VALIDATION_ERROR"
+      );
+    }
+    throw new IOEventsApiError(
+      `Failed to create provider: ${error.message || "Unknown error occurred"}`,
+      IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR,
+      "UNKNOWN_ERROR"
+    );
+  }
+  /**
+   * Extracts the status code from RestClient error message
+   *
+   * @param errorMessage - Error message like "HTTP error! status: 404"
+   * @returns The HTTP status code
+   */
+  extractStatusCodeFromMessage(errorMessage) {
+    const match = errorMessage.match(/HTTP error! status:\s*(\d+)/);
+    return match ? parseInt(match[1], 10) : IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+  }
+  /**
+   * Get specific error message based on HTTP status code
+   */
+  getErrorMessageForStatus(status) {
+    switch (status) {
+      case IoEventsGlobals.STATUS_CODES.UNAUTHORIZED:
+        return "Unauthorized: Invalid or expired access token";
+      case IoEventsGlobals.STATUS_CODES.FORBIDDEN:
+        return "Forbidden: Insufficient permissions or invalid scopes, or attempt to create non multi-instance provider";
+      case IoEventsGlobals.STATUS_CODES.NOT_FOUND:
+        return "Provider metadata provided in the input model does not exist";
+      case IoEventsGlobals.STATUS_CODES.CONFLICT:
+        return "The event provider already exists";
+      case IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR:
+        return "Internal server error occurred while creating provider";
+      default:
+        return `HTTP ${status}: Provider creation failed`;
+    }
+  }
+};
+__name(_Create, "Create");
+var Create = _Create;
+var create_default = Create;
+
+// src/io-events/provider/delete/index.ts
+var _Delete = class _Delete {
+  /**
+   * Creates an instance of Delete service
+   *
+   * @param clientId - Client ID from Adobe Developer Console
+   * @param consumerId - Project Organization ID
+   * @param projectId - Project ID from Adobe Developer Console
+   * @param workspaceId - Workspace ID from Adobe Developer Console
+   * @param accessToken - IMS token for authentication
+   */
+  constructor(clientId, consumerId, projectId, workspaceId, accessToken) {
+    this.clientId = clientId;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.accessToken = accessToken;
+    this.endpoint = IoEventsGlobals.BASE_URL;
+    if (!clientId?.trim()) {
+      throw new Error("clientId is required and cannot be empty");
+    }
+    if (!consumerId?.trim()) {
+      throw new Error("consumerId is required and cannot be empty");
+    }
+    if (!projectId?.trim()) {
+      throw new Error("projectId is required and cannot be empty");
+    }
+    if (!workspaceId?.trim()) {
+      throw new Error("workspaceId is required and cannot be empty");
+    }
+    if (!accessToken?.trim()) {
+      throw new Error("accessToken is required and cannot be empty");
+    }
+    this.restClient = new rest_client_default();
+  }
+  /**
+   * Delete a provider by ID
+   *
+   * @param providerId - The ID of the provider to delete
+   * @returns Promise<void> - Resolves when provider is successfully deleted
+   * @throws IOEventsApiError - When the API request fails
+   */
+  async execute(providerId) {
+    try {
+      if (!providerId?.trim()) {
+        throw new Error("providerId is required and cannot be empty");
+      }
+      const url = `${this.endpoint}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/providers/${providerId}`;
+      const headers = {
+        Authorization: `Bearer ${this.accessToken}`,
+        "x-api-key": this.clientId,
+        Accept: "application/hal+json",
+        "Content-Type": "application/json"
+      };
+      await this.restClient.delete(url, headers);
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+  /**
+   * Handle and transform errors from the API call
+   * @private
+   * @param error - The caught error
+   * @throws IOEventsApiError - Transformed error with proper details
+   */
+  handleError(error) {
+    if (error instanceof Error && error.message.includes("HTTP error! status:")) {
+      const statusCode = this.extractStatusCodeFromMessage(error.message);
+      const errorMessage = this.getErrorMessageForStatus(statusCode);
+      throw new IOEventsApiError(errorMessage, statusCode);
+    }
+    if (error.response) {
+      const status = this.extractStatusCode(error);
+      const errorMessage = this.getErrorMessageForStatus(status);
+      throw new IOEventsApiError(errorMessage, status, "API_ERROR");
+    }
+    if (error.code === "ENOTFOUND" || error.code === "ECONNREFUSED") {
+      throw new IOEventsApiError(
+        "Network error: Unable to connect to Adobe I/O Events API",
+        IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR,
+        "NETWORK_ERROR"
+      );
+    }
+    if (error.code === "ETIMEDOUT" || error.message?.includes("timeout")) {
+      throw new IOEventsApiError(
+        "Request timeout: Adobe I/O Events API did not respond in time",
+        IoEventsGlobals.STATUS_CODES.TIMEOUT,
+        "TIMEOUT_ERROR"
+      );
+    }
+    if (error.message?.includes("JSON")) {
+      throw new IOEventsApiError(
+        "Invalid response format from Adobe I/O Events API",
+        IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR,
+        "PARSE_ERROR"
+      );
+    }
+    if (error.message?.includes("required") || error.message?.includes("empty")) {
+      throw new IOEventsApiError(
+        `Validation error: ${error.message}`,
+        IoEventsGlobals.STATUS_CODES.BAD_REQUEST,
+        "VALIDATION_ERROR"
+      );
+    }
+    if (error instanceof Error) {
+      throw new IOEventsApiError(
+        `Failed to delete provider: ${error.message}`,
+        IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR,
+        "UNKNOWN_ERROR"
+      );
+    }
+    throw new IOEventsApiError(
+      "Unexpected error: Unknown error occurred",
+      IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR,
+      "UNKNOWN_ERROR"
+    );
+  }
+  /**
+   * Extract status code from error response
+   */
+  extractStatusCode(error) {
+    return error.response?.status || error.status || IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+  }
+  /**
+   * Extracts the status code from RestClient error message
+   *
+   * @param errorMessage - Error message like "HTTP error! status: 404"
+   * @returns The HTTP status code
+   */
+  extractStatusCodeFromMessage(errorMessage) {
+    const match = errorMessage.match(/HTTP error! status:\s*(\d+)/);
+    return match ? parseInt(match[1], 10) : IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR;
+  }
+  /**
+   * Get appropriate error message for HTTP status code
+   */
+  getErrorMessageForStatus(status) {
+    switch (status) {
+      case IoEventsGlobals.STATUS_CODES.UNAUTHORIZED:
+        return "Unauthorized: Invalid or expired access token";
+      case IoEventsGlobals.STATUS_CODES.FORBIDDEN:
+        return "Forbidden: Insufficient permissions to delete provider";
+      case IoEventsGlobals.STATUS_CODES.NOT_FOUND:
+        return "Provider not found: The specified provider ID does not exist";
+      case IoEventsGlobals.STATUS_CODES.INTERNAL_SERVER_ERROR:
+        return "Internal server error occurred while deleting provider";
+      default:
+        return `HTTP ${status}: Provider deletion failed`;
+    }
+  }
+};
+__name(_Delete, "Delete");
+var Delete = _Delete;
+
+// src/io-events/provider/index.ts
+var _ProviderManager = class _ProviderManager {
+  /**
+   * Constructor for Providers service
+   *
+   * @param clientId - Client ID from Adobe Developer Console (x-api-key header)
+   * @param consumerId - Project Organization ID from Adobe Developer Console
+   * @param projectId - Project ID from Adobe Developer Console
+   * @param workspaceId - Workspace ID from Adobe Developer Console
+   * @param accessToken - IMS token for authentication (Bearer token)
+   */
+  constructor(clientId, consumerId, projectId, workspaceId, accessToken) {
+    this.clientId = clientId;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.accessToken = accessToken;
+    this.listService = new list_default(clientId, consumerId, projectId, workspaceId, accessToken);
+    this.getService = new get_default(clientId, consumerId, projectId, workspaceId, accessToken);
+    this.createService = new create_default(clientId, consumerId, projectId, workspaceId, accessToken);
+    this.deleteService = new Delete(clientId, consumerId, projectId, workspaceId, accessToken);
+  }
+  /**
+   * List all event providers entitled to the provided organization ID
+   *
+   * @param queryParams - Optional query parameters for filtering providers
+   * @param queryParams.providerMetadataId - Filter by provider metadata id
+   * @param queryParams.instanceId - Filter by instance id
+   * @param queryParams.providerMetadataIds - List of provider metadata ids to filter (mutually exclusive with providerMetadataId)
+   * @param queryParams.eventmetadata - Boolean to fetch provider's event metadata (default: false)
+   * @returns Promise<Provider[]> - Array of providers
+   * @throws IOEventsApiError - When API call fails with specific error details
+   *
+   * @example
+   * ```typescript
+   * // List all providers
+   * const providers = await providersService.list();
+   *
+   * // Filter by provider metadata ID
+   * const customProviders = await providersService.list({
+   *   providerMetadataId: '3rd_party_custom_events'
+   * });
+   *
+   * // Include event metadata in response
+   * const providersWithMetadata = await providersService.list({
+   *   eventmetadata: true
+   * });
+   * ```
+   */
+  async list(queryParams = {}) {
+    try {
+      return await this.listService.execute(queryParams);
+    } catch (error) {
+      if (error instanceof IOEventsApiError) {
+        throw error;
+      }
+      throw new IOEventsApiError(
+        `Unexpected error in providers list: ${error instanceof Error ? error.message : "Unknown error"}`,
+        500,
+        "UNEXPECTED_ERROR"
+      );
+    }
+  }
+  /**
+   * Get a specific event provider by its ID
+   *
+   * @param providerId - The ID of the provider to retrieve
+   * @param queryParams - Optional query parameters
+   * @param queryParams.eventmetadata - Boolean to fetch provider's event metadata (default: false)
+   * @returns Promise<Provider> - The provider details
+   * @throws IOEventsApiError - When API call fails with specific error details
+   *
+   * @example
+   * ```typescript
+   * // Get basic provider details
+   * const provider = await providersService.get('provider-123');
+   *
+   * // Get provider details with event metadata
+   * const providerWithMetadata = await providersService.get('provider-123', {
+   *   eventmetadata: true
+   * });
+   * ```
+   */
+  async get(providerId, queryParams = {}) {
+    try {
+      return await this.getService.execute(providerId, queryParams);
+    } catch (error) {
+      if (error instanceof IOEventsApiError) {
+        throw error;
+      }
+      throw new IOEventsApiError(
+        `Unexpected error in providers get: ${error instanceof Error ? error.message : "Unknown error"}`,
+        500,
+        "UNEXPECTED_ERROR"
+      );
+    }
+  }
+  /**
+   * Create a new event provider
+   *
+   * @param providerData - Provider input data
+   * @param providerData.label - The label of this event provider (required)
+   * @param providerData.description - Optional description for the provider
+   * @param providerData.docs_url - Optional documentation URL for the provider
+   * @param providerData.provider_metadata - Optional provider metadata ID (defaults to '3rd_party_custom_events')
+   * @param providerData.instance_id - Optional technical instance ID
+   * @param providerData.data_residency_region - Optional data residency region (defaults to 'va6')
+   * @returns Promise<Provider> - The created provider
+   * @throws IOEventsApiError - When API call fails with specific error details
+   *
+   * @example
+   * ```typescript
+   * // Create a basic provider
+   * const provider = await providersService.create({
+   *   label: 'My Event Provider'
+   * });
+   *
+   * // Create a provider with custom details
+   * const customProvider = await providersService.create({
+   *   label: 'My Custom Provider',
+   *   description: 'Provider for custom business events',
+   *   provider_metadata: '3rd_party_custom_events',
+   *   instance_id: 'production-instance'
+   * });
+   * ```
+   */
+  async create(providerData) {
+    try {
+      return await this.createService.execute(providerData);
+    } catch (error) {
+      if (error instanceof IOEventsApiError) {
+        throw error;
+      }
+      throw new IOEventsApiError(
+        `Unexpected error in providers create: ${error instanceof Error ? error.message : "Unknown error"}`,
+        500,
+        "UNEXPECTED_ERROR"
+      );
+    }
+  }
+  /**
+   * Delete an event provider by ID
+   *
+   * @param providerId - The ID of the provider to delete
+   * @returns Promise<void> - Resolves when provider is successfully deleted
+   * @throws IOEventsApiError - When API call fails with specific error details
+   *
+   * @example
+   * ```typescript
+   * // Delete a provider by ID
+   * await providersService.delete('provider-123');
+   * console.log('Provider deleted successfully');
+   * ```
+   */
+  async delete(providerId) {
+    try {
+      return await this.deleteService.execute(providerId);
+    } catch (error) {
+      if (error instanceof IOEventsApiError) {
+        throw error;
+      }
+      throw new IOEventsApiError(
+        `Unexpected error in providers delete: ${error instanceof Error ? error.message : "Unknown error"}`,
+        500,
+        "UNEXPECTED_ERROR"
+      );
+    }
+  }
+};
+__name(_ProviderManager, "ProviderManager");
+var ProviderManager = _ProviderManager;
+var provider_default = ProviderManager;
 export {
   adobe_auth_default as AdobeAuth,
   bearer_token_default as BearerToken,
@@ -691,9 +1597,12 @@ export {
   graphql_action_default as GraphQlAction,
   HttpMethod,
   HttpStatus,
+  IOEventsApiError,
+  IoEventsGlobals,
   openwhisk_default as Openwhisk,
   openwhisk_action_default as OpenwhiskAction,
   parameters_default as Parameters,
+  provider_default as ProviderManager,
   rest_client_default as RestClient,
   runtime_action_default as RuntimeAction,
   response_default as RuntimeActionResponse,

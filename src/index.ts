@@ -14,3 +14,6 @@ export * from './integration';
 
 // Export Commerce utilities
 export * from './commerce';
+
+// Export I/O Events utilities
+export * from './io-events';

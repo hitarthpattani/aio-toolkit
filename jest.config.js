@@ -54,6 +54,4 @@ module.exports = {
   
   // Verbose output
   verbose: true,
-  
-
 };
