@@ -1,7 +1,7 @@
 /**
  * Adobe App Builder framework utilities and classes
  *
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 // Export RuntimeAction class, types and response utilities

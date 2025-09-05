@@ -1,7 +1,7 @@
 /**
  * Adobe App Builder Webhook handler
  *
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import * as crypto from 'crypto';

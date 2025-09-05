@@ -1,7 +1,7 @@
 /**
  * Adobe App Builder Webhook Response utilities
  *
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import {

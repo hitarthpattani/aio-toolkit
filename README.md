@@ -1,29 +1,32 @@
 # @adobe-commerce/aio-toolkit
 
-Backend toolkit for Adobe App Builder applications - standardized tools and utilities
-
 ## Overview
 
 This toolkit provides a standardized set of backend tools and utilities for Adobe App Builder application development. It aims to standardize common patterns and provide reusable components for backend functionality.
 
 ## Installation
 
-```bash
-npm install @adobe-commerce/aio-toolkit
-```
+Before installing the package, you need to set up authentication for GitHub Packages registry.
 
-## Usage
+1. Create a personal access token (PAT) with `read:packages` scope from GitHub:
+   - Go to GitHub Settings → Developer Settings → Personal Access Tokens
+   - Generate a new token with `read:packages` scope
+   - Copy the generated token
 
-```typescript
-import { initializeToolkit, VERSION } from '@adobe-commerce/aio-toolkit';
+2. Create or update your `.npmrc` file:
 
-// Initialize the toolkit
-const toolkit = initializeToolkit({
-  environment: 'development'
-});
+   ```bash
+   # Create .npmrc in your project root or home directory
+   echo "@adobe-commerce:registry=https://npm.pkg.github.com" >> .npmrc
+   echo "//npm.pkg.github.com/:_authToken=YOUR_GITHUB_PAT" >> .npmrc
+   ```
 
-console.log(`Toolkit version: ${VERSION}`);
-```
+   Replace `YOUR_GITHUB_PAT` with your personal access token.
+
+3. Install the package:
+   ```bash
+   npm install @adobe-commerce/aio-toolkit
+   ```
 
 ## Development
 
@@ -56,7 +59,3 @@ src/
 ## Contributing
 
 Components are being migrated to this toolkit. Please follow TypeScript best practices and ensure all exports are properly typed.
-
-## License
-
-MIT

@@ -14,8 +14,7 @@
   },
   "files": [
     "dist/**/*",
-    "README.md",
-    "LICENSE"
+    "README.md"
   ],
   "scripts": {
     "build": "tsup",
@@ -49,7 +48,6 @@
     "aio"
   ],
   "author": "",
-  "license": "MIT",
   "dependencies": {
     "@adobe/aio-lib-ims": "^7.0.2",
     "@adobe/aio-sdk": "^5.0.0",

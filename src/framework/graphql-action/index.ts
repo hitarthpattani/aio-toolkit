@@ -1,7 +1,7 @@
 /**
  * Adobe App Builder GraphQL framework utilities
  *
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import { graphql, buildSchema, parse, validate } from 'graphql';

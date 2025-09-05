@@ -1,7 +1,7 @@
 /**
  * Adobe App Builder OpenWhisk client wrapper
  *
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import openwhisk, { Activation, Dict } from 'openwhisk';

@@ -1,5 +1,5 @@
 /**
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import { context, getToken } from '@adobe/aio-lib-ims';

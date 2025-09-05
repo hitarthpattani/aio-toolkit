@@ -1,7 +1,7 @@
 /**
  * Adobe App Builder Webhook types and enums
  *
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 export enum SignatureVerification {

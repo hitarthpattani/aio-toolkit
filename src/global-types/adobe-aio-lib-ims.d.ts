@@ -1,7 +1,7 @@
 /**
  * Type declarations for @adobe/aio-lib-ims
  *
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 declare module '@adobe/aio-lib-ims' {

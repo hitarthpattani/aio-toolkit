@@ -1,7 +1,7 @@
 /**
  * Adobe App Builder OpenWhisk Action handler
  *
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 // OpenWhisk action handler - no direct client dependency needed
 

@@ -1,7 +1,7 @@
 /**
  * Adobe App Builder Event Consumer Action handler
  *
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 import { Core } from '@adobe/aio-sdk';

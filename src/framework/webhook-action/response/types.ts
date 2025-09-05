@@ -1,7 +1,7 @@
 /**
  * Adobe App Builder Webhook Response types and interfaces
  *
- * Copyright © Adobe, Inc. All rights reserved.
+ * <license header>
  */
 
 export enum WebhookOperation {
