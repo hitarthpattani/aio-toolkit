@@ -422,6 +422,81 @@ describe('AdobeCommerceClient', () => {
         method: 'GET',
       });
     });
+
+    it('should exercise got hooks for logging and error handling', async () => {
+      const mockGotInstance = got as jest.MockedFunction<typeof got>;
+      const mockClient = jest.fn() as any;
+      mockClient.extend = jest.fn().mockReturnValue(mockClient);
+      mockClient.mockReturnValue({
+        json: jest.fn().mockResolvedValue({ success: true }),
+      });
+
+      mockGotInstance.extend = jest.fn().mockReturnValue(mockClient);
+      mockConnection.extend.mockResolvedValue(mockClient);
+
+      await client.get('/test');
+
+      // Verify got.extend was called with hooks configuration
+      expect(mockGotInstance.extend).toHaveBeenCalledWith({
+        http2: true,
+        responseType: 'json',
+        prefixUrl: baseUrl,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        hooks: {
+          beforeRequest: expect.any(Array),
+          beforeRetry: expect.any(Array),
+          beforeError: expect.any(Array),
+          afterResponse: expect.any(Array),
+        },
+      });
+
+      // Extract the hooks and test them directly
+      const hookConfig = (
+        mockGotInstance.extend as jest.MockedFunction<typeof mockGotInstance.extend>
+      ).mock.calls[0][0] as any;
+      const { beforeRequest, beforeRetry, beforeError, afterResponse } = hookConfig.hooks;
+
+      // Test beforeRequest hook
+      const mockOptions = { method: 'GET', url: 'https://test.com/api' };
+      beforeRequest[0](mockOptions);
+      expect(mockLogger.debug).toHaveBeenCalledWith('Request [GET] https://test.com/api');
+
+      // Test beforeRetry hook
+      const mockError = { code: 'ECONNRESET', message: 'Connection reset' };
+      beforeRetry[0](mockOptions, mockError, 1);
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        'Retrying request [GET] https://test.com/api - count: 1 - error: ECONNRESET - Connection reset'
+      );
+
+      // Test beforeError hook
+      const mockErrorWithResponse = {
+        response: { body: { error: 'API Error' } },
+      } as any;
+      const result = beforeError[0](mockErrorWithResponse);
+      expect(result.responseBody).toEqual({ error: 'API Error' });
+
+      // Test beforeError hook without response body
+      const mockErrorWithoutBody = { response: {} } as any;
+      const resultWithoutBody = beforeError[0](mockErrorWithoutBody);
+      expect(resultWithoutBody.responseBody).toBeUndefined();
+
+      // Test beforeError hook without response
+      const mockErrorNoResponse = {} as any;
+      const resultNoResponse = beforeError[0](mockErrorNoResponse);
+      expect(resultNoResponse.responseBody).toBeUndefined();
+
+      // Test afterResponse hook
+      const mockResponse = {
+        request: { options: { method: 'GET', url: 'https://test.com/api' } },
+        statusCode: 200,
+        statusMessage: 'OK',
+      } as any;
+      const responseResult = afterResponse[0](mockResponse);
+      expect(mockLogger.debug).toHaveBeenCalledWith('Response [GET] https://test.com/api - 200 OK');
+      expect(responseResult).toBe(mockResponse);
+    });
   });
 
   describe('Logging', () => {

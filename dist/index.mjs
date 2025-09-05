@@ -744,7 +744,7 @@ var _AdobeCommerceClient = class _AdobeCommerceClient {
    * @param payload
    * @private
    */
-  async apiCall(endpoint, method = "POST", headers = {}, payload = null) {
+  async apiCall(endpoint, method, headers, payload = null) {
     const commerceGot = await this.getHttpClient();
     commerceGot.extend({
       headers

@@ -84,8 +84,8 @@ class AdobeCommerceClient {
    */
   private async apiCall(
     endpoint: string,
-    method: string = 'POST',
-    headers: Record<string, string> = {},
+    method: string,
+    headers: Record<string, string>,
     payload: any = null
   ): Promise<any> {
     const commerceGot = await this.getHttpClient();
