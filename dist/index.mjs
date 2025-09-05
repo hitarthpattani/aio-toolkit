@@ -827,6 +827,230 @@ __name(_AdobeCommerceClient, "AdobeCommerceClient");
 var AdobeCommerceClient = _AdobeCommerceClient;
 var adobe_commerce_client_default = AdobeCommerceClient;
 
+// src/commerce/adobe-commerce-client/basic-auth-connection/index.ts
+import { Core as Core6 } from "@adobe/aio-sdk";
+
+// src/commerce/adobe-commerce-client/basic-auth-connection/generate-basic-auth-token/index.ts
+import { State, Core as Core5 } from "@adobe/aio-sdk";
+var _GenerateBasicAuthToken = class _GenerateBasicAuthToken {
+  /**
+   * @param baseUrl
+   * @param username
+   * @param password
+   * @param logger
+   */
+  constructor(baseUrl, username, password, logger = null) {
+    this.baseUrl = baseUrl;
+    this.username = username;
+    this.password = password;
+    this.key = "adobe_commerce_basic_auth_token";
+    if (logger === null) {
+      logger = Core5.Logger("adobe-commerce-client", {
+        level: "debug"
+      });
+    }
+    this.logger = logger;
+  }
+  /**
+   * @return string | null
+   */
+  async execute() {
+    const currentValue = await this.getValue();
+    if (currentValue !== null) {
+      return currentValue;
+    }
+    let result = {
+      token: null,
+      expire_in: 3600
+    };
+    const response = await this.getCommerceToken();
+    if (response !== null) {
+      result = response;
+    }
+    this.logger.debug(`Token: ${JSON.stringify(result)}`);
+    if (result.token !== null) {
+      await this.setValue(result);
+    }
+    return result.token;
+  }
+  /**
+   * @return TokenResult | null
+   */
+  async getCommerceToken() {
+    const endpoint = this.createEndpoint("rest/V1/integration/admin/token");
+    this.logger.debug(`Endpoint: ${endpoint}`);
+    const restClient = new rest_client_default();
+    const response = await restClient.post(
+      endpoint,
+      {
+        "Content-Type": "application/json"
+      },
+      {
+        username: this.username,
+        password: this.password
+      }
+    );
+    this.logger.debug(`Response: ${response}`);
+    if (response !== null) {
+      return {
+        token: response,
+        expire_in: 3600
+      };
+    }
+    return null;
+  }
+  /**
+   * @param endpoint
+   * @return string
+   */
+  createEndpoint(endpoint) {
+    return `${this.baseUrl}/${endpoint}`;
+  }
+  /**
+   * @param result
+   * @return boolean
+   */
+  async setValue(result) {
+    const state = await this.getState();
+    try {
+      await state.put(this.key, result.token, { ttl: result.expire_in });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  /**
+   * @return string | null
+   */
+  async getValue() {
+    const state = await this.getState();
+    const value = await state.get(this.key);
+    if (value !== void 0) {
+      return value.value;
+    }
+    return null;
+  }
+  /**
+   * @return any
+   */
+  async getState() {
+    if (this.state === void 0) {
+      this.state = await State.init();
+    }
+    return this.state;
+  }
+};
+__name(_GenerateBasicAuthToken, "GenerateBasicAuthToken");
+var GenerateBasicAuthToken = _GenerateBasicAuthToken;
+var generate_basic_auth_token_default = GenerateBasicAuthToken;
+
+// src/commerce/adobe-commerce-client/basic-auth-connection/index.ts
+var _BasicAuthConnection = class _BasicAuthConnection {
+  /**
+   * @param baseUrl
+   * @param username
+   * @param password
+   * @param logger
+   */
+  constructor(baseUrl, username, password, logger = null) {
+    this.baseUrl = baseUrl;
+    this.username = username;
+    this.password = password;
+    if (logger === null) {
+      logger = Core6.Logger("adobe-commerce-client", {
+        level: "debug"
+      });
+    }
+    this.logger = logger;
+  }
+  /**
+   * @param commerceGot
+   */
+  async extend(commerceGot) {
+    this.logger.debug("Using Commerce client with integration options");
+    const generateToken = new generate_basic_auth_token_default(
+      this.baseUrl,
+      this.username,
+      this.password,
+      this.logger
+    );
+    const token = await generateToken.execute();
+    return commerceGot.extend({
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  }
+};
+__name(_BasicAuthConnection, "BasicAuthConnection");
+var BasicAuthConnection = _BasicAuthConnection;
+var basic_auth_connection_default = BasicAuthConnection;
+
+// src/commerce/adobe-commerce-client/oauth1a-connection/index.ts
+import { Core as Core7 } from "@adobe/aio-sdk";
+import Oauth1a from "oauth-1.0a";
+import * as crypto2 from "crypto";
+var _Oauth1aConnection = class _Oauth1aConnection {
+  /**
+   * @param consumerKey
+   * @param consumerSecret
+   * @param accessToken
+   * @param accessTokenSecret
+   * @param logger
+   */
+  constructor(consumerKey, consumerSecret, accessToken, accessTokenSecret, logger = null) {
+    this.consumerKey = consumerKey;
+    this.consumerSecret = consumerSecret;
+    this.accessToken = accessToken;
+    this.accessTokenSecret = accessTokenSecret;
+    if (logger === null) {
+      logger = Core7.Logger("adobe-commerce-client", {
+        level: "debug"
+      });
+    }
+    this.logger = logger;
+  }
+  /**
+   * @param commerceGot
+   */
+  async extend(commerceGot) {
+    this.logger.debug("Using Commerce client with integration options");
+    const headers = this.headersProvider();
+    return commerceGot.extend({
+      handlers: [
+        (options, next) => {
+          options.headers = {
+            ...options.headers,
+            ...headers(options.url.toString(), options.method)
+          };
+          return next(options);
+        }
+      ]
+    });
+  }
+  /**
+   * return () => { }
+   */
+  headersProvider() {
+    const oauth = new Oauth1a({
+      consumer: {
+        key: this.consumerKey,
+        secret: this.consumerSecret
+      },
+      signature_method: "HMAC-SHA256",
+      hash_function: /* @__PURE__ */ __name((baseString, key) => crypto2.createHmac("sha256", key).update(baseString).digest("base64"), "hash_function")
+    });
+    const oauthToken = {
+      key: this.accessToken,
+      secret: this.accessTokenSecret
+    };
+    return (url, method) => oauth.toHeader(oauth.authorize({ url, method }, oauthToken));
+  }
+};
+__name(_Oauth1aConnection, "Oauth1aConnection");
+var Oauth1aConnection = _Oauth1aConnection;
+var oauth1a_connection_default = Oauth1aConnection;
+
 // src/io-events/types.ts
 var IoEventsGlobals = {
   BASE_URL: "https://api.adobe.io",
@@ -3332,14 +3556,17 @@ var registration_default = RegistrationManager;
 export {
   adobe_auth_default as AdobeAuth,
   adobe_commerce_client_default as AdobeCommerceClient,
+  basic_auth_connection_default as BasicAuthConnection,
   bearer_token_default as BearerToken,
   event_consumer_action_default as EventConsumerAction,
   event_metadata_default as EventMetadataManager,
+  generate_basic_auth_token_default as GenerateBasicAuthToken,
   graphql_action_default as GraphQlAction,
   HttpMethod,
   HttpStatus,
   IOEventsApiError,
   IoEventsGlobals,
+  oauth1a_connection_default as Oauth1aConnection,
   openwhisk_default as Openwhisk,
   openwhisk_action_default as OpenwhiskAction,
   parameters_default as Parameters,

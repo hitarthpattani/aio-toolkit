@@ -35,8 +35,32 @@ describe('Commerce Module', () => {
     expect(commerce.AdobeCommerceClient.name).toBe('AdobeCommerceClient');
   });
 
+  it('should export BasicAuthConnection class', () => {
+    expect(commerce.BasicAuthConnection).toBeDefined();
+    expect(typeof commerce.BasicAuthConnection).toBe('function');
+    expect(commerce.BasicAuthConnection.name).toBe('BasicAuthConnection');
+  });
+
+  it('should export Oauth1aConnection class', () => {
+    expect(commerce.Oauth1aConnection).toBeDefined();
+    expect(typeof commerce.Oauth1aConnection).toBe('function');
+    expect(commerce.Oauth1aConnection.name).toBe('Oauth1aConnection');
+  });
+
+  it('should export GenerateBasicAuthToken class', () => {
+    expect(commerce.GenerateBasicAuthToken).toBeDefined();
+    expect(typeof commerce.GenerateBasicAuthToken).toBe('function');
+    expect(commerce.GenerateBasicAuthToken.name).toBe('GenerateBasicAuthToken');
+  });
+
   it('should export all expected public API items', () => {
-    const expectedExports = ['AdobeAuth', 'AdobeCommerceClient'];
+    const expectedExports = [
+      'AdobeAuth',
+      'AdobeCommerceClient',
+      'BasicAuthConnection',
+      'Oauth1aConnection',
+      'GenerateBasicAuthToken',
+    ];
 
     expectedExports.forEach(exportName => {
       expect(commerce).toHaveProperty(exportName);
@@ -48,6 +72,9 @@ describe('Commerce Module', () => {
     // Class exports should be constructable functions
     expect(typeof commerce.AdobeAuth).toBe('function');
     expect(typeof commerce.AdobeCommerceClient).toBe('function');
+    expect(typeof commerce.BasicAuthConnection).toBe('function');
+    expect(typeof commerce.Oauth1aConnection).toBe('function');
+    expect(typeof commerce.GenerateBasicAuthToken).toBe('function');
   });
 
   it('should be able to create instances with proper constructors', () => {

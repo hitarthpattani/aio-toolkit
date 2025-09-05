@@ -219,6 +219,47 @@ declare class AdobeCommerceClient {
     private getHttpClient;
 }
 
+declare class BasicAuthConnection implements Connection {
+    private baseUrl;
+    private username;
+    private password;
+    private logger;
+    constructor(baseUrl: string, username: string, password: string, logger?: any);
+    extend(commerceGot: any): Promise<any>;
+}
+
+declare class Oauth1aConnection implements Connection {
+    private consumerKey;
+    private consumerSecret;
+    private accessToken;
+    private accessTokenSecret;
+    private logger;
+    constructor(consumerKey: string, consumerSecret: string, accessToken: string, accessTokenSecret: string, logger?: any);
+    extend(commerceGot: Got): Promise<Got>;
+    headersProvider(): (url: string, method: string) => any;
+}
+
+interface TokenResult {
+    token: string | null;
+    expire_in: number;
+}
+
+declare class GenerateBasicAuthToken {
+    private baseUrl;
+    private username;
+    private password;
+    private key;
+    private logger;
+    private state;
+    constructor(baseUrl: string, username: string, password: string, logger?: any);
+    execute(): Promise<string | null>;
+    getCommerceToken(): Promise<TokenResult | null>;
+    createEndpoint(endpoint: string): string;
+    setValue(result: TokenResult): Promise<boolean>;
+    getValue(): Promise<string | null>;
+    getState(): Promise<any>;
+}
+
 interface AdobeIMSConfig {
     client_id: string;
     client_secrets: string[];
@@ -439,4 +480,4 @@ interface GetRegistrationQueryParams {
     registrationId: string;
 }
 
-export { AdobeAuth, AdobeCommerceClient, type AdobeIMSConfig, BearerToken, type Connection, type CreateProviderParams, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type ExtendedRequestError, type GetProviderQueryParams, type GetRegistrationQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, IoEventsGlobals, type ListProvidersQueryParams, type ListRegistrationQueryParams, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, type Registration, type RegistrationCreateModel, type RegistrationListResponse, RegistrationManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };
+export { AdobeAuth, AdobeCommerceClient, type AdobeIMSConfig, BasicAuthConnection, BearerToken, type Connection, type CreateProviderParams, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type ExtendedRequestError, GenerateBasicAuthToken, type GetProviderQueryParams, type GetRegistrationQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, IoEventsGlobals, type ListProvidersQueryParams, type ListRegistrationQueryParams, Oauth1aConnection, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, type Registration, type RegistrationCreateModel, type RegistrationListResponse, RegistrationManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, type TokenResult, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };

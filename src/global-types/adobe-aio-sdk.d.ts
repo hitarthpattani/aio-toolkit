@@ -26,7 +26,11 @@ declare module '@adobe/aio-sdk' {
 
   export interface State {
     get(key: string): any;
-    put(key: string, value: any): Promise<void>;
+    put(key: string, value: any, options?: { ttl?: number }): Promise<void>;
     delete(key: string): Promise<void>;
+  }
+
+  export namespace State {
+    function init(): Promise<State>;
   }
 }
