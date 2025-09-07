@@ -28,33 +28,141 @@ Before installing the package, you need to set up authentication for GitHub Pack
    npm install @adobe-commerce/aio-toolkit
    ```
 
+## Documentation
+
+### Quick Links
+
+#### Commerce Components
+
+- **[AdobeAuth](./docs/adobe-auth.md)** - Adobe IMS authentication and token management
+- **[AdobeCommerceClient](./docs/adobe-commerce-client.md)** - HTTP client for Adobe Commerce API integration
+
+#### Framework Components
+
+- **[EventConsumerAction](./docs/event-consumer-action.md)** - Event-driven processing for Adobe I/O Events
+- **[GraphQlAction](./docs/graphql-action.md)** - GraphQL server implementation with schema validation
+- **[OpenWhisk](./docs/openwhisk.md)** - OpenWhisk client for serverless action invocation
+- **[OpenWhiskAction](./docs/openwhisk-action.md)** - OpenWhisk action wrapper with logging and error handling
+- **[RuntimeAction](./docs/runtime-action.md)** - HTTP request handling and business logic execution
+- **[WebhookAction](./docs/webhook-action.md)** - Secure webhook processing with signature verification
+
+#### Integration Components
+
+- **[BearerToken](./docs/bearer-token.md)** - Bearer token extraction utility for OpenWhisk actions
+- **[RestClient](./docs/rest-client.md)** - HTTP client for external API integration
+
+#### I/O Events Components
+
+- **[EventMetadataManager](./docs/event-metadata.md)** - Manage event metadata for Adobe I/O Events providers
+- **[ProviderManager](./docs/provider.md)** - Manage event providers for Adobe I/O Events
+- **[RegistrationManager](./docs/registration.md)** - Manage event registrations and subscriptions
+
 ## Development
 
-### Building the Library
+### Prerequisites
+
+- Node.js (v18 or later)
+- npm (v8 or later)
+- Git
+
+### Setup
 
 ```bash
-# Build all formats (CommonJS, ESM, and types)
+# Clone the repository
+git clone https://github.com/adobe-commerce/aio-toolkit.git
+cd aio-toolkit
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+```
+
+### Development Workflow
+
+This project uses a comprehensive development workflow with automated quality checks:
+
+#### Code Quality
+
+```bash
+# Format code with Prettier
+npm run format
+
+# Lint code with ESLint
+npm run lint
+
+# Fix linting issues automatically
+npm run lint:fix
+
+# Type checking
+npm run type-check
+```
+
+#### Testing
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage (requires 100% coverage)
+npm run test:coverage
+
+# Run tests in watch mode during development
+npm run test:watch
+```
+
+#### Build & Validation
+
+```bash
+# Build the project
 npm run build
 
-# Build specific formats
-npm run build:cjs    # CommonJS
-npm run build:esm    # ES Modules  
-npm run build:types  # Type declarations
+# Run complete validation pipeline (tests, linting, type-check, build)
+npm run validate
 
-# Watch mode for development
-npm run dev
+# Run ultra-strict pre-push validation
+npm run validate:push
 ```
+
+### Git Hooks & Automation
+
+This project uses Husky for automated code quality enforcement:
+
+- **Pre-commit**: Runs Prettier formatting and ESLint fixing on staged files
+- **Pre-push**: Runs comprehensive validation (type-check, build, full test suite with coverage)
+
+### Development Standards
+
+- **Test Coverage**: 100% code coverage is required for all statements, branches, functions, and lines
+- **TypeScript**: All code must be properly typed with strict TypeScript configuration
+- **Code Style**: Prettier and ESLint configurations ensure consistent code formatting
+- **Documentation**: All public APIs must be documented with JSDoc comments
 
 ### Project Structure
 
 ```
 src/
-├── index.ts          # Main entry point
-├── auth/             # Authentication utilities (to be added)
-├── logging/          # Logging utilities (to be added)  
-├── utils/            # General utilities (to be added)
-└── validation/       # Validation utilities (to be added)
+├── commerce/           # Adobe Commerce integration utilities
+├── framework/          # Core framework components (actions, responses)
+├── integration/        # Integration utilities (REST client, authentication)
+└── io-events/         # Adobe I/O Events management
+
+test/                  # Comprehensive test suite mirroring src/ structure
 ```
+
+### Available Scripts
+
+- `npm run build` - Build the project using tsup
+- `npm run dev` - Development mode with watch
+- `npm test` - Run Jest tests
+- `npm run test:coverage` - Run tests with coverage report
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix ESLint issues
+- `npm run format` - Format code with Prettier
+- `npm run type-check` - Run TypeScript compiler check
+- `npm run validate` - Run all validation steps
+- `npm run validate:push` - Ultra-strict validation for push operations
 
 ## Contributing
 
