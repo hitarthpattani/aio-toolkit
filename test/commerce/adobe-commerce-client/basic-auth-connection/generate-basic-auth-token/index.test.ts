@@ -190,7 +190,9 @@ describe('GenerateBasicAuthToken', () => {
       expect(mockLogger.debug).toHaveBeenCalledWith(
         `Endpoint: ${baseUrl}/rest/V1/integration/admin/token`
       );
-      expect(mockLogger.debug).toHaveBeenCalledWith(`Response: ${expectedToken}`);
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        `Extracted token: ${expectedToken.substring(0, 10)}...`
+      );
     });
 
     it('should return null when API call returns null', async () => {
@@ -199,7 +201,7 @@ describe('GenerateBasicAuthToken', () => {
       const result = await generateToken.getCommerceToken();
 
       expect(result).toBeNull();
-      expect(mockLogger.debug).toHaveBeenCalledWith('Response: null');
+      expect(mockLogger.debug).toHaveBeenCalledWith('Raw response: null');
     });
 
     it('should handle empty response', async () => {
@@ -211,6 +213,58 @@ describe('GenerateBasicAuthToken', () => {
         token: '',
         expire_in: 3600,
       });
+    });
+
+    it('should handle RestClient error', async () => {
+      const error = new Error('Network error');
+      mockRestClient.post.mockRejectedValue(error);
+
+      const result = await generateToken.getCommerceToken();
+
+      expect(result).toBeNull();
+      expect(mockLogger.error).toHaveBeenCalledWith('Failed to get Commerce token: Network error');
+      expect(mockLogger.debug).toHaveBeenCalledWith(`Full error: ${JSON.stringify(error)}`);
+    });
+
+    it('should handle object response with token property', async () => {
+      const tokenResponse = { token: 'object-token-123' };
+      mockRestClient.post.mockResolvedValue(tokenResponse);
+
+      const result = await generateToken.getCommerceToken();
+
+      expect(result).toEqual({
+        token: 'object-token-123',
+        expire_in: 3600,
+      });
+    });
+
+    it('should handle response conversion fallback', async () => {
+      const numericResponse = 12345;
+      mockRestClient.post.mockResolvedValue(numericResponse);
+
+      const result = await generateToken.getCommerceToken();
+
+      expect(result).toEqual({
+        token: '12345',
+        expire_in: 3600,
+      });
+    });
+
+    it('should handle toString conversion error', async () => {
+      // Create an object that throws an error when toString is called
+      const problematicResponse = {
+        toString(): string {
+          throw new Error('toString failed');
+        },
+      };
+      mockRestClient.post.mockResolvedValue(problematicResponse);
+
+      const result = await generateToken.getCommerceToken();
+
+      expect(result).toBeNull();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        `Unexpected response format: ${JSON.stringify(problematicResponse)}`
+      );
     });
 
     it('should create correct endpoint URL', async () => {
@@ -239,7 +293,7 @@ describe('GenerateBasicAuthToken', () => {
       const endpoint = '/rest/V1/test';
       const result = generateToken.createEndpoint(endpoint);
 
-      expect(result).toBe(`${baseUrl}/${endpoint}`);
+      expect(result).toBe(`${baseUrl}${endpoint}`);
     });
 
     it('should handle complex endpoint paths', () => {
@@ -269,7 +323,17 @@ describe('GenerateBasicAuthToken', () => {
 
       const result = await generateToken.setValue(tokenResult);
 
-      expect(result).toBe(false);
+      expect(result).toBe(true);
+    });
+
+    it('should handle state being null in setValue', async () => {
+      const tokenResult: TokenResult = { token: 'test-token', expire_in: 3600 };
+      // Mock getState to return null (State API not available)
+      jest.spyOn(generateToken, 'getState').mockResolvedValue(null);
+
+      const result = await generateToken.setValue(tokenResult);
+
+      expect(result).toBe(true);
     });
 
     it('should store token with correct TTL', async () => {
@@ -334,7 +398,17 @@ describe('GenerateBasicAuthToken', () => {
     it('should handle state retrieval errors', async () => {
       mockState.get.mockRejectedValue(new Error('State error'));
 
-      await expect(generateToken.getValue()).rejects.toThrow('State error');
+      const result = await generateToken.getValue();
+      expect(result).toBeNull();
+    });
+
+    it('should handle state being null in getValue', async () => {
+      // Mock getState to return null (State API not available)
+      jest.spyOn(generateToken, 'getState').mockResolvedValue(null);
+
+      const result = await generateToken.getValue();
+
+      expect(result).toBeNull();
     });
   });
 
@@ -359,7 +433,8 @@ describe('GenerateBasicAuthToken', () => {
     it('should handle state initialization failure', async () => {
       (State.init as jest.Mock).mockRejectedValue(new Error('Init failed'));
 
-      await expect(generateToken.getState()).rejects.toThrow('Init failed');
+      const result = await generateToken.getState();
+      expect(result).toBeNull();
     });
   });
 

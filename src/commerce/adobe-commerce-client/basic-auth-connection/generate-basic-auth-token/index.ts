@@ -71,28 +71,58 @@ class GenerateBasicAuthToken {
 
     this.logger.debug(`Endpoint: ${endpoint}`);
 
-    const restClient = new RestClient();
-    const response = await restClient.post(
-      endpoint,
-      {
-        'Content-Type': 'application/json',
-      },
-      {
-        username: this.username,
-        password: this.password,
+    try {
+      const restClient = new RestClient();
+      const response = await restClient.post(
+        endpoint,
+        {
+          'Content-Type': 'application/json',
+        },
+        {
+          username: this.username,
+          password: this.password,
+        }
+      );
+
+      this.logger.debug(`Raw response type: ${typeof response}`);
+      this.logger.debug(`Raw response: ${JSON.stringify(response)}`);
+
+      if (response !== null && response !== undefined) {
+        // Adobe Commerce returns the token as a JSON string (e.g., "abc123")
+        // If it's already a string, use it directly
+        // If it's an object with token property, extract it
+        let tokenValue: string;
+
+        if (typeof response === 'string') {
+          tokenValue = response;
+        } else if (typeof response === 'object' && response.token) {
+          tokenValue = response.token;
+        } else {
+          // Try to convert to string as a fallback
+          try {
+            tokenValue = response.toString();
+            this.logger.debug(`Converted response to string: ${tokenValue?.substring(0, 10)}...`);
+          } catch {
+            this.logger.error(`Unexpected response format: ${JSON.stringify(response)}`);
+            return null;
+          }
+        }
+
+        this.logger.debug(`Extracted token: ${tokenValue?.substring(0, 10)}...`);
+
+        return {
+          token: tokenValue,
+          expire_in: 3600, // Adobe Commerce tokens typically expire in 1 hour
+        };
       }
-    );
 
-    this.logger.debug(`Response: ${response}`);
-
-    if (response !== null) {
-      return {
-        token: response,
-        expire_in: 3600,
-      };
+      this.logger.error('Received null or undefined response from Commerce API');
+      return null;
+    } catch (error: any) {
+      this.logger.error(`Failed to get Commerce token: ${error.message}`);
+      this.logger.debug(`Full error: ${JSON.stringify(error)}`);
+      return null;
     }
-
-    return null;
   }
 
   /**
@@ -100,7 +130,11 @@ class GenerateBasicAuthToken {
    * @return string
    */
   createEndpoint(endpoint: string): string {
-    return `${this.baseUrl}/${endpoint}`;
+    // Normalize base URL (remove trailing slash if present)
+    const normalizedBaseUrl = this.baseUrl.replace(/\/+$/, '');
+    // Ensure endpoint starts with /
+    const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    return `${normalizedBaseUrl}${normalizedEndpoint}`;
   }
 
   /**
@@ -108,13 +142,18 @@ class GenerateBasicAuthToken {
    * @return boolean
    */
   async setValue(result: TokenResult): Promise<boolean> {
-    const state = await this.getState();
-
     try {
+      const state = await this.getState();
+      if (state === null) {
+        // State API not available, skip caching
+        return true; // Return true since token generation succeeded
+      }
+
       await state.put(this.key, result.token, { ttl: result.expire_in });
       return true;
-    } catch {
-      return false;
+    } catch (error) {
+      this.logger.debug('Failed to cache token, continuing without caching');
+      return true; // Return true since token generation succeeded
     }
   }
 
@@ -122,11 +161,19 @@ class GenerateBasicAuthToken {
    * @return string | null
    */
   async getValue(): Promise<string | null> {
-    const state = await this.getState();
+    try {
+      const state = await this.getState();
+      if (state === null) {
+        // State API not available, skip caching
+        return null;
+      }
 
-    const value = await state.get(this.key);
-    if (value !== undefined) {
-      return value.value;
+      const value = await state.get(this.key);
+      if (value !== undefined) {
+        return value.value;
+      }
+    } catch (error) {
+      this.logger.debug('State API not available, skipping cache lookup');
     }
 
     return null;
@@ -137,7 +184,12 @@ class GenerateBasicAuthToken {
    */
   async getState(): Promise<any> {
     if (this.state === undefined) {
-      this.state = await State.init();
+      try {
+        this.state = await State.init();
+      } catch (error) {
+        this.logger.debug('State API initialization failed, running without caching');
+        this.state = null;
+      }
     }
     return this.state;
   }

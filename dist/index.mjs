@@ -879,54 +879,91 @@ var _GenerateBasicAuthToken = class _GenerateBasicAuthToken {
   async getCommerceToken() {
     const endpoint = this.createEndpoint("rest/V1/integration/admin/token");
     this.logger.debug(`Endpoint: ${endpoint}`);
-    const restClient = new rest_client_default();
-    const response = await restClient.post(
-      endpoint,
-      {
-        "Content-Type": "application/json"
-      },
-      {
-        username: this.username,
-        password: this.password
+    try {
+      const restClient = new rest_client_default();
+      const response = await restClient.post(
+        endpoint,
+        {
+          "Content-Type": "application/json"
+        },
+        {
+          username: this.username,
+          password: this.password
+        }
+      );
+      this.logger.debug(`Raw response type: ${typeof response}`);
+      this.logger.debug(`Raw response: ${JSON.stringify(response)}`);
+      if (response !== null && response !== void 0) {
+        let tokenValue;
+        if (typeof response === "string") {
+          tokenValue = response;
+        } else if (typeof response === "object" && response.token) {
+          tokenValue = response.token;
+        } else {
+          try {
+            tokenValue = response.toString();
+            this.logger.debug(`Converted response to string: ${tokenValue?.substring(0, 10)}...`);
+          } catch {
+            this.logger.error(`Unexpected response format: ${JSON.stringify(response)}`);
+            return null;
+          }
+        }
+        this.logger.debug(`Extracted token: ${tokenValue?.substring(0, 10)}...`);
+        return {
+          token: tokenValue,
+          expire_in: 3600
+          // Adobe Commerce tokens typically expire in 1 hour
+        };
       }
-    );
-    this.logger.debug(`Response: ${response}`);
-    if (response !== null) {
-      return {
-        token: response,
-        expire_in: 3600
-      };
+      this.logger.error("Received null or undefined response from Commerce API");
+      return null;
+    } catch (error) {
+      this.logger.error(`Failed to get Commerce token: ${error.message}`);
+      this.logger.debug(`Full error: ${JSON.stringify(error)}`);
+      return null;
     }
-    return null;
   }
   /**
    * @param endpoint
    * @return string
    */
   createEndpoint(endpoint) {
-    return `${this.baseUrl}/${endpoint}`;
+    const normalizedBaseUrl = this.baseUrl.replace(/\/+$/, "");
+    const normalizedEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    return `${normalizedBaseUrl}${normalizedEndpoint}`;
   }
   /**
    * @param result
    * @return boolean
    */
   async setValue(result) {
-    const state = await this.getState();
     try {
+      const state = await this.getState();
+      if (state === null) {
+        return true;
+      }
       await state.put(this.key, result.token, { ttl: result.expire_in });
       return true;
-    } catch {
-      return false;
+    } catch (error) {
+      this.logger.debug("Failed to cache token, continuing without caching");
+      return true;
     }
   }
   /**
    * @return string | null
    */
   async getValue() {
-    const state = await this.getState();
-    const value = await state.get(this.key);
-    if (value !== void 0) {
-      return value.value;
+    try {
+      const state = await this.getState();
+      if (state === null) {
+        return null;
+      }
+      const value = await state.get(this.key);
+      if (value !== void 0) {
+        return value.value;
+      }
+    } catch (error) {
+      this.logger.debug("State API not available, skipping cache lookup");
     }
     return null;
   }
@@ -935,7 +972,12 @@ var _GenerateBasicAuthToken = class _GenerateBasicAuthToken {
    */
   async getState() {
     if (this.state === void 0) {
-      this.state = await State.init();
+      try {
+        this.state = await State.init();
+      } catch (error) {
+        this.logger.debug("State API initialization failed, running without caching");
+        this.state = null;
+      }
     }
     return this.state;
   }
