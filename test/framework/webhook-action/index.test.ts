@@ -563,4 +563,124 @@ describe('WebhookAction', () => {
       expect(result.error.body.error).toBe("missing header(s) 'x-custom-header'");
     }
   });
+
+  it('should handle undefined __ow_body in signature verification', async () => {
+    // Mock crypto module for signature verification with empty body
+    const mockVerify = {
+      update: jest.fn(),
+      verify: jest.fn().mockReturnValue(true),
+    };
+
+    mockCreateVerify.mockReturnValue(mockVerify as any);
+
+    const webhookHandler = WebhookAction.execute(
+      'undefined-body-webhook',
+      [],
+      [],
+      SignatureVerification.ENABLED,
+      (async (_params, _ctx) => {
+        return WebhookActionResponse.success();
+      }) as any
+    );
+
+    const params = {
+      PUBLIC_KEY: '-----BEGIN PUBLIC KEY-----\nMOCK_KEY\n-----END PUBLIC KEY-----',
+      __ow_headers: {
+        'x-adobe-commerce-webhook-signature': 'valid-signature',
+      },
+      // __ow_body is undefined (not provided)
+      __ow_method: 'post',
+    };
+
+    const result = await webhookHandler(params);
+    expect('statusCode' in result).toBe(true);
+    if ('statusCode' in result) {
+      expect(result.statusCode).toBe(HttpStatus.OK);
+      const operations = JSON.parse(result.body as string);
+      expect(operations[0].op).toBe('success');
+    }
+
+    // Verify that update was called with empty string for undefined body
+    expect(mockVerify.update).toHaveBeenCalledWith('');
+  });
+
+  it('should handle null __ow_body in signature verification', async () => {
+    // Mock crypto module for signature verification with null body
+    const mockVerify = {
+      update: jest.fn(),
+      verify: jest.fn().mockReturnValue(true),
+    };
+
+    mockCreateVerify.mockReturnValue(mockVerify as any);
+
+    const webhookHandler = WebhookAction.execute(
+      'null-body-webhook',
+      [],
+      [],
+      SignatureVerification.ENABLED,
+      (async (_params, _ctx) => {
+        return WebhookActionResponse.success();
+      }) as any
+    );
+
+    const params = {
+      PUBLIC_KEY: '-----BEGIN PUBLIC KEY-----\nMOCK_KEY\n-----END PUBLIC KEY-----',
+      __ow_headers: {
+        'x-adobe-commerce-webhook-signature': 'valid-signature',
+      },
+      __ow_body: null,
+      __ow_method: 'post',
+    };
+
+    const result = await webhookHandler(params);
+    expect('statusCode' in result).toBe(true);
+    if ('statusCode' in result) {
+      expect(result.statusCode).toBe(HttpStatus.OK);
+      const operations = JSON.parse(result.body as string);
+      expect(operations[0].op).toBe('success');
+    }
+
+    // Verify that update was called with empty string for null body
+    expect(mockVerify.update).toHaveBeenCalledWith('');
+  });
+
+  it('should handle empty string __ow_body in signature verification', async () => {
+    // Mock crypto module for signature verification with empty string body
+    const mockVerify = {
+      update: jest.fn(),
+      verify: jest.fn().mockReturnValue(true),
+    };
+
+    mockCreateVerify.mockReturnValue(mockVerify as any);
+
+    const webhookHandler = WebhookAction.execute(
+      'empty-body-webhook',
+      [],
+      [],
+      SignatureVerification.ENABLED,
+      (async (_params, _ctx) => {
+        return WebhookActionResponse.success();
+      }) as any
+    );
+
+    const params = {
+      PUBLIC_KEY: '-----BEGIN PUBLIC KEY-----\nMOCK_KEY\n-----END PUBLIC KEY-----',
+      __ow_headers: {
+        'x-adobe-commerce-webhook-signature': 'valid-signature',
+      },
+      __ow_body: '',
+      __ow_method: 'post',
+    };
+
+    const result = await webhookHandler(params);
+    expect('statusCode' in result).toBe(true);
+    if ('statusCode' in result) {
+      expect(result.statusCode).toBe(HttpStatus.OK);
+      const operations = JSON.parse(result.body as string);
+      expect(operations[0].op).toBe('success');
+    }
+
+    // Verify that update was called with empty string
+    expect(mockVerify.update).toHaveBeenCalledWith('');
+  });
 });

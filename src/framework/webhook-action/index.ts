@@ -83,7 +83,9 @@ class WebhookAction {
 
             const signature: any = params.__ow_headers['x-adobe-commerce-webhook-signature'] || '';
             const verifier: Verify = crypto.createVerify('SHA256');
-            verifier.update(params.__ow_body);
+            // Handle undefined __ow_body to prevent crypto error
+            const bodyData = params.__ow_body || '';
+            verifier.update(bodyData);
 
             let publicKey: string = params.PUBLIC_KEY;
             if (signatureVerification === SignatureVerification.ENABLED_WITH_BASE64) {

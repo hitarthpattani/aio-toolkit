@@ -430,7 +430,8 @@ var _WebhookAction = class _WebhookAction {
             }
             const signature = params.__ow_headers["x-adobe-commerce-webhook-signature"] || "";
             const verifier = crypto.createVerify("SHA256");
-            verifier.update(params.__ow_body);
+            const bodyData = params.__ow_body || "";
+            verifier.update(bodyData);
             let publicKey = params.PUBLIC_KEY;
             if (signatureVerification === 2 /* ENABLED_WITH_BASE64 */) {
               publicKey = atob(publicKey);
