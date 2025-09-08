@@ -18,6 +18,11 @@ describe('Integration Module', () => {
 
   it('should have BearerToken static methods', () => {
     expect(typeof integration.BearerToken.extract).toBe('function');
+    expect(typeof integration.BearerToken.info).toBe('function');
+    // Private methods should not be accessible
+    expect((integration.BearerToken as any).extractToken).toBeUndefined();
+    expect((integration.BearerToken as any).getTokenInfo).toBeUndefined();
+    expect((integration.BearerToken as any).isTokenValid).toBeUndefined();
   });
 
   it('should export RestClient class', () => {

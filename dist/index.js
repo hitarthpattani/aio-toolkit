@@ -583,12 +583,12 @@ var openwhisk_action_default = OpenwhiskAction;
 // src/integration/bearer-token/index.ts
 var _BearerToken = class _BearerToken {
   /**
-   * Extracts the Bearer token from OpenWhisk action parameters.
+   * Extracts the Bearer token from OpenWhisk action parameters and returns detailed token information.
    * Looks for the authorization header in __ow_headers and extracts the token value
    * after the "Bearer " prefix.
    *
    * @param params - OpenWhisk action input parameters containing headers
-   * @returns The Bearer token string if found, undefined otherwise
+   * @returns Detailed token information object
    *
    * @example
    * const params = {
@@ -596,13 +596,90 @@ var _BearerToken = class _BearerToken {
    *     authorization: 'Bearer abc123token'
    *   }
    * };
-   * const token = BearerToken.extract(params); // returns 'abc123token'
+   * const tokenInfo = BearerToken.extract(params);
+   * // returns: {
+   * //   token: 'abc123token',
+   * //   tokenLength: 11,
+   * //   isValid: true,
+   * //   expiry: '2024-01-01T12:00:00.000Z',
+   * //   timeUntilExpiry: 3600000
+   * // }
    */
   static extract(params) {
+    let token = null;
     if (params.__ow_headers?.authorization?.startsWith("Bearer ")) {
-      return params.__ow_headers.authorization.substring("Bearer ".length);
+      token = params.__ow_headers.authorization.substring("Bearer ".length);
     }
-    return void 0;
+    return _BearerToken.info(token);
+  }
+  /**
+   * Gets detailed information about a Bearer token
+   * @param token - The Bearer token string (or null)
+   * @returns {BearerTokenInfo} Detailed token information including validity and expiry
+   *
+   * @example
+   * const tokenInfo = BearerToken.info('abc123token');
+   * // returns: {
+   * //   token: 'abc123token',
+   * //   tokenLength: 11,
+   * //   isValid: true,
+   * //   expiry: '2024-01-01T12:00:00.000Z',
+   * //   timeUntilExpiry: 3600000
+   * // }
+   */
+  static info(token) {
+    const tokenExpiry = _BearerToken._calculateExpiry(token);
+    return {
+      token,
+      tokenLength: token ? token.length : 0,
+      isValid: _BearerToken._isTokenValid(token, tokenExpiry),
+      expiry: tokenExpiry ? tokenExpiry.toISOString() : null,
+      timeUntilExpiry: tokenExpiry ? Math.max(0, tokenExpiry.getTime() - Date.now()) : null
+    };
+  }
+  /**
+   * Checks if the given token is valid and not expired
+   * @private
+   * @param token - The bearer token string
+   * @param tokenExpiry - The token expiry date
+   * @returns {boolean} True if token is valid
+   */
+  static _isTokenValid(token, tokenExpiry) {
+    if (!token) {
+      return false;
+    }
+    if (tokenExpiry && Date.now() >= tokenExpiry.getTime()) {
+      console.log("\u23F0 Token has expired");
+      return false;
+    }
+    return true;
+  }
+  /**
+   * Calculates token expiry from JWT token or uses default for non-JWT tokens
+   * @private
+   * @param token - The token string (JWT or plain token)
+   * @returns Date object representing token expiry
+   */
+  static _calculateExpiry(token) {
+    if (!token) {
+      return null;
+    }
+    try {
+      const parts = token.split(".");
+      if (parts.length === 3) {
+        const payload = JSON.parse(Buffer.from(parts[1] || "", "base64").toString());
+        if (payload.expires_in) {
+          return new Date(Date.now() + parseInt(payload.expires_in));
+        }
+        if (payload.exp) {
+          return new Date(payload.exp * 1e3);
+        }
+      }
+      return new Date(Date.now() + 24 * 60 * 60 * 1e3);
+    } catch (error) {
+      console.warn("\u26A0\uFE0F Could not parse token expiry, using default 24h");
+      return new Date(Date.now() + 24 * 60 * 60 * 1e3);
+    }
   }
 };
 __name(_BearerToken, "BearerToken");
