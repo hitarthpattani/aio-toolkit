@@ -128,7 +128,7 @@ describe('List Event Metadata', () => {
 
       expect(result).toEqual([mockEventMetadata1, mockEventMetadata2]);
       expect(mockRestClient.get).toHaveBeenCalledWith(
-        `${IoEventsGlobals.BASE_URL}/events/${validCredentials.consumerId}/${validCredentials.projectId}/${validCredentials.workspaceId}/providers/${validProviderId}/eventmetadata`,
+        `${IoEventsGlobals.BASE_URL}/events/providers/${validProviderId}/eventmetadata`,
         {
           Authorization: `Bearer ${validCredentials.accessToken}`,
           'x-api-key': validCredentials.clientId,

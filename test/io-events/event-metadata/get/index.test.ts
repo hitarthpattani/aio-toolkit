@@ -110,7 +110,7 @@ describe('Get Event Metadata', () => {
 
       expect(result).toEqual(mockEventMetadataResponse);
       expect(mockRestClient.get).toHaveBeenCalledWith(
-        `${IoEventsGlobals.BASE_URL}/events/${validCredentials.consumerId}/${validCredentials.projectId}/${validCredentials.workspaceId}/providers/${validProviderId}/eventmetadata/${validEventCode}`,
+        `${IoEventsGlobals.BASE_URL}/events/providers/${validProviderId}/eventmetadata/${validEventCode}`,
         {
           Authorization: `Bearer ${validCredentials.accessToken}`,
           'x-api-key': validCredentials.clientId,

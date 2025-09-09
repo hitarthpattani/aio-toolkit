@@ -2097,7 +2097,7 @@ var _List2 = class _List2 {
       );
     }
     try {
-      const url = `${IoEventsGlobals.BASE_URL}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/providers/${providerId}/eventmetadata`;
+      const url = `${IoEventsGlobals.BASE_URL}/events/providers/${providerId}/eventmetadata`;
       return await this.fetchAllPages(url);
     } catch (error) {
       this.handleError(error);
@@ -2292,7 +2292,7 @@ var _Get2 = class _Get2 {
       );
     }
     try {
-      const url = `${IoEventsGlobals.BASE_URL}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/providers/${providerId}/eventmetadata/${encodeURIComponent(eventCode)}`;
+      const url = `${IoEventsGlobals.BASE_URL}/events/providers/${providerId}/eventmetadata/${encodeURIComponent(eventCode)}`;
       const response = await this.restClient.get(url, {
         Authorization: `Bearer ${this.accessToken}`,
         "x-api-key": this.clientId,
