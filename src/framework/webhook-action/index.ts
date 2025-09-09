@@ -49,10 +49,13 @@ class WebhookAction {
       async (params, ctx) => {
         const operations = [];
 
-        if (params.__ow_body !== null) {
+        // Preserve the original body for signature verification before parsing
+        const originalBody = params.__ow_body;
+
+        if (originalBody !== null) {
           let payload = {};
           try {
-            payload = JSON.parse(atob(params.__ow_body));
+            payload = JSON.parse(atob(originalBody));
           } catch {
             // Ignore parsing errors
           }
@@ -83,8 +86,10 @@ class WebhookAction {
 
             const signature: any = params.__ow_headers['x-adobe-commerce-webhook-signature'] || '';
             const verifier: Verify = crypto.createVerify('SHA256');
-            // Handle undefined __ow_body to prevent crypto error
-            const bodyData = params.__ow_body || '';
+
+            // Adobe Commerce signs the base64-encoded request body
+            // Use the original body (which is base64 encoded) for signature verification
+            const bodyData = originalBody || '';
             verifier.update(bodyData);
 
             let publicKey: string = params.PUBLIC_KEY;

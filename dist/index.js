@@ -463,10 +463,11 @@ var _WebhookAction = class _WebhookAction {
       [],
       async (params, ctx) => {
         const operations = [];
-        if (params.__ow_body !== null) {
+        const originalBody = params.__ow_body;
+        if (originalBody !== null) {
           let payload = {};
           try {
-            payload = JSON.parse(atob(params.__ow_body));
+            payload = JSON.parse(atob(originalBody));
           } catch {
           }
           params = {
@@ -490,7 +491,7 @@ var _WebhookAction = class _WebhookAction {
             }
             const signature = params.__ow_headers["x-adobe-commerce-webhook-signature"] || "";
             const verifier = crypto.createVerify("SHA256");
-            const bodyData = params.__ow_body || "";
+            const bodyData = originalBody || "";
             verifier.update(bodyData);
             let publicKey = params.PUBLIC_KEY;
             if (signatureVerification === 2 /* ENABLED_WITH_BASE64 */) {
