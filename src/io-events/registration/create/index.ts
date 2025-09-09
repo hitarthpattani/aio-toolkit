@@ -13,6 +13,7 @@ import type { RegistrationCreateModel } from './types';
 export class Create {
   private restClient: RestClient;
   private endpoint: string;
+  private clientId: string;
   private consumerId: string;
   private projectId: string;
   private workspaceId: string;
@@ -46,6 +47,7 @@ export class Create {
 
     this.restClient = new RestClient();
     this.endpoint = IoEventsGlobals.BASE_URL;
+    this.clientId = clientId;
     this.consumerId = consumerId;
     this.projectId = projectId;
     this.workspaceId = workspaceId;
@@ -88,7 +90,7 @@ export class Create {
         url,
         {
           Authorization: `Bearer ${this.accessToken}`,
-          'x-api-key': this.consumerId,
+          'x-api-key': this.clientId,
           'Content-Type': 'application/json',
           Accept: 'application/hal+json',
         },

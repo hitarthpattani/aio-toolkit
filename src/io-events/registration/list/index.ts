@@ -13,6 +13,7 @@ import type { RegistrationListResponse, ListRegistrationQueryParams } from './ty
 export class List {
   private restClient: RestClient;
   private endpoint: string;
+  private clientId: string;
   private consumerId: string;
   private projectId: string;
   private workspaceId: string;
@@ -46,6 +47,7 @@ export class List {
 
     this.restClient = new RestClient();
     this.endpoint = IoEventsGlobals.BASE_URL;
+    this.clientId = clientId;
     this.consumerId = consumerId;
     this.projectId = projectId;
     this.workspaceId = workspaceId;
@@ -89,7 +91,7 @@ export class List {
   ): Promise<Registration[]> {
     const headers = {
       Authorization: `Bearer ${this.accessToken}`,
-      'x-api-key': this.consumerId,
+      'x-api-key': this.clientId,
       'Content-Type': 'application/json',
     };
 

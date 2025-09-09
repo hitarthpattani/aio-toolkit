@@ -135,7 +135,7 @@ describe('List Registration', () => {
         `${IoEventsGlobals.BASE_URL}/events/${validCredentials.consumerId}/${validCredentials.projectId}/${validCredentials.workspaceId}/registrations`,
         {
           Authorization: `Bearer ${validCredentials.accessToken}`,
-          'x-api-key': validCredentials.consumerId,
+          'x-api-key': validCredentials.clientId,
           'Content-Type': 'application/json',
         }
       );

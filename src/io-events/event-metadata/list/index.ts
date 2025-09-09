@@ -70,7 +70,7 @@ export default class List {
     }
 
     try {
-      const url = `${IoEventsGlobals.BASE_URL}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/providers/${providerId}/eventmetadata`;
+      const url = `${IoEventsGlobals.BASE_URL}/events/providers/${providerId}/eventmetadata`;
       return await this.fetchAllPages(url);
     } catch (error: any) {
       this.handleError(error);

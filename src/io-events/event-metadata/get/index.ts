@@ -72,7 +72,7 @@ export default class Get {
     }
 
     try {
-      const url = `${IoEventsGlobals.BASE_URL}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/providers/${providerId}/eventmetadata/${encodeURIComponent(eventCode)}`;
+      const url = `${IoEventsGlobals.BASE_URL}/events/providers/${providerId}/eventmetadata/${encodeURIComponent(eventCode)}`;
 
       const response = await this.restClient.get(url, {
         Authorization: `Bearer ${this.accessToken}`,

@@ -123,7 +123,7 @@ describe('Get Registration', () => {
         `${IoEventsGlobals.BASE_URL}/events/${validCredentials.consumerId}/${validCredentials.projectId}/${validCredentials.workspaceId}/registrations/${validRegistrationId}`,
         {
           Authorization: `Bearer ${validCredentials.accessToken}`,
-          'x-api-key': validCredentials.consumerId,
+          'x-api-key': validCredentials.clientId,
           Accept: 'application/hal+json',
         }
       );

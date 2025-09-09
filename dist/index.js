@@ -2097,7 +2097,7 @@ var _List2 = class _List2 {
       );
     }
     try {
-      const url = `${IoEventsGlobals.BASE_URL}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/providers/${providerId}/eventmetadata`;
+      const url = `${IoEventsGlobals.BASE_URL}/events/providers/${providerId}/eventmetadata`;
       return await this.fetchAllPages(url);
     } catch (error) {
       this.handleError(error);
@@ -2292,7 +2292,7 @@ var _Get2 = class _Get2 {
       );
     }
     try {
-      const url = `${IoEventsGlobals.BASE_URL}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/providers/${providerId}/eventmetadata/${encodeURIComponent(eventCode)}`;
+      const url = `${IoEventsGlobals.BASE_URL}/events/providers/${providerId}/eventmetadata/${encodeURIComponent(eventCode)}`;
       const response = await this.restClient.get(url, {
         Authorization: `Bearer ${this.accessToken}`,
         "x-api-key": this.clientId,
@@ -3001,6 +3001,7 @@ var _Create3 = class _Create3 {
     }
     this.restClient = new rest_client_default();
     this.endpoint = IoEventsGlobals.BASE_URL;
+    this.clientId = clientId;
     this.consumerId = consumerId;
     this.projectId = projectId;
     this.workspaceId = workspaceId;
@@ -3040,7 +3041,7 @@ var _Create3 = class _Create3 {
         url,
         {
           Authorization: `Bearer ${this.accessToken}`,
-          "x-api-key": this.consumerId,
+          "x-api-key": this.clientId,
           "Content-Type": "application/json",
           Accept: "application/hal+json"
         },
@@ -3184,6 +3185,7 @@ var _Delete3 = class _Delete3 {
     }
     this.restClient = new rest_client_default();
     this.endpoint = IoEventsGlobals.BASE_URL;
+    this.clientId = clientId;
     this.consumerId = consumerId;
     this.projectId = projectId;
     this.workspaceId = workspaceId;
@@ -3208,7 +3210,7 @@ var _Delete3 = class _Delete3 {
       const url = `${this.endpoint}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/registrations/${registrationId}`;
       await this.restClient.delete(url, {
         Authorization: `Bearer ${this.accessToken}`,
-        "x-api-key": this.consumerId,
+        "x-api-key": this.clientId,
         Accept: "text/plain"
       });
     } catch (error) {
@@ -3301,6 +3303,7 @@ var _Get3 = class _Get3 {
     }
     this.restClient = new rest_client_default();
     this.endpoint = IoEventsGlobals.BASE_URL;
+    this.clientId = clientId;
     this.consumerId = consumerId;
     this.projectId = projectId;
     this.workspaceId = workspaceId;
@@ -3325,7 +3328,7 @@ var _Get3 = class _Get3 {
       const url = `${this.endpoint}/events/${this.consumerId}/${this.projectId}/${this.workspaceId}/registrations/${registrationId}`;
       const response = await this.restClient.get(url, {
         Authorization: `Bearer ${this.accessToken}`,
-        "x-api-key": this.consumerId,
+        "x-api-key": this.clientId,
         Accept: "application/hal+json"
       });
       return response;
@@ -3419,6 +3422,7 @@ var _List3 = class _List3 {
     }
     this.restClient = new rest_client_default();
     this.endpoint = IoEventsGlobals.BASE_URL;
+    this.clientId = clientId;
     this.consumerId = consumerId;
     this.projectId = projectId;
     this.workspaceId = workspaceId;
@@ -3453,7 +3457,7 @@ var _List3 = class _List3 {
   async fetchAllPages(url, accumulatedResults = []) {
     const headers = {
       Authorization: `Bearer ${this.accessToken}`,
-      "x-api-key": this.consumerId,
+      "x-api-key": this.clientId,
       "Content-Type": "application/json"
     };
     const data = await this.restClient.get(url, headers);

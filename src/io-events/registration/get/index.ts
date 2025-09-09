@@ -12,6 +12,7 @@ import type { Registration } from '../types';
 export class Get {
   private restClient: RestClient;
   private endpoint: string;
+  private clientId: string;
   private consumerId: string;
   private projectId: string;
   private workspaceId: string;
@@ -45,6 +46,7 @@ export class Get {
 
     this.restClient = new RestClient();
     this.endpoint = IoEventsGlobals.BASE_URL;
+    this.clientId = clientId;
     this.consumerId = consumerId;
     this.projectId = projectId;
     this.workspaceId = workspaceId;
@@ -72,7 +74,7 @@ export class Get {
 
       const response = await this.restClient.get(url, {
         Authorization: `Bearer ${this.accessToken}`,
-        'x-api-key': this.consumerId,
+        'x-api-key': this.clientId,
         Accept: 'application/hal+json',
       });
 
