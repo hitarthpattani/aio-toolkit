@@ -607,7 +607,6 @@ The Adobe Commerce Client integrates seamlessly with other toolkit components:
 - **[AdobeAuth](./adobe-auth.md)**: Direct Adobe IMS authentication used by ImsConnection
 - **[EventConsumerAction](./event-consumer-action.md)**: Use within Event handlers for event-driven Commerce operations
 - **[GraphQlAction](./graphql-action.md)**: Use for GraphQL-based Commerce API integration
-- **[WebhookAction](./webhook-action.md)**: Process Commerce webhooks and events
 - **[RestClient](./rest-client.md)**: Leverages the framework's REST client for token generation
 
 ### Related Documentation:
@@ -615,7 +614,6 @@ The Adobe Commerce Client integrates seamlessly with other toolkit components:
 - **[RuntimeAction](./runtime-action.md)** - For HTTP-based Commerce API integration
 - **[AdobeAuth](./adobe-auth.md)** - For Adobe IMS authentication used by Commerce Client
 - **[EventConsumerAction](./event-consumer-action.md)** - For event-driven Commerce operations (webhooks, async processing)
-- **[WebhookAction](./webhook-action.md)** - For processing Commerce webhooks with signature verification
 - **[GraphQlAction](./graphql-action.md)** - For GraphQL-based Commerce API endpoints
 
 ### Common Integration Patterns:
@@ -623,7 +621,6 @@ The Adobe Commerce Client integrates seamlessly with other toolkit components:
 - **Commerce + RuntimeAction**: HTTP endpoints that interact with Commerce APIs
 - **Commerce + AdobeAuth**: Direct IMS authentication for Commerce integrations
 - **Commerce + EventConsumerAction**: Process Commerce webhooks and events
-- **Commerce + WebhookAction**: Secure webhook processing with signature verification
 - **Commerce + GraphQlAction**: GraphQL APIs with Commerce data integration
 
 ## Constants Reference

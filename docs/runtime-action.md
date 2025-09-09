@@ -324,7 +324,6 @@ The RuntimeAction feature integrates seamlessly with other toolkit components:
 - **[EventConsumerAction](./event-consumer-action.md)** - For event-driven processing instead of HTTP requests
 - **[GraphQlAction](./graphql-action.md)** - For GraphQL endpoint handling  
 - **[OpenWhiskAction](./openwhisk-action.md)** - For serverless function handling
-- **[WebhookAction](./webhook-action.md)** - For webhook processing with signature verification
 - **[ProviderManager](./provider.md)** - For managing Adobe I/O Events providers via RuntimeAction endpoints
 - **[RegistrationManager](./registration.md)** - For managing Adobe I/O Events registrations via RuntimeAction endpoints
 - **[EventMetadataManager](./event-metadata.md)** - For managing Adobe I/O Events metadata via RuntimeAction endpoints

@@ -180,7 +180,6 @@ module.exports.main = secureEndpoint;
 The BearerToken utility integrates seamlessly with other toolkit components:
 
 - **[RuntimeAction](./runtime-action.md)** - Extract tokens in HTTP endpoint handlers
-- **[WebhookAction](./webhook-action.md)** - Authenticate webhook requests with Bearer tokens
 - **[EventConsumerAction](./event-consumer-action.md)** - Process authenticated events
 - **[AdobeCommerceClient](./adobe-commerce-client.md)** - Use extracted tokens for Commerce API calls
 - **[AdobeAuth](./adobe-auth.md)** - Complement IMS authentication with Bearer tokens
@@ -188,7 +187,6 @@ The BearerToken utility integrates seamlessly with other toolkit components:
 ### Related Documentation:
 
 - **[RuntimeAction](./runtime-action.md)** - For creating secure HTTP endpoints with token authentication
-- **[WebhookAction](./webhook-action.md)** - For authenticating webhook requests
 - **[EventConsumerAction](./event-consumer-action.md)** - For processing authenticated events
 - **[AdobeCommerceClient](./adobe-commerce-client.md)** - For using tokens with Commerce API calls
 - **[AdobeAuth](./adobe-auth.md)** - For complementary IMS authentication patterns
@@ -196,7 +194,6 @@ The BearerToken utility integrates seamlessly with other toolkit components:
 ### Common Integration Patterns:
 
 - **BearerToken + RuntimeAction**: Secure HTTP endpoints with token validation
-- **BearerToken + WebhookAction**: Authenticated webhook processing
 - **BearerToken + AdobeCommerceClient**: User-context Commerce API operations
 - **BearerToken + EventConsumerAction**: Authenticated event processing
 

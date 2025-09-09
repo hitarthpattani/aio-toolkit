@@ -18,19 +18,6 @@ export { default as EventConsumerAction } from './event-consumer-action';
 // Export GraphQL utilities
 export { default as GraphQlAction } from './graphql-action';
 
-// Export WebhookAction classes and types
-export { default as WebhookAction } from './webhook-action';
-export { default as WebhookActionResponse } from './webhook-action/response';
-export * from './webhook-action/types';
-export { WebhookOperation } from './webhook-action/response/types';
-export type {
-  ExceptionResponse as WebhookActionExceptionResponse,
-  AddResponse as WebhookActionAddResponse,
-  ReplaceResponse as WebhookActionReplaceResponse,
-  RemoveResponse as WebhookActionRemoveResponse,
-  SuccessResponse as WebhookActionSuccessResponse,
-} from './webhook-action/response/types';
-
 // Export OpenWhisk classes
 export { default as Openwhisk } from './openwhisk';
 export { default as OpenwhiskAction } from './openwhisk-action';

@@ -718,7 +718,6 @@ EventConsumerAction integrates seamlessly with other toolkit components:
 - **[ProviderManager](./provider.md)** - Manage event providers that generate the events being consumed
 - **[RegistrationManager](./registration.md)** - Manage event registrations to subscribe to provider events
 - **[GraphQlAction](./graphql-action.md)** - Trigger GraphQL operations from event handlers
-- **[WebhookAction](./webhook-action.md)** - Process webhook payloads that trigger event-driven workflows
 - **[OpenWhisk](./openwhisk.md)** - Invoke OpenWhisk actions from event handlers
 - **[RestClient](./rest-client.md)** - HTTP calls to external services triggered by events
 
@@ -732,7 +731,6 @@ EventConsumerAction integrates seamlessly with other toolkit components:
 - **[RegistrationManager](./registration.md)** - For managing event subscriptions that deliver events to EventConsumerAction
 - **[BearerToken](./bearer-token.md)** - For extracting Bearer tokens when processing authenticated events
 - **[GraphQlAction](./graphql-action.md)** - For GraphQL integration within event processing
-- **[WebhookAction](./webhook-action.md)** - For webhook processing that triggers event workflows
 - **[OpenWhisk](./openwhisk.md)** - For OpenWhisk action invocation within event processing
 
 ### Common Integration Patterns:

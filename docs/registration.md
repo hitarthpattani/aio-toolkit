@@ -519,71 +519,16 @@ The RegistrationManager integrates seamlessly with other toolkit components:
 
 - **[RestClient](./rest-client.md)** - Uses RestClient internally for Adobe I/O Events API calls
 - **[RuntimeAction](./runtime-action.md)** - Use within action handlers for registration management
-- **[WebhookAction](./webhook-action.md)** - Process webhook events from registrations
 - **[EventConsumerAction](./event-consumer-action.md)** - Handle events received through registrations
 - **[ProviderManager](./provider.md)** - Manage providers that registrations subscribe to
 - **[EventMetadataManager](./event-metadata.md)** - Manage metadata for events in registrations
 - **[AdobeAuth](./adobe-auth.md)** - Generate access tokens for RegistrationManager authentication
 
-### WebhookAction Integration
-
-Use RegistrationManager with WebhookAction to process registered events:
-
-```typescript
-const { 
-  WebhookAction, 
-  WebhookActionResponse, 
-  RegistrationManager 
-} = require('@adobe-commerce/aio-toolkit');
-
-const eventWebhookHandler = WebhookAction.execute(
-  'event-webhook-handler',
-  async (params, ctx) => {
-    const { logger } = ctx;
-    const { event_data, event_code, provider_id } = params;
-
-    try {
-      // Process the event based on its type
-      switch (event_code) {
-        case 'com.company.order.placed':
-          await processOrderPlaced(event_data);
-          logger.info('Order placed event processed');
-          break;
-        case 'com.company.customer.registered':
-          await processCustomerRegistered(event_data);
-          logger.info('Customer registered event processed');
-          break;
-        default:
-          logger.warn(`Unknown event code: ${event_code}`);
-      }
-      
-      return WebhookActionResponse.success({
-        message: 'Event processed successfully',
-        event_code
-      });
-    } catch (error) {
-      logger.error('Event processing failed:', error);
-      return WebhookActionResponse.exception(error);
-    }
-  }
-);
-
-const processOrderPlaced = async (eventData) => {
-  // Process order placed event
-  console.log('Processing order:', eventData.order_id);
-};
-
-const processCustomerRegistered = async (eventData) => {
-  // Process customer registration event
-  console.log('Processing customer:', eventData.customer_id);
-};
-```
 
 ### Related Documentation:
 
 - **[RestClient](./rest-client.md)** - For HTTP client operations used internally
 - **[RuntimeAction](./runtime-action.md)** - For creating HTTP endpoints that manage registrations
-- **[WebhookAction](./webhook-action.md)** - For processing webhook events from registrations
 - **[EventConsumerAction](./event-consumer-action.md)** - For handling events received through registrations
 - **[ProviderManager](./provider.md)** - For managing providers that registrations subscribe to
 - **[EventMetadataManager](./event-metadata.md)** - For managing event metadata definitions
@@ -591,7 +536,6 @@ const processCustomerRegistered = async (eventData) => {
 
 ### Common Integration Patterns:
 
-- **RegistrationManager + WebhookAction**: Create registrations and handle webhook events
 - **RegistrationManager + ProviderManager**: Manage providers and subscribe to their events
 - **RegistrationManager + EventConsumerAction**: Subscribe to events and process them
 - **RegistrationManager + RuntimeAction**: HTTP endpoints for registration management

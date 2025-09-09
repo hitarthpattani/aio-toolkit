@@ -395,7 +395,6 @@ The RestClient integrates seamlessly with other toolkit components:
 
 - **[BearerToken](./bearer-token.md)** - Extract tokens for API authentication
 - **[RuntimeAction](./runtime-action.md)** - Use within action handlers for external API calls
-- **[WebhookAction](./webhook-action.md)** - Make API calls from webhook handlers
 - **[EventConsumerAction](./event-consumer-action.md)** - Integrate with external services from event handlers
 - **[AdobeCommerceClient](./adobe-commerce-client.md)** - RestClient is used internally for Commerce API calls
 
@@ -506,7 +505,6 @@ const authenticatedApiAction = RuntimeAction.execute(
 
 - **[BearerToken](./bearer-token.md)** - For extracting Bearer tokens for API authentication
 - **[RuntimeAction](./runtime-action.md)** - For creating HTTP endpoints that use RestClient
-- **[WebhookAction](./webhook-action.md)** - For webhook handlers that call external APIs
 - **[EventConsumerAction](./event-consumer-action.md)** - For event-driven external API integration
 - **[AdobeCommerceClient](./adobe-commerce-client.md)** - Uses RestClient internally for Commerce API calls
 
@@ -514,7 +512,6 @@ const authenticatedApiAction = RuntimeAction.execute(
 
 - **RestClient + BearerToken**: Authenticated external API calls
 - **RestClient + RuntimeAction**: HTTP endpoints that proxy to external APIs
-- **RestClient + WebhookAction**: Webhook handlers that trigger external API calls
 - **RestClient + EventConsumerAction**: Event-driven external service integration
 
 ## Constants Reference

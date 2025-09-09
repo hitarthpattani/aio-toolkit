@@ -19,7 +19,7 @@ declare enum HttpMethod {
     OPTIONS = "options"
 }
 
-interface SuccessResponse$1 {
+interface SuccessResponse {
     statusCode: HttpStatus;
     body: object | string;
     headers?: {
@@ -34,7 +34,7 @@ interface ErrorResponse {
         };
     };
 }
-type RuntimeActionResponseType = SuccessResponse$1 | ErrorResponse;
+type RuntimeActionResponseType = SuccessResponse | ErrorResponse;
 
 declare class RuntimeAction {
     static execute(name?: string, httpMethods?: HttpMethod[], requiredParams?: string[], requiredHeaders?: string[], action?: (params: {
@@ -53,7 +53,7 @@ declare class RuntimeAction {
 declare class RuntimeActionResponse {
     static success(response: object | string, headers?: {
         [key: string]: string;
-    }): SuccessResponse$1;
+    }): SuccessResponse;
     static error(statusCode: HttpStatus, error: string): ErrorResponse;
 }
 
@@ -97,65 +97,6 @@ declare class GraphQlAction {
     }) => Promise<any>, name?: string, disableIntrospection?: boolean): (params: {
         [key: string]: any;
     }) => Promise<RuntimeActionResponseType>;
-}
-
-declare enum SignatureVerification {
-    DISABLED = 0,
-    ENABLED = 1,
-    ENABLED_WITH_BASE64 = 2
-}
-
-declare class WebhookAction {
-    static execute(name?: string, requiredParams?: string[], requiredHeaders?: string[], signatureVerification?: SignatureVerification, action?: (params: {
-        [key: string]: any;
-    }, ctx: {
-        logger: any;
-        headers: {
-            [key: string]: any;
-        };
-    }) => Promise<RuntimeActionResponseType>): (params: {
-        [key: string]: any;
-    }) => Promise<RuntimeActionResponseType>;
-}
-
-declare enum WebhookOperation {
-    SUCCESS = "success",
-    EXCEPTION = "exception",
-    ADD = "add",
-    REPLACE = "replace",
-    REMOVE = "remove"
-}
-interface SuccessResponse {
-    op: typeof WebhookOperation.SUCCESS;
-}
-interface ExceptionResponse {
-    op: typeof WebhookOperation.EXCEPTION;
-    class?: string | undefined;
-    message?: string | undefined;
-}
-interface AddResponse {
-    op: typeof WebhookOperation.ADD;
-    path: string;
-    value: any;
-    instance?: string | undefined;
-}
-interface ReplaceResponse {
-    op: typeof WebhookOperation.REPLACE;
-    path: string;
-    value: any;
-    instance?: string | undefined;
-}
-interface RemoveResponse {
-    op: typeof WebhookOperation.REMOVE;
-    path: string;
-}
-
-declare class WebhookActionResponse {
-    static success(): SuccessResponse;
-    static exception(exceptionClass?: string, message?: string): ExceptionResponse;
-    static add(path: string, value: any, instance?: string): AddResponse;
-    static replace(path: string, value: any, instance?: string): ReplaceResponse;
-    static remove(path: string): RemoveResponse;
 }
 
 declare class Openwhisk {
@@ -504,4 +445,4 @@ interface GetRegistrationQueryParams {
     registrationId: string;
 }
 
-export { AdobeAuth, AdobeCommerceClient, type AdobeIMSConfig, BasicAuthConnection, BearerToken, type BearerTokenInfo, type Connection, type CreateProviderParams, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type ExtendedRequestError, GenerateBasicAuthToken, type GetProviderQueryParams, type GetRegistrationQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, ImsConnection, IoEventsGlobals, type ListProvidersQueryParams, type ListRegistrationQueryParams, Oauth1aConnection, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, type Registration, type RegistrationCreateModel, type RegistrationListResponse, RegistrationManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, SignatureVerification, type SuccessResponse$1 as SuccessResponse, type TokenResult, Validator, WebhookAction, type AddResponse as WebhookActionAddResponse, type ExceptionResponse as WebhookActionExceptionResponse, type RemoveResponse as WebhookActionRemoveResponse, type ReplaceResponse as WebhookActionReplaceResponse, WebhookActionResponse, type SuccessResponse as WebhookActionSuccessResponse, WebhookOperation };
+export { AdobeAuth, AdobeCommerceClient, type AdobeIMSConfig, BasicAuthConnection, BearerToken, type BearerTokenInfo, type Connection, type CreateProviderParams, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type ExtendedRequestError, GenerateBasicAuthToken, type GetProviderQueryParams, type GetRegistrationQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, ImsConnection, IoEventsGlobals, type ListProvidersQueryParams, type ListRegistrationQueryParams, Oauth1aConnection, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, type Registration, type RegistrationCreateModel, type RegistrationListResponse, RegistrationManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, type SuccessResponse, type TokenResult, Validator };

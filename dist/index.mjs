@@ -321,150 +321,6 @@ __name(_GraphQlAction, "GraphQlAction");
 var GraphQlAction = _GraphQlAction;
 var graphql_action_default = GraphQlAction;
 
-// src/framework/webhook-action/index.ts
-import * as crypto from "crypto";
-
-// src/framework/webhook-action/response/types.ts
-var WebhookOperation = /* @__PURE__ */ ((WebhookOperation2) => {
-  WebhookOperation2["SUCCESS"] = "success";
-  WebhookOperation2["EXCEPTION"] = "exception";
-  WebhookOperation2["ADD"] = "add";
-  WebhookOperation2["REPLACE"] = "replace";
-  WebhookOperation2["REMOVE"] = "remove";
-  return WebhookOperation2;
-})(WebhookOperation || {});
-
-// src/framework/webhook-action/response/index.ts
-var _WebhookActionResponse = class _WebhookActionResponse {
-  static success() {
-    return {
-      op: "success" /* SUCCESS */
-    };
-  }
-  static exception(exceptionClass, message) {
-    return {
-      op: "exception" /* EXCEPTION */,
-      class: exceptionClass,
-      message
-    };
-  }
-  static add(path, value, instance) {
-    return {
-      op: "add" /* ADD */,
-      path,
-      value,
-      instance
-    };
-  }
-  static replace(path, value, instance) {
-    return {
-      op: "replace" /* REPLACE */,
-      path,
-      value,
-      instance
-    };
-  }
-  static remove(path) {
-    return {
-      op: "remove" /* REMOVE */,
-      path
-    };
-  }
-};
-__name(_WebhookActionResponse, "WebhookActionResponse");
-var WebhookActionResponse = _WebhookActionResponse;
-var response_default2 = WebhookActionResponse;
-
-// src/framework/webhook-action/types.ts
-var SignatureVerification = /* @__PURE__ */ ((SignatureVerification2) => {
-  SignatureVerification2[SignatureVerification2["DISABLED"] = 0] = "DISABLED";
-  SignatureVerification2[SignatureVerification2["ENABLED"] = 1] = "ENABLED";
-  SignatureVerification2[SignatureVerification2["ENABLED_WITH_BASE64"] = 2] = "ENABLED_WITH_BASE64";
-  return SignatureVerification2;
-})(SignatureVerification || {});
-
-// src/framework/webhook-action/index.ts
-var _WebhookAction = class _WebhookAction {
-  /**
-   * @param name
-   * @param requiredParams
-   * @param requiredHeaders
-   * @param signatureVerification
-   * @param action
-   * @returns {(function(*): Promise<any>)|*}
-   */
-  static execute(name = "main", requiredParams = [], requiredHeaders = ["Authorization"], signatureVerification = 0 /* DISABLED */, action = async (_params) => {
-    return { statusCode: 200 /* OK */, body: {} };
-  }) {
-    return runtime_action_default.execute(
-      `webhook-${name}`,
-      ["get" /* GET */, "post" /* POST */],
-      [],
-      [],
-      async (params, ctx) => {
-        const operations = [];
-        const originalBody = params.__ow_body;
-        if (originalBody !== null) {
-          let payload = {};
-          try {
-            payload = JSON.parse(atob(originalBody));
-          } catch {
-          }
-          params = {
-            ...params,
-            ...payload
-          };
-          ctx.logger.debug(parameters_default.stringify(payload));
-        }
-        if (signatureVerification !== 0 /* DISABLED */) {
-          if (params.PUBLIC_KEY === void 0) {
-            operations.push(
-              response_default2.exception(
-                "Magento\\Framework\\Exception\\LocalizedException",
-                "The public key is invalid"
-              )
-            );
-          } else {
-            const errorMessage = validator_default.checkMissingRequestInputs(params, requiredParams, requiredHeaders) || "";
-            if (errorMessage) {
-              return response_default.error(400 /* BAD_REQUEST */, errorMessage);
-            }
-            const signature = params.__ow_headers["x-adobe-commerce-webhook-signature"] || "";
-            const verifier = crypto.createVerify("SHA256");
-            const bodyData = originalBody || "";
-            verifier.update(bodyData);
-            let publicKey = params.PUBLIC_KEY;
-            if (signatureVerification === 2 /* ENABLED_WITH_BASE64 */) {
-              publicKey = atob(publicKey);
-            }
-            const isSignatureValid = verifier.verify(publicKey, signature, "base64");
-            if (isSignatureValid) {
-              operations.push(await action(params, ctx));
-            } else {
-              operations.push(
-                response_default2.exception(
-                  "Magento\\Framework\\Exception\\LocalizedException",
-                  `The signature is invalid.`
-                )
-              );
-            }
-          }
-        } else {
-          const errorMessage = validator_default.checkMissingRequestInputs(params, requiredParams, requiredHeaders) || "";
-          if (errorMessage) {
-            return response_default.error(400 /* BAD_REQUEST */, errorMessage);
-          }
-          operations.push(await action(params, ctx));
-        }
-        return response_default.success(JSON.stringify(operations));
-      }
-    );
-  }
-};
-__name(_WebhookAction, "WebhookAction");
-var WebhookAction = _WebhookAction;
-var webhook_action_default = WebhookAction;
-
 // src/framework/openwhisk/index.ts
 import openwhisk from "openwhisk";
 var _Openwhisk = class _Openwhisk {
@@ -1110,7 +966,7 @@ var basic_auth_connection_default = BasicAuthConnection;
 // src/commerce/adobe-commerce-client/oauth1a-connection/index.ts
 import { Core as Core7 } from "@adobe/aio-sdk";
 import Oauth1a from "oauth-1.0a";
-import * as crypto2 from "crypto";
+import * as crypto from "crypto";
 var _Oauth1aConnection = class _Oauth1aConnection {
   /**
    * @param consumerKey
@@ -1159,7 +1015,7 @@ var _Oauth1aConnection = class _Oauth1aConnection {
         secret: this.consumerSecret
       },
       signature_method: "HMAC-SHA256",
-      hash_function: /* @__PURE__ */ __name((baseString, key) => crypto2.createHmac("sha256", key).update(baseString).digest("base64"), "hash_function")
+      hash_function: /* @__PURE__ */ __name((baseString, key) => crypto.createHmac("sha256", key).update(baseString).digest("base64"), "hash_function")
     });
     const oauthToken = {
       key: this.accessToken,
@@ -3751,10 +3607,6 @@ export {
   rest_client_default as RestClient,
   runtime_action_default as RuntimeAction,
   response_default as RuntimeActionResponse,
-  SignatureVerification,
-  validator_default as Validator,
-  webhook_action_default as WebhookAction,
-  response_default2 as WebhookActionResponse,
-  WebhookOperation
+  validator_default as Validator
 };
 //# sourceMappingURL=index.mjs.map

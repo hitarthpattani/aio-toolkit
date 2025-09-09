@@ -464,7 +464,6 @@ The ProviderManager integrates seamlessly with other toolkit components:
 - **[RuntimeAction](./runtime-action.md)** - Use within action handlers for provider management operations
 - **[EventConsumerAction](./event-consumer-action.md)** - Process events from managed providers
 - **[EventMetadataManager](./event-metadata.md)** - Manage event metadata for created providers
-- **[WebhookAction](./webhook-action.md)** - Handle webhook events from providers
 - **[AdobeAuth](./adobe-auth.md)** - Generate access tokens for ProviderManager authentication
 
 ### RuntimeAction Integration
@@ -530,7 +529,6 @@ const providerManagementAction = RuntimeAction.execute(
 - **[RuntimeAction](./runtime-action.md)** - For creating HTTP endpoints that manage providers
 - **[EventConsumerAction](./event-consumer-action.md)** - For processing events from managed providers
 - **[EventMetadataManager](./event-metadata.md)** - For managing event metadata for providers
-- **[WebhookAction](./webhook-action.md)** - For handling webhook events
 - **[AdobeAuth](./adobe-auth.md)** - For generating access tokens for authentication
 
 ### Common Integration Patterns:

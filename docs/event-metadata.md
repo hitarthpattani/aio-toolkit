@@ -423,7 +423,6 @@ The EventMetadataManager integrates seamlessly with other toolkit components:
 - **[EventConsumerAction](./event-consumer-action.md)** - Process events defined by event metadata
 - **[ProviderManager](./provider.md)** - Manage providers that use the event metadata definitions
 - **[RegistrationManager](./registration.md)** - Create registrations that subscribe to events defined by metadata
-- **[WebhookAction](./webhook-action.md)** - Handle webhook events that correspond to event metadata
 - **[AdobeAuth](./adobe-auth.md)** - Generate access tokens for EventMetadataManager authentication
 
 ### RuntimeAction Integration
@@ -481,7 +480,6 @@ const eventMetadataAction = RuntimeAction.execute(
 - **[EventConsumerAction](./event-consumer-action.md)** - For processing events defined by event metadata
 - **[ProviderManager](./provider.md)** - For managing providers that EventMetadataManager creates metadata for
 - **[RegistrationManager](./registration.md)** - For creating registrations that subscribe to events defined by metadata
-- **[WebhookAction](./webhook-action.md)** - For handling webhook events
 - **[AdobeAuth](./adobe-auth.md)** - For generating access tokens for authentication
 
 ### Common Integration Patterns:
@@ -489,7 +487,6 @@ const eventMetadataAction = RuntimeAction.execute(
 - **EventMetadataManager + RuntimeAction**: HTTP endpoints for event metadata management
 - **EventMetadataManager + EventConsumerAction**: Define and process events
 - **EventMetadataManager + AdobeAuth**: Authenticated event metadata operations
-- **EventMetadataManager + WebhookAction**: Handle events defined by metadata
 
 ## Constants Reference
 

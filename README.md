@@ -44,7 +44,6 @@ Before installing the package, you need to set up authentication for GitHub Pack
 - **[OpenWhisk](./docs/openwhisk.md)** - OpenWhisk client for serverless action invocation
 - **[OpenWhiskAction](./docs/openwhisk-action.md)** - OpenWhisk action wrapper with logging and error handling
 - **[RuntimeAction](./docs/runtime-action.md)** - HTTP request handling and business logic execution
-- **[WebhookAction](./docs/webhook-action.md)** - Secure webhook processing with signature verification
 
 #### Integration Components
 
