@@ -120,7 +120,7 @@ class BearerToken {
       // For non-JWT tokens or JWT tokens without expiry, default to 24 hours
       return new Date(Date.now() + 24 * 60 * 60 * 1000);
     } catch (error) {
-      console.warn('⚠️ Could not parse token expiry, using default 24h');
+      console.warn('[WARN] Could not parse token expiry, using default 24h');
       return new Date(Date.now() + 24 * 60 * 60 * 1000);
     }
   }

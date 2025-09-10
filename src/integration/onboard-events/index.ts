@@ -111,7 +111,7 @@ class OnboardEvents {
    */
   async process(providers: OnboardProviders): Promise<OnboardEventsResponse> {
     this.logger.debug(
-      `🚀 Processing onboard events for project: ${this.projectName} (${this.projectId}) with ${providers.length} providers`
+      `[START] Processing onboard events for project: ${this.projectName} (${this.projectId}) with ${providers.length} providers`
     );
 
     // Use CreateProviders to create the providers
@@ -123,7 +123,7 @@ class OnboardEvents {
     const failed = results.filter(r => !r.created && !r.skipped).length;
 
     this.logger.debug(
-      `📊 Provider creation summary: ${created} created, ${skipped} skipped, ${failed} failed`
+      `[SUMMARY] Provider creation summary: ${created} created, ${skipped} skipped, ${failed} failed`
     );
 
     return {

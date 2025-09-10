@@ -71,7 +71,7 @@ class CreateProviders {
     // Use the provided logger
     this.logger = logger;
 
-    this.logger.debug('✅ CreateProviders initialized with valid configuration');
+    this.logger.debug(`[OK] CreateProviders initialized with valid configuration`);
   }
 
   /**
@@ -85,8 +85,8 @@ class CreateProviders {
     providers: OnboardProviders,
     projectName: string = 'Unknown Project'
   ): Promise<CreateProviderResult[]> {
-    this.logger.debug(`🏭 Creating providers for project: ${projectName}`);
-    this.logger.debug(`📊 Processing ${providers.length} provider(s)...`);
+    this.logger.debug(`[CREATE] Creating providers for project: ${projectName}`);
+    this.logger.debug(`[INFO] Processing ${providers.length} provider(s)...`);
 
     try {
       // Fetch existing providers first
@@ -99,20 +99,20 @@ class CreateProviders {
         results.push(result);
       }
 
-      this.logger.debug('🎉 Provider creation completed');
+      this.logger.debug('[DONE] Provider creation completed');
 
       // Show provider IDs in results
       results.forEach(result => {
         if (result.provider.id) {
           this.logger.debug(
-            `🆔 Provider ID: ${result.provider.id} (${result.provider.originalLabel})`
+            `[ID] Provider ID: ${result.provider.id} (${result.provider.originalLabel})`
           );
         }
       });
 
       return results;
     } catch (error: any) {
-      this.logger.error(`❌ Provider creation failed: ${error.message}`);
+      this.logger.error(`[ERROR] Provider creation failed: ${error.message}`);
       throw error;
     }
   }
@@ -140,7 +140,7 @@ class CreateProviders {
    * @returns Promise<Map> Map of existing providers by label
    */
   private async getProviders(): Promise<Map<string, any>> {
-    this.logger.debug('🔍 Fetching existing providers...');
+    this.logger.debug('[FETCH] Fetching existing providers...');
 
     try {
       const providerManager = this.getProviderManager();
@@ -151,10 +151,10 @@ class CreateProviders {
         existingProviders.set(provider.label, provider);
       });
 
-      this.logger.debug(`✅ Found ${existingProviders.size} existing providers`);
+      this.logger.debug(`[OK] Found ${existingProviders.size} existing providers`);
       return existingProviders;
     } catch (error: any) {
-      this.logger.error(`❌ Failed to fetch existing providers: ${error.message}`);
+      this.logger.error(`[ERROR] Failed to fetch existing providers: ${error.message}`);
       throw error;
     }
   }
@@ -180,8 +180,8 @@ class CreateProviders {
     const existingProvider = existingProviders.get(enhancedLabel);
 
     if (existingProvider) {
-      this.logger.debug(`⏭️ Provider already exists - skipping creation`);
-      this.logger.debug(`🆔 Existing ID: ${existingProvider.id}`);
+      this.logger.debug(`[SKIP] Provider already exists - skipping creation`);
+      this.logger.debug(`[ID] Existing ID: ${existingProvider.id}`);
 
       return {
         created: false,
@@ -200,11 +200,13 @@ class CreateProviders {
 
     try {
       const providerInput = this.preparePayload(providerData, enhancedLabel);
-      this.logger.debug(`✨ Creating new provider with payload: ${JSON.stringify(providerInput)}`);
+      this.logger.debug(
+        `[NEW] Creating new provider with payload: ${JSON.stringify(providerInput)}`
+      );
       const createdProvider = await this.getProviderManager().create(providerInput);
 
       this.logger.debug(
-        `✅ Provider created successfully! ID: ${createdProvider.id}, Instance ID: ${createdProvider.instance_id}`
+        `[OK] Provider created successfully! ID: ${createdProvider.id}, Instance ID: ${createdProvider.instance_id}`
       );
 
       const result: CreateProviderResult = {
@@ -223,7 +225,7 @@ class CreateProviders {
 
       return result;
     } catch (error: any) {
-      this.logger.error(`❌ Failed to create provider "${enhancedLabel}": ${error.message}`);
+      this.logger.error(`[ERROR] Failed to create provider "${enhancedLabel}": ${error.message}`);
 
       return {
         created: false,

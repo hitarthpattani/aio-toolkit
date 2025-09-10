@@ -261,7 +261,7 @@ describe('OnboardEvents', () => {
       const result = await onboardEvents.process(mockProviders);
 
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        `🚀 Processing onboard events for project: ${validParams.projectName} (${validParams.projectId}) with ${mockProviders.length} providers`
+        `[START] Processing onboard events for project: ${validParams.projectName} (${validParams.projectId}) with ${mockProviders.length} providers`
       );
       // Verify return value structure (from OnboardEventsResponse tests)
       expect(result).toHaveProperty('createdProviders');
@@ -274,7 +274,7 @@ describe('OnboardEvents', () => {
       const result = await onboardEvents.process(emptyProviders);
 
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        `🚀 Processing onboard events for project: ${validParams.projectName} (${validParams.projectId}) with 0 providers`
+        `[START] Processing onboard events for project: ${validParams.projectName} (${validParams.projectId}) with 0 providers`
       );
       // Verify return value structure
       expect(result).toHaveProperty('createdProviders');
@@ -288,7 +288,7 @@ describe('OnboardEvents', () => {
       const result = await onboardEvents.process(singleProvider);
 
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        `🚀 Processing onboard events for project: ${validParams.projectName} (${validParams.projectId}) with 1 providers`
+        `[START] Processing onboard events for project: ${validParams.projectName} (${validParams.projectId}) with 1 providers`
       );
       // Verify return value structure
       expect(result).toHaveProperty('createdProviders');
@@ -537,7 +537,7 @@ describe('OnboardEvents', () => {
 
       // Verify processing logs
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        '🚀 Processing onboard events for project: Adobe Commerce Production (prod-project-456) with 2 providers'
+        '[START] Processing onboard events for project: Adobe Commerce Production (prod-project-456) with 2 providers'
       );
 
       // Verify return value structure
@@ -593,7 +593,7 @@ describe('OnboardEvents', () => {
       });
       expect(mockLogger.info).toHaveBeenCalledWith('Starting onboard event processing workflow');
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        '🚀 Processing onboard events for project: E-commerce Platform (ecommerce-project-789) with 1 providers'
+        '[START] Processing onboard events for project: E-commerce Platform (ecommerce-project-789) with 1 providers'
       );
       expect(mockLogger.info).toHaveBeenCalledWith('Completed onboard event processing workflow');
 
@@ -650,7 +650,7 @@ describe('OnboardEvents', () => {
 
       // Verify summary logging with failures
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        '📊 Provider creation summary: 0 created, 0 skipped, 1 failed'
+        '[SUMMARY] Provider creation summary: 0 created, 0 skipped, 1 failed'
       );
     });
 
@@ -712,14 +712,14 @@ describe('OnboardEvents', () => {
 
       // Verify summary logging with skipped providers
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        '📊 Provider creation summary: 0 created, 1 skipped, 0 failed'
+        '[SUMMARY] Provider creation summary: 0 created, 1 skipped, 0 failed'
       );
 
       // Verify skipping logs were called
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        '⏭️ Provider already exists - skipping creation'
+        '[SKIP] Provider already exists - skipping creation'
       );
-      expect(mockLogger.debug).toHaveBeenCalledWith('🆔 Existing ID: existing-provider-123');
+      expect(mockLogger.debug).toHaveBeenCalledWith('[ID] Existing ID: existing-provider-123');
 
       // Verify create was never called since provider exists
       expect(mockProviderManager.create).not.toHaveBeenCalled();
@@ -823,12 +823,12 @@ describe('OnboardEvents', () => {
 
       // Verify summary logging with all three states
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        '📊 Provider creation summary: 1 created, 1 skipped, 1 failed'
+        '[SUMMARY] Provider creation summary: 1 created, 1 skipped, 1 failed'
       );
 
       // Verify error logging was called for the failed provider
       expect(mockLogger.error).toHaveBeenCalledWith(
-        '❌ Failed to create provider "Mixed Test Project - Failing Provider": Mixed creation failed'
+        '[ERROR] Failed to create provider "Mixed Test Project - Failing Provider": Mixed creation failed'
       );
     });
 
@@ -877,12 +877,12 @@ describe('OnboardEvents', () => {
 
       // Verify error logging in getProviders method (lines 157-158)
       expect(mockLogger.error).toHaveBeenCalledWith(
-        '❌ Failed to fetch existing providers: Failed to fetch existing providers'
+        '[ERROR] Failed to fetch existing providers: Failed to fetch existing providers'
       );
 
       // Verify error logging in process method (lines 115-116)
       expect(mockLogger.error).toHaveBeenCalledWith(
-        '❌ Provider creation failed: Failed to fetch existing providers'
+        '[ERROR] Provider creation failed: Failed to fetch existing providers'
       );
     });
 
@@ -993,7 +993,7 @@ describe('OnboardEvents', () => {
 
       // Verify default project name was used in logging
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        '🏭 Creating providers for project: Unknown Project'
+        '[CREATE] Creating providers for project: Unknown Project'
       );
 
       // Verify the results structure

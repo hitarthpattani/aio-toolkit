@@ -475,7 +475,7 @@ var _BearerToken = class _BearerToken {
       }
       return new Date(Date.now() + 24 * 60 * 60 * 1e3);
     } catch (error) {
-      console.warn("\u26A0\uFE0F Could not parse token expiry, using default 24h");
+      console.warn("[WARN] Could not parse token expiry, using default 24h");
       return new Date(Date.now() + 24 * 60 * 60 * 1e3);
     }
   }
@@ -3125,7 +3125,7 @@ var _CreateProviders = class _CreateProviders {
       throw new Error("Logger is required");
     }
     this.logger = logger;
-    this.logger.debug("\u2705 CreateProviders initialized with valid configuration");
+    this.logger.debug(`[OK] CreateProviders initialized with valid configuration`);
   }
   /**
    * Processes providers for creation in the Adobe Commerce integration
@@ -3135,8 +3135,8 @@ var _CreateProviders = class _CreateProviders {
    * @returns Promise resolving to processing result
    */
   async process(providers, projectName = "Unknown Project") {
-    this.logger.debug(`\u{1F3ED} Creating providers for project: ${projectName}`);
-    this.logger.debug(`\u{1F4CA} Processing ${providers.length} provider(s)...`);
+    this.logger.debug(`[CREATE] Creating providers for project: ${projectName}`);
+    this.logger.debug(`[INFO] Processing ${providers.length} provider(s)...`);
     try {
       const existingProviders = await this.getProviders();
       const results = [];
@@ -3144,17 +3144,17 @@ var _CreateProviders = class _CreateProviders {
         const result = await this.createProvider(provider, projectName, existingProviders);
         results.push(result);
       }
-      this.logger.debug("\u{1F389} Provider creation completed");
+      this.logger.debug("[DONE] Provider creation completed");
       results.forEach((result) => {
         if (result.provider.id) {
           this.logger.debug(
-            `\u{1F194} Provider ID: ${result.provider.id} (${result.provider.originalLabel})`
+            `[ID] Provider ID: ${result.provider.id} (${result.provider.originalLabel})`
           );
         }
       });
       return results;
     } catch (error) {
-      this.logger.error(`\u274C Provider creation failed: ${error.message}`);
+      this.logger.error(`[ERROR] Provider creation failed: ${error.message}`);
       throw error;
     }
   }
@@ -3179,7 +3179,7 @@ var _CreateProviders = class _CreateProviders {
    * @returns Promise<Map> Map of existing providers by label
    */
   async getProviders() {
-    this.logger.debug("\u{1F50D} Fetching existing providers...");
+    this.logger.debug("[FETCH] Fetching existing providers...");
     try {
       const providerManager = this.getProviderManager();
       const providerList = await providerManager.list();
@@ -3187,10 +3187,10 @@ var _CreateProviders = class _CreateProviders {
       providerList.forEach((provider) => {
         existingProviders.set(provider.label, provider);
       });
-      this.logger.debug(`\u2705 Found ${existingProviders.size} existing providers`);
+      this.logger.debug(`[OK] Found ${existingProviders.size} existing providers`);
       return existingProviders;
     } catch (error) {
-      this.logger.error(`\u274C Failed to fetch existing providers: ${error.message}`);
+      this.logger.error(`[ERROR] Failed to fetch existing providers: ${error.message}`);
       throw error;
     }
   }
@@ -3207,8 +3207,8 @@ var _CreateProviders = class _CreateProviders {
     this.logger.debug(`\u{1F4DD} Enhanced label: ${enhancedLabel}`);
     const existingProvider = existingProviders.get(enhancedLabel);
     if (existingProvider) {
-      this.logger.debug(`\u23ED\uFE0F Provider already exists - skipping creation`);
-      this.logger.debug(`\u{1F194} Existing ID: ${existingProvider.id}`);
+      this.logger.debug(`[SKIP] Provider already exists - skipping creation`);
+      this.logger.debug(`[ID] Existing ID: ${existingProvider.id}`);
       return {
         created: false,
         skipped: true,
@@ -3225,10 +3225,12 @@ var _CreateProviders = class _CreateProviders {
     }
     try {
       const providerInput = this.preparePayload(providerData, enhancedLabel);
-      this.logger.debug(`\u2728 Creating new provider with payload: ${JSON.stringify(providerInput)}`);
+      this.logger.debug(
+        `[NEW] Creating new provider with payload: ${JSON.stringify(providerInput)}`
+      );
       const createdProvider = await this.getProviderManager().create(providerInput);
       this.logger.debug(
-        `\u2705 Provider created successfully! ID: ${createdProvider.id}, Instance ID: ${createdProvider.instance_id}`
+        `[OK] Provider created successfully! ID: ${createdProvider.id}, Instance ID: ${createdProvider.instance_id}`
       );
       const result = {
         created: true,
@@ -3245,7 +3247,7 @@ var _CreateProviders = class _CreateProviders {
       };
       return result;
     } catch (error) {
-      this.logger.error(`\u274C Failed to create provider "${enhancedLabel}": ${error.message}`);
+      this.logger.error(`[ERROR] Failed to create provider "${enhancedLabel}": ${error.message}`);
       return {
         created: false,
         skipped: false,
@@ -3362,14 +3364,14 @@ var _OnboardEvents = class _OnboardEvents {
    */
   async process(providers) {
     this.logger.debug(
-      `\u{1F680} Processing onboard events for project: ${this.projectName} (${this.projectId}) with ${providers.length} providers`
+      `[START] Processing onboard events for project: ${this.projectName} (${this.projectId}) with ${providers.length} providers`
     );
     const results = await this.createProviders.process(providers, this.projectName);
     const created = results.filter((r) => r.created).length;
     const skipped = results.filter((r) => r.skipped).length;
     const failed = results.filter((r) => !r.created && !r.skipped).length;
     this.logger.debug(
-      `\u{1F4CA} Provider creation summary: ${created} created, ${skipped} skipped, ${failed} failed`
+      `[SUMMARY] Provider creation summary: ${created} created, ${skipped} skipped, ${failed} failed`
     );
     return {
       createdProviders: results
