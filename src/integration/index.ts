@@ -15,3 +15,9 @@ export { default as RestClient } from './rest-client';
 
 // Export REST Client types
 export type { Headers } from './rest-client/types';
+
+// Export Onboard Events
+export { default as OnboardEvents } from './onboard-events';
+
+// Export Onboard Events types
+export type { OnboardProvider, OnboardProviders } from './onboard-events/types';

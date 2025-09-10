@@ -45,6 +45,7 @@ __export(index_exports, {
   ImsConnection: () => ims_connection_default,
   IoEventsGlobals: () => IoEventsGlobals,
   Oauth1aConnection: () => oauth1a_connection_default,
+  OnboardEvents: () => onboard_events_default,
   Openwhisk: () => openwhisk_default,
   OpenwhiskAction: () => openwhisk_action_default,
   Parameters: () => parameters_default,
@@ -633,6 +634,74 @@ __name(_RestClient, "RestClient");
 var RestClient = _RestClient;
 var rest_client_default = RestClient;
 
+// src/integration/onboard-events/index.ts
+var import_aio_sdk4 = require("@adobe/aio-sdk");
+var _OnboardEvents = class _OnboardEvents {
+  /**
+   * Creates a new OnboardEvents instance
+   *
+   * @param projectName - Name of the Adobe Commerce project
+   * @param consumerId - Adobe I/O consumer ID
+   * @param projectId - Adobe I/O project ID
+   * @param workspaceId - Adobe I/O workspace ID
+   * @param apiKey - API key for authentication
+   * @param accessToken - Access token for API calls
+   */
+  constructor(projectName, consumerId, projectId, workspaceId, apiKey, accessToken) {
+    this.projectName = projectName;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.apiKey = apiKey;
+    this.accessToken = accessToken;
+    if (!projectName) {
+      throw new Error("Project name is required");
+    }
+    if (!consumerId) {
+      throw new Error("Consumer ID is required");
+    }
+    if (!projectId) {
+      throw new Error("Project ID is required");
+    }
+    if (!workspaceId) {
+      throw new Error("Workspace ID is required");
+    }
+    if (!apiKey) {
+      throw new Error("API key is required");
+    }
+    if (!accessToken) {
+      throw new Error("Access token is required");
+    }
+    const loggerName = projectName.toLowerCase().replace(/[^a-z0-9\s-_]/g, "").replace(/\s+/g, "-").replace(/_{2,}/g, "_").replace(/-{2,}/g, "-").trim().concat("-onboard-events");
+    this.logger = import_aio_sdk4.Core.Logger(loggerName, { level: "debug" });
+  }
+  /**
+   * Gets the configured logger instance for consistent logging
+   *
+   * @returns The configured logger instance
+   */
+  getLogger() {
+    return this.logger;
+  }
+  /**
+   * Processes the onboarding events
+   *
+   * @param providers - Array of onboard provider configurations
+   * @returns Promise resolving to processing result
+   */
+  async process(providers) {
+    this.logger.debug(
+      `\u{1F680} Processing onboard events for project: ${this.projectName} (${this.projectId}) with ${providers.length} providers`
+    );
+    providers.forEach((provider) => {
+      this.logger.debug(`Processing provider: ${provider.key} - ${provider.label}`);
+    });
+  }
+};
+__name(_OnboardEvents, "OnboardEvents");
+var OnboardEvents = _OnboardEvents;
+var onboard_events_default = OnboardEvents;
+
 // src/commerce/adobe-auth/index.ts
 var import_aio_lib_ims = require("@adobe/aio-lib-ims");
 var _AdobeAuth = class _AdobeAuth {
@@ -677,7 +746,7 @@ var AdobeAuth = _AdobeAuth;
 var adobe_auth_default = AdobeAuth;
 
 // src/commerce/adobe-commerce-client/index.ts
-var import_aio_sdk4 = require("@adobe/aio-sdk");
+var import_aio_sdk5 = require("@adobe/aio-sdk");
 var import_got = __toESM(require("got"));
 var _AdobeCommerceClient = class _AdobeCommerceClient {
   /**
@@ -692,7 +761,7 @@ var _AdobeCommerceClient = class _AdobeCommerceClient {
     this.baseUrl = baseUrl;
     this.connection = connection;
     if (logger === null) {
-      logger = import_aio_sdk4.Core.Logger("adobe-commerce-client", {
+      logger = import_aio_sdk5.Core.Logger("adobe-commerce-client", {
         level: "debug"
       });
     }
@@ -819,10 +888,10 @@ var AdobeCommerceClient = _AdobeCommerceClient;
 var adobe_commerce_client_default = AdobeCommerceClient;
 
 // src/commerce/adobe-commerce-client/basic-auth-connection/index.ts
-var import_aio_sdk6 = require("@adobe/aio-sdk");
+var import_aio_sdk7 = require("@adobe/aio-sdk");
 
 // src/commerce/adobe-commerce-client/basic-auth-connection/generate-basic-auth-token/index.ts
-var import_aio_sdk5 = require("@adobe/aio-sdk");
+var import_aio_sdk6 = require("@adobe/aio-sdk");
 var _GenerateBasicAuthToken = class _GenerateBasicAuthToken {
   /**
    * @param baseUrl
@@ -836,7 +905,7 @@ var _GenerateBasicAuthToken = class _GenerateBasicAuthToken {
     this.password = password;
     this.key = "adobe_commerce_basic_auth_token";
     if (logger === null) {
-      logger = import_aio_sdk5.Core.Logger("adobe-commerce-client", {
+      logger = import_aio_sdk6.Core.Logger("adobe-commerce-client", {
         level: "debug"
       });
     }
@@ -964,7 +1033,7 @@ var _GenerateBasicAuthToken = class _GenerateBasicAuthToken {
   async getState() {
     if (this.state === void 0) {
       try {
-        this.state = await import_aio_sdk5.State.init();
+        this.state = await import_aio_sdk6.State.init();
       } catch (error) {
         this.logger.debug("State API initialization failed, running without caching");
         this.state = null;
@@ -990,7 +1059,7 @@ var _BasicAuthConnection = class _BasicAuthConnection {
     this.username = username;
     this.password = password;
     if (logger === null) {
-      logger = import_aio_sdk6.Core.Logger("adobe-commerce-client", {
+      logger = import_aio_sdk7.Core.Logger("adobe-commerce-client", {
         level: "debug"
       });
     }
@@ -1020,7 +1089,7 @@ var BasicAuthConnection = _BasicAuthConnection;
 var basic_auth_connection_default = BasicAuthConnection;
 
 // src/commerce/adobe-commerce-client/oauth1a-connection/index.ts
-var import_aio_sdk7 = require("@adobe/aio-sdk");
+var import_aio_sdk8 = require("@adobe/aio-sdk");
 var import_oauth_1 = __toESM(require("oauth-1.0a"));
 var crypto = __toESM(require("crypto"));
 var _Oauth1aConnection = class _Oauth1aConnection {
@@ -1037,7 +1106,7 @@ var _Oauth1aConnection = class _Oauth1aConnection {
     this.accessToken = accessToken;
     this.accessTokenSecret = accessTokenSecret;
     if (logger === null) {
-      logger = import_aio_sdk7.Core.Logger("adobe-commerce-client", {
+      logger = import_aio_sdk8.Core.Logger("adobe-commerce-client", {
         level: "debug"
       });
     }
@@ -1085,7 +1154,7 @@ var Oauth1aConnection = _Oauth1aConnection;
 var oauth1a_connection_default = Oauth1aConnection;
 
 // src/commerce/adobe-commerce-client/ims-connection/index.ts
-var import_aio_sdk8 = require("@adobe/aio-sdk");
+var import_aio_sdk9 = require("@adobe/aio-sdk");
 var _ImsConnection = class _ImsConnection {
   /**
    * @param clientId
@@ -1106,7 +1175,7 @@ var _ImsConnection = class _ImsConnection {
     this.scopes = scopes;
     this.currentContext = currentContext;
     if (logger === null) {
-      logger = import_aio_sdk8.Core.Logger(currentContext, {
+      logger = import_aio_sdk9.Core.Logger(currentContext, {
         level: "debug"
       });
     }
@@ -3660,6 +3729,7 @@ var registration_default = RegistrationManager;
   ImsConnection,
   IoEventsGlobals,
   Oauth1aConnection,
+  OnboardEvents,
   Openwhisk,
   OpenwhiskAction,
   Parameters,

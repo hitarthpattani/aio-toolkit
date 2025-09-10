@@ -577,6 +577,74 @@ __name(_RestClient, "RestClient");
 var RestClient = _RestClient;
 var rest_client_default = RestClient;
 
+// src/integration/onboard-events/index.ts
+import { Core as Core4 } from "@adobe/aio-sdk";
+var _OnboardEvents = class _OnboardEvents {
+  /**
+   * Creates a new OnboardEvents instance
+   *
+   * @param projectName - Name of the Adobe Commerce project
+   * @param consumerId - Adobe I/O consumer ID
+   * @param projectId - Adobe I/O project ID
+   * @param workspaceId - Adobe I/O workspace ID
+   * @param apiKey - API key for authentication
+   * @param accessToken - Access token for API calls
+   */
+  constructor(projectName, consumerId, projectId, workspaceId, apiKey, accessToken) {
+    this.projectName = projectName;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.apiKey = apiKey;
+    this.accessToken = accessToken;
+    if (!projectName) {
+      throw new Error("Project name is required");
+    }
+    if (!consumerId) {
+      throw new Error("Consumer ID is required");
+    }
+    if (!projectId) {
+      throw new Error("Project ID is required");
+    }
+    if (!workspaceId) {
+      throw new Error("Workspace ID is required");
+    }
+    if (!apiKey) {
+      throw new Error("API key is required");
+    }
+    if (!accessToken) {
+      throw new Error("Access token is required");
+    }
+    const loggerName = projectName.toLowerCase().replace(/[^a-z0-9\s-_]/g, "").replace(/\s+/g, "-").replace(/_{2,}/g, "_").replace(/-{2,}/g, "-").trim().concat("-onboard-events");
+    this.logger = Core4.Logger(loggerName, { level: "debug" });
+  }
+  /**
+   * Gets the configured logger instance for consistent logging
+   *
+   * @returns The configured logger instance
+   */
+  getLogger() {
+    return this.logger;
+  }
+  /**
+   * Processes the onboarding events
+   *
+   * @param providers - Array of onboard provider configurations
+   * @returns Promise resolving to processing result
+   */
+  async process(providers) {
+    this.logger.debug(
+      `\u{1F680} Processing onboard events for project: ${this.projectName} (${this.projectId}) with ${providers.length} providers`
+    );
+    providers.forEach((provider) => {
+      this.logger.debug(`Processing provider: ${provider.key} - ${provider.label}`);
+    });
+  }
+};
+__name(_OnboardEvents, "OnboardEvents");
+var OnboardEvents = _OnboardEvents;
+var onboard_events_default = OnboardEvents;
+
 // src/commerce/adobe-auth/index.ts
 import { context, getToken } from "@adobe/aio-lib-ims";
 var _AdobeAuth = class _AdobeAuth {
@@ -621,7 +689,7 @@ var AdobeAuth = _AdobeAuth;
 var adobe_auth_default = AdobeAuth;
 
 // src/commerce/adobe-commerce-client/index.ts
-import { Core as Core4 } from "@adobe/aio-sdk";
+import { Core as Core5 } from "@adobe/aio-sdk";
 import got from "got";
 var _AdobeCommerceClient = class _AdobeCommerceClient {
   /**
@@ -636,7 +704,7 @@ var _AdobeCommerceClient = class _AdobeCommerceClient {
     this.baseUrl = baseUrl;
     this.connection = connection;
     if (logger === null) {
-      logger = Core4.Logger("adobe-commerce-client", {
+      logger = Core5.Logger("adobe-commerce-client", {
         level: "debug"
       });
     }
@@ -763,10 +831,10 @@ var AdobeCommerceClient = _AdobeCommerceClient;
 var adobe_commerce_client_default = AdobeCommerceClient;
 
 // src/commerce/adobe-commerce-client/basic-auth-connection/index.ts
-import { Core as Core6 } from "@adobe/aio-sdk";
+import { Core as Core7 } from "@adobe/aio-sdk";
 
 // src/commerce/adobe-commerce-client/basic-auth-connection/generate-basic-auth-token/index.ts
-import { State, Core as Core5 } from "@adobe/aio-sdk";
+import { State, Core as Core6 } from "@adobe/aio-sdk";
 var _GenerateBasicAuthToken = class _GenerateBasicAuthToken {
   /**
    * @param baseUrl
@@ -780,7 +848,7 @@ var _GenerateBasicAuthToken = class _GenerateBasicAuthToken {
     this.password = password;
     this.key = "adobe_commerce_basic_auth_token";
     if (logger === null) {
-      logger = Core5.Logger("adobe-commerce-client", {
+      logger = Core6.Logger("adobe-commerce-client", {
         level: "debug"
       });
     }
@@ -934,7 +1002,7 @@ var _BasicAuthConnection = class _BasicAuthConnection {
     this.username = username;
     this.password = password;
     if (logger === null) {
-      logger = Core6.Logger("adobe-commerce-client", {
+      logger = Core7.Logger("adobe-commerce-client", {
         level: "debug"
       });
     }
@@ -964,7 +1032,7 @@ var BasicAuthConnection = _BasicAuthConnection;
 var basic_auth_connection_default = BasicAuthConnection;
 
 // src/commerce/adobe-commerce-client/oauth1a-connection/index.ts
-import { Core as Core7 } from "@adobe/aio-sdk";
+import { Core as Core8 } from "@adobe/aio-sdk";
 import Oauth1a from "oauth-1.0a";
 import * as crypto from "crypto";
 var _Oauth1aConnection = class _Oauth1aConnection {
@@ -981,7 +1049,7 @@ var _Oauth1aConnection = class _Oauth1aConnection {
     this.accessToken = accessToken;
     this.accessTokenSecret = accessTokenSecret;
     if (logger === null) {
-      logger = Core7.Logger("adobe-commerce-client", {
+      logger = Core8.Logger("adobe-commerce-client", {
         level: "debug"
       });
     }
@@ -1029,7 +1097,7 @@ var Oauth1aConnection = _Oauth1aConnection;
 var oauth1a_connection_default = Oauth1aConnection;
 
 // src/commerce/adobe-commerce-client/ims-connection/index.ts
-import { Core as Core8 } from "@adobe/aio-sdk";
+import { Core as Core9 } from "@adobe/aio-sdk";
 var _ImsConnection = class _ImsConnection {
   /**
    * @param clientId
@@ -1050,7 +1118,7 @@ var _ImsConnection = class _ImsConnection {
     this.scopes = scopes;
     this.currentContext = currentContext;
     if (logger === null) {
-      logger = Core8.Logger(currentContext, {
+      logger = Core9.Logger(currentContext, {
         level: "debug"
       });
     }
@@ -3603,6 +3671,7 @@ export {
   ims_connection_default as ImsConnection,
   IoEventsGlobals,
   oauth1a_connection_default as Oauth1aConnection,
+  onboard_events_default as OnboardEvents,
   openwhisk_default as Openwhisk,
   openwhisk_action_default as OpenwhiskAction,
   parameters_default as Parameters,
