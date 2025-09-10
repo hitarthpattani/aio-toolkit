@@ -3125,7 +3125,7 @@ var _CreateProviders = class _CreateProviders {
       throw new Error("Logger is required");
     }
     this.logger = logger;
-    this.logger.debug(`[OK] CreateProviders initialized with valid configuration`);
+    this.logger.debug(`[INIT] CreateProviders initialized with valid configuration`);
   }
   /**
    * Processes providers for creation in the Adobe Commerce integration
@@ -3187,7 +3187,7 @@ var _CreateProviders = class _CreateProviders {
       providerList.forEach((provider) => {
         existingProviders.set(provider.label, provider);
       });
-      this.logger.debug(`[OK] Found ${existingProviders.size} existing providers`);
+      this.logger.debug(`[INFO] Found ${existingProviders.size} existing providers`);
       return existingProviders;
     } catch (error) {
       this.logger.error(`[ERROR] Failed to fetch existing providers: ${error.message}`);
@@ -3203,8 +3203,9 @@ var _CreateProviders = class _CreateProviders {
    */
   async createProvider(providerData, projectName, existingProviders) {
     const enhancedLabel = `${projectName} - ${providerData.label}`;
-    this.logger.debug(`\u{1F528} Processing provider: ${providerData.label}`);
-    this.logger.debug(`\u{1F4DD} Enhanced label: ${enhancedLabel}`);
+    this.logger.debug(
+      `[PROCESS] Processing provider: ${providerData.label} with enhanced label: ${enhancedLabel}`
+    );
     const existingProvider = existingProviders.get(enhancedLabel);
     if (existingProvider) {
       this.logger.debug(`[SKIP] Provider already exists - skipping creation`);
@@ -3230,7 +3231,7 @@ var _CreateProviders = class _CreateProviders {
       );
       const createdProvider = await this.getProviderManager().create(providerInput);
       this.logger.debug(
-        `[OK] Provider created successfully! ID: ${createdProvider.id}, Instance ID: ${createdProvider.instance_id}`
+        `[INFO] Provider created successfully! ID: ${createdProvider.id}, Instance ID: ${createdProvider.instance_id}`
       );
       const result = {
         created: true,

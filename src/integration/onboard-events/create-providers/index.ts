@@ -71,7 +71,7 @@ class CreateProviders {
     // Use the provided logger
     this.logger = logger;
 
-    this.logger.debug(`[OK] CreateProviders initialized with valid configuration`);
+    this.logger.debug(`[INIT] CreateProviders initialized with valid configuration`);
   }
 
   /**
@@ -151,7 +151,7 @@ class CreateProviders {
         existingProviders.set(provider.label, provider);
       });
 
-      this.logger.debug(`[OK] Found ${existingProviders.size} existing providers`);
+      this.logger.debug(`[INFO] Found ${existingProviders.size} existing providers`);
       return existingProviders;
     } catch (error: any) {
       this.logger.error(`[ERROR] Failed to fetch existing providers: ${error.message}`);
@@ -172,9 +172,9 @@ class CreateProviders {
     existingProviders: Map<string, any>
   ): Promise<CreateProviderResult> {
     const enhancedLabel = `${projectName} - ${providerData.label}`;
-
-    this.logger.debug(`🔨 Processing provider: ${providerData.label}`);
-    this.logger.debug(`📝 Enhanced label: ${enhancedLabel}`);
+    this.logger.debug(
+      `[PROCESS] Processing provider: ${providerData.label} with enhanced label: ${enhancedLabel}`
+    );
 
     // Check if provider already exists
     const existingProvider = existingProviders.get(enhancedLabel);
@@ -200,13 +200,15 @@ class CreateProviders {
 
     try {
       const providerInput = this.preparePayload(providerData, enhancedLabel);
+
       this.logger.debug(
         `[NEW] Creating new provider with payload: ${JSON.stringify(providerInput)}`
       );
+
       const createdProvider = await this.getProviderManager().create(providerInput);
 
       this.logger.debug(
-        `[OK] Provider created successfully! ID: ${createdProvider.id}, Instance ID: ${createdProvider.instance_id}`
+        `[INFO] Provider created successfully! ID: ${createdProvider.id}, Instance ID: ${createdProvider.instance_id}`
       );
 
       const result: CreateProviderResult = {
