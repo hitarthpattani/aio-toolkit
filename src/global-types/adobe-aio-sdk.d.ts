@@ -33,4 +33,9 @@ declare module '@adobe/aio-sdk' {
   export namespace State {
     function init(): Promise<State>;
   }
+
+  // UUID utility functions (using Node.js crypto.randomUUID)
+  export namespace Utils {
+    function uuid(): string;
+  }
 }

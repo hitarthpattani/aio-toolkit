@@ -155,6 +155,22 @@ interface OnboardProvider {
     docs_url: string | null;
 }
 type OnboardProviders = OnboardProvider[];
+interface OnboardEventsResponse {
+    createdProviders: Array<{
+        created: boolean;
+        skipped: boolean;
+        provider: {
+            id?: string;
+            instanceId?: string;
+            label: string;
+            originalLabel: string;
+            description?: string;
+            docsUrl?: string | null;
+        };
+        error?: string;
+        reason?: string;
+    }>;
+}
 
 declare class OnboardEvents {
     private readonly projectName;
@@ -164,9 +180,10 @@ declare class OnboardEvents {
     private readonly apiKey;
     private readonly accessToken;
     private readonly logger;
+    private readonly createProviders;
     constructor(projectName: string, consumerId: string, projectId: string, workspaceId: string, apiKey: string, accessToken: string);
     getLogger(): Logger;
-    process(providers: OnboardProviders): Promise<void>;
+    process(providers: OnboardProviders): Promise<OnboardEventsResponse>;
 }
 
 declare class AdobeAuth {
@@ -467,4 +484,4 @@ interface GetRegistrationQueryParams {
     registrationId: string;
 }
 
-export { AdobeAuth, AdobeCommerceClient, type AdobeIMSConfig, BasicAuthConnection, BearerToken, type BearerTokenInfo, type Connection, type CreateProviderParams, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type ExtendedRequestError, GenerateBasicAuthToken, type GetProviderQueryParams, type GetRegistrationQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, ImsConnection, IoEventsGlobals, type ListProvidersQueryParams, type ListRegistrationQueryParams, Oauth1aConnection, OnboardEvents, type OnboardProvider, type OnboardProviders, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, type Registration, type RegistrationCreateModel, type RegistrationListResponse, RegistrationManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, type SuccessResponse, type TokenResult, Validator };
+export { AdobeAuth, AdobeCommerceClient, type AdobeIMSConfig, BasicAuthConnection, BearerToken, type BearerTokenInfo, type Connection, type CreateProviderParams, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type ExtendedRequestError, GenerateBasicAuthToken, type GetProviderQueryParams, type GetRegistrationQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, ImsConnection, IoEventsGlobals, type ListProvidersQueryParams, type ListRegistrationQueryParams, Oauth1aConnection, OnboardEvents, type OnboardEventsResponse, type OnboardProvider, type OnboardProviders, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, type Registration, type RegistrationCreateModel, type RegistrationListResponse, RegistrationManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, type SuccessResponse, type TokenResult, Validator };

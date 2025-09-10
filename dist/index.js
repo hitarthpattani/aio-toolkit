@@ -636,576 +636,6 @@ var rest_client_default = RestClient;
 
 // src/integration/onboard-events/index.ts
 var import_aio_sdk4 = require("@adobe/aio-sdk");
-var _OnboardEvents = class _OnboardEvents {
-  /**
-   * Creates a new OnboardEvents instance
-   *
-   * @param projectName - Name of the Adobe Commerce project
-   * @param consumerId - Adobe I/O consumer ID
-   * @param projectId - Adobe I/O project ID
-   * @param workspaceId - Adobe I/O workspace ID
-   * @param apiKey - API key for authentication
-   * @param accessToken - Access token for API calls
-   */
-  constructor(projectName, consumerId, projectId, workspaceId, apiKey, accessToken) {
-    this.projectName = projectName;
-    this.consumerId = consumerId;
-    this.projectId = projectId;
-    this.workspaceId = workspaceId;
-    this.apiKey = apiKey;
-    this.accessToken = accessToken;
-    if (!projectName) {
-      throw new Error("Project name is required");
-    }
-    if (!consumerId) {
-      throw new Error("Consumer ID is required");
-    }
-    if (!projectId) {
-      throw new Error("Project ID is required");
-    }
-    if (!workspaceId) {
-      throw new Error("Workspace ID is required");
-    }
-    if (!apiKey) {
-      throw new Error("API key is required");
-    }
-    if (!accessToken) {
-      throw new Error("Access token is required");
-    }
-    const loggerName = projectName.toLowerCase().replace(/[^a-z0-9\s-_]/g, "").replace(/\s+/g, "-").replace(/_{2,}/g, "_").replace(/-{2,}/g, "-").trim().concat("-onboard-events");
-    this.logger = import_aio_sdk4.Core.Logger(loggerName, { level: "debug" });
-  }
-  /**
-   * Gets the configured logger instance for consistent logging
-   *
-   * @returns The configured logger instance
-   */
-  getLogger() {
-    return this.logger;
-  }
-  /**
-   * Processes the onboarding events
-   *
-   * @param providers - Array of onboard provider configurations
-   * @returns Promise resolving to processing result
-   */
-  async process(providers) {
-    this.logger.debug(
-      `\u{1F680} Processing onboard events for project: ${this.projectName} (${this.projectId}) with ${providers.length} providers`
-    );
-    providers.forEach((provider) => {
-      this.logger.debug(`Processing provider: ${provider.key} - ${provider.label}`);
-    });
-  }
-};
-__name(_OnboardEvents, "OnboardEvents");
-var OnboardEvents = _OnboardEvents;
-var onboard_events_default = OnboardEvents;
-
-// src/commerce/adobe-auth/index.ts
-var import_aio_lib_ims = require("@adobe/aio-lib-ims");
-var _AdobeAuth = class _AdobeAuth {
-  /**
-   * Retrieves an authentication token from Adobe IMS
-   *
-   * @param clientId - The client ID for the Adobe IMS integration
-   * @param clientSecret - The client secret for the Adobe IMS integration
-   * @param technicalAccountId - The technical account ID for the Adobe IMS integration
-   * @param technicalAccountEmail - The technical account email for the Adobe IMS integration
-   * @param imsOrgId - The IMS organization ID
-   * @param scopes - Array of permission scopes to request for the token
-   * @param currentContext - The context name for storing the configuration (defaults to 'onboarding-config')
-   * @returns Promise<string> - A promise that resolves to the authentication token
-   *
-   * @example
-   * const token = await AdobeAuth.getToken(
-   *   'your-client-id',
-   *   'your-client-secret',
-   *   'your-technical-account-id',
-   *   'your-technical-account-email',
-   *   'your-ims-org-id',
-   *   ['AdobeID', 'openid', 'adobeio_api']
-   * );
-   */
-  static async getToken(clientId, clientSecret, technicalAccountId, technicalAccountEmail, imsOrgId, scopes, currentContext = "onboarding-config") {
-    const config = {
-      client_id: clientId,
-      client_secrets: [clientSecret],
-      technical_account_id: technicalAccountId,
-      technical_account_email: technicalAccountEmail,
-      ims_org_id: imsOrgId,
-      scopes
-    };
-    await import_aio_lib_ims.context.setCurrent(currentContext);
-    await import_aio_lib_ims.context.set(currentContext, config);
-    return await (0, import_aio_lib_ims.getToken)();
-  }
-};
-__name(_AdobeAuth, "AdobeAuth");
-var AdobeAuth = _AdobeAuth;
-var adobe_auth_default = AdobeAuth;
-
-// src/commerce/adobe-commerce-client/index.ts
-var import_aio_sdk5 = require("@adobe/aio-sdk");
-var import_got = __toESM(require("got"));
-var _AdobeCommerceClient = class _AdobeCommerceClient {
-  /**
-   * @param baseUrl
-   * @param connection
-   * @param logger
-   */
-  constructor(baseUrl, connection, logger = null) {
-    if (!baseUrl) {
-      throw new Error("Commerce URL must be provided");
-    }
-    this.baseUrl = baseUrl;
-    this.connection = connection;
-    if (logger === null) {
-      logger = import_aio_sdk5.Core.Logger("adobe-commerce-client", {
-        level: "debug"
-      });
-    }
-    this.logger = logger;
-  }
-  /**
-   * @param endpoint
-   * @param headers
-   */
-  async get(endpoint, headers = {}) {
-    return await this.apiCall(endpoint, "GET", headers);
-  }
-  /**
-   * @param endpoint
-   * @param headers
-   * @param payload
-   */
-  async post(endpoint, headers = {}, payload = null) {
-    return await this.apiCall(endpoint, "POST", headers, payload);
-  }
-  /**
-   * @param endpoint
-   * @param headers
-   * @param payload
-   */
-  async put(endpoint, headers = {}, payload = null) {
-    return await this.apiCall(endpoint, "PUT", headers, payload);
-  }
-  /**
-   * @param endpoint
-   * @param headers
-   */
-  async delete(endpoint, headers = {}) {
-    return await this.apiCall(endpoint, "DELETE", headers);
-  }
-  /**
-   * @param endpoint
-   * @param method
-   * @param headers
-   * @param payload
-   * @private
-   */
-  async apiCall(endpoint, method, headers, payload = null) {
-    const commerceGot = await this.getHttpClient();
-    commerceGot.extend({
-      headers
-    });
-    const wrapper = /* @__PURE__ */ __name(async (callable) => {
-      try {
-        const message = await callable();
-        return { success: true, message };
-      } catch (e) {
-        if (e.code === "ERR_GOT_REQUEST_ERROR") {
-          this.logger.error("Error while calling Commerce API", e);
-          return {
-            success: false,
-            statusCode: 500 /* INTERNAL_ERROR */,
-            message: `Unexpected error, check logs. Original error "${e.message}"`
-          };
-        }
-        return {
-          success: false,
-          statusCode: e.response?.statusCode || 500 /* INTERNAL_ERROR */,
-          message: e.message,
-          body: e.responseBody
-        };
-      }
-    }, "wrapper");
-    let options = {
-      method
-    };
-    if (payload !== null) {
-      options = {
-        ...options,
-        json: payload
-      };
-    }
-    return await wrapper(() => commerceGot(endpoint, options).json());
-  }
-  /**
-   * @private
-   */
-  async getHttpClient() {
-    const commerceGot = import_got.default.extend({
-      http2: true,
-      responseType: "json",
-      prefixUrl: this.baseUrl,
-      headers: {
-        "Content-Type": "application/json"
-      },
-      hooks: {
-        beforeRequest: [
-          (options) => this.logger.debug(`Request [${options.method}] ${options.url}`)
-        ],
-        beforeRetry: [
-          (options, error, retryCount) => this.logger.debug(
-            `Retrying request [${options.method}] ${options.url} - count: ${retryCount} - error: ${error?.code} - ${error?.message}`
-          )
-        ],
-        beforeError: [
-          (error) => {
-            const { response } = error;
-            if (response?.body) {
-              error.responseBody = response.body;
-            }
-            return error;
-          }
-        ],
-        afterResponse: [
-          (response) => {
-            this.logger.debug(
-              `Response [${response.request.options.method}] ${response.request.options.url} - ${response.statusCode} ${response.statusMessage}`
-            );
-            return response;
-          }
-        ]
-      }
-    });
-    return await this.connection.extend(commerceGot);
-  }
-};
-__name(_AdobeCommerceClient, "AdobeCommerceClient");
-var AdobeCommerceClient = _AdobeCommerceClient;
-var adobe_commerce_client_default = AdobeCommerceClient;
-
-// src/commerce/adobe-commerce-client/basic-auth-connection/index.ts
-var import_aio_sdk7 = require("@adobe/aio-sdk");
-
-// src/commerce/adobe-commerce-client/basic-auth-connection/generate-basic-auth-token/index.ts
-var import_aio_sdk6 = require("@adobe/aio-sdk");
-var _GenerateBasicAuthToken = class _GenerateBasicAuthToken {
-  /**
-   * @param baseUrl
-   * @param username
-   * @param password
-   * @param logger
-   */
-  constructor(baseUrl, username, password, logger = null) {
-    this.baseUrl = baseUrl;
-    this.username = username;
-    this.password = password;
-    this.key = "adobe_commerce_basic_auth_token";
-    if (logger === null) {
-      logger = import_aio_sdk6.Core.Logger("adobe-commerce-client", {
-        level: "debug"
-      });
-    }
-    this.logger = logger;
-  }
-  /**
-   * @return string | null
-   */
-  async execute() {
-    const currentValue = await this.getValue();
-    if (currentValue !== null) {
-      return currentValue;
-    }
-    let result = {
-      token: null,
-      expire_in: 3600
-    };
-    const response = await this.getCommerceToken();
-    if (response !== null) {
-      result = response;
-    }
-    this.logger.debug(`Token: ${JSON.stringify(result)}`);
-    if (result.token !== null) {
-      await this.setValue(result);
-    }
-    return result.token;
-  }
-  /**
-   * @return TokenResult | null
-   */
-  async getCommerceToken() {
-    const endpoint = this.createEndpoint("rest/V1/integration/admin/token");
-    this.logger.debug(`Endpoint: ${endpoint}`);
-    try {
-      const restClient = new rest_client_default();
-      const response = await restClient.post(
-        endpoint,
-        {
-          "Content-Type": "application/json"
-        },
-        {
-          username: this.username,
-          password: this.password
-        }
-      );
-      this.logger.debug(`Raw response type: ${typeof response}`);
-      this.logger.debug(`Raw response: ${JSON.stringify(response)}`);
-      if (response !== null && response !== void 0) {
-        let tokenValue;
-        if (typeof response === "string") {
-          tokenValue = response;
-        } else if (typeof response === "object" && response.token) {
-          tokenValue = response.token;
-        } else {
-          try {
-            tokenValue = response.toString();
-            this.logger.debug(`Converted response to string: ${tokenValue?.substring(0, 10)}...`);
-          } catch {
-            this.logger.error(`Unexpected response format: ${JSON.stringify(response)}`);
-            return null;
-          }
-        }
-        this.logger.debug(`Extracted token: ${tokenValue?.substring(0, 10)}...`);
-        return {
-          token: tokenValue,
-          expire_in: 3600
-          // Adobe Commerce tokens typically expire in 1 hour
-        };
-      }
-      this.logger.error("Received null or undefined response from Commerce API");
-      return null;
-    } catch (error) {
-      this.logger.error(`Failed to get Commerce token: ${error.message}`);
-      this.logger.debug(`Full error: ${JSON.stringify(error)}`);
-      return null;
-    }
-  }
-  /**
-   * @param endpoint
-   * @return string
-   */
-  createEndpoint(endpoint) {
-    const normalizedBaseUrl = this.baseUrl.replace(/\/+$/, "");
-    const normalizedEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
-    return `${normalizedBaseUrl}${normalizedEndpoint}`;
-  }
-  /**
-   * @param result
-   * @return boolean
-   */
-  async setValue(result) {
-    try {
-      const state = await this.getState();
-      if (state === null) {
-        return true;
-      }
-      await state.put(this.key, result.token, { ttl: result.expire_in });
-      return true;
-    } catch (error) {
-      this.logger.debug("Failed to cache token, continuing without caching");
-      return true;
-    }
-  }
-  /**
-   * @return string | null
-   */
-  async getValue() {
-    try {
-      const state = await this.getState();
-      if (state === null) {
-        return null;
-      }
-      const value = await state.get(this.key);
-      if (value !== void 0) {
-        return value.value;
-      }
-    } catch (error) {
-      this.logger.debug("State API not available, skipping cache lookup");
-    }
-    return null;
-  }
-  /**
-   * @return any
-   */
-  async getState() {
-    if (this.state === void 0) {
-      try {
-        this.state = await import_aio_sdk6.State.init();
-      } catch (error) {
-        this.logger.debug("State API initialization failed, running without caching");
-        this.state = null;
-      }
-    }
-    return this.state;
-  }
-};
-__name(_GenerateBasicAuthToken, "GenerateBasicAuthToken");
-var GenerateBasicAuthToken = _GenerateBasicAuthToken;
-var generate_basic_auth_token_default = GenerateBasicAuthToken;
-
-// src/commerce/adobe-commerce-client/basic-auth-connection/index.ts
-var _BasicAuthConnection = class _BasicAuthConnection {
-  /**
-   * @param baseUrl
-   * @param username
-   * @param password
-   * @param logger
-   */
-  constructor(baseUrl, username, password, logger = null) {
-    this.baseUrl = baseUrl;
-    this.username = username;
-    this.password = password;
-    if (logger === null) {
-      logger = import_aio_sdk7.Core.Logger("adobe-commerce-client", {
-        level: "debug"
-      });
-    }
-    this.logger = logger;
-  }
-  /**
-   * @param commerceGot
-   */
-  async extend(commerceGot) {
-    this.logger.debug("Using Commerce client with integration options");
-    const generateToken = new generate_basic_auth_token_default(
-      this.baseUrl,
-      this.username,
-      this.password,
-      this.logger
-    );
-    const token = await generateToken.execute();
-    return commerceGot.extend({
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-  }
-};
-__name(_BasicAuthConnection, "BasicAuthConnection");
-var BasicAuthConnection = _BasicAuthConnection;
-var basic_auth_connection_default = BasicAuthConnection;
-
-// src/commerce/adobe-commerce-client/oauth1a-connection/index.ts
-var import_aio_sdk8 = require("@adobe/aio-sdk");
-var import_oauth_1 = __toESM(require("oauth-1.0a"));
-var crypto = __toESM(require("crypto"));
-var _Oauth1aConnection = class _Oauth1aConnection {
-  /**
-   * @param consumerKey
-   * @param consumerSecret
-   * @param accessToken
-   * @param accessTokenSecret
-   * @param logger
-   */
-  constructor(consumerKey, consumerSecret, accessToken, accessTokenSecret, logger = null) {
-    this.consumerKey = consumerKey;
-    this.consumerSecret = consumerSecret;
-    this.accessToken = accessToken;
-    this.accessTokenSecret = accessTokenSecret;
-    if (logger === null) {
-      logger = import_aio_sdk8.Core.Logger("adobe-commerce-client", {
-        level: "debug"
-      });
-    }
-    this.logger = logger;
-  }
-  /**
-   * @param commerceGot
-   */
-  async extend(commerceGot) {
-    this.logger.debug("Using Commerce client with integration options");
-    const headers = this.headersProvider();
-    return commerceGot.extend({
-      handlers: [
-        (options, next) => {
-          options.headers = {
-            ...options.headers,
-            ...headers(options.url.toString(), options.method)
-          };
-          return next(options);
-        }
-      ]
-    });
-  }
-  /**
-   * return () => { }
-   */
-  headersProvider() {
-    const oauth = new import_oauth_1.default({
-      consumer: {
-        key: this.consumerKey,
-        secret: this.consumerSecret
-      },
-      signature_method: "HMAC-SHA256",
-      hash_function: /* @__PURE__ */ __name((baseString, key) => crypto.createHmac("sha256", key).update(baseString).digest("base64"), "hash_function")
-    });
-    const oauthToken = {
-      key: this.accessToken,
-      secret: this.accessTokenSecret
-    };
-    return (url, method) => oauth.toHeader(oauth.authorize({ url, method }, oauthToken));
-  }
-};
-__name(_Oauth1aConnection, "Oauth1aConnection");
-var Oauth1aConnection = _Oauth1aConnection;
-var oauth1a_connection_default = Oauth1aConnection;
-
-// src/commerce/adobe-commerce-client/ims-connection/index.ts
-var import_aio_sdk9 = require("@adobe/aio-sdk");
-var _ImsConnection = class _ImsConnection {
-  /**
-   * @param clientId
-   * @param clientSecret
-   * @param technicalAccountId
-   * @param technicalAccountEmail
-   * @param imsOrgId
-   * @param scopes
-   * @param logger
-   * @param currentContext
-   */
-  constructor(clientId, clientSecret, technicalAccountId, technicalAccountEmail, imsOrgId, scopes, logger = null, currentContext = "adobe-commerce-client") {
-    this.clientId = clientId;
-    this.clientSecret = clientSecret;
-    this.technicalAccountId = technicalAccountId;
-    this.technicalAccountEmail = technicalAccountEmail;
-    this.imsOrgId = imsOrgId;
-    this.scopes = scopes;
-    this.currentContext = currentContext;
-    if (logger === null) {
-      logger = import_aio_sdk9.Core.Logger(currentContext, {
-        level: "debug"
-      });
-    }
-    this.logger = logger;
-  }
-  /**
-   * @param commerceGot
-   */
-  async extend(commerceGot) {
-    this.logger.debug("Using Commerce client with IMS authentication");
-    const token = await adobe_auth_default.getToken(
-      this.clientId,
-      this.clientSecret,
-      this.technicalAccountId,
-      this.technicalAccountEmail,
-      this.imsOrgId,
-      this.scopes,
-      this.currentContext
-    );
-    this.logger.debug(`IMS token being extended to header: ${token}`);
-    return commerceGot.extend({
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-  }
-};
-__name(_ImsConnection, "ImsConnection");
-var ImsConnection = _ImsConnection;
-var ims_connection_default = ImsConnection;
 
 // src/io-events/types.ts
 var IoEventsGlobals = {
@@ -3713,6 +3143,804 @@ var _RegistrationManager = class _RegistrationManager {
 __name(_RegistrationManager, "RegistrationManager");
 var RegistrationManager = _RegistrationManager;
 var registration_default = RegistrationManager;
+
+// src/integration/onboard-events/create-providers/index.ts
+var import_crypto = require("crypto");
+var _CreateProviders = class _CreateProviders {
+  /**
+   * Creates a new CreateProviders instance
+   *
+   * @param consumerId - Adobe I/O consumer ID
+   * @param projectId - Adobe I/O project ID
+   * @param workspaceId - Adobe I/O workspace ID
+   * @param apiKey - API key for authentication
+   * @param accessToken - Access token for API calls
+   * @param logger - Logger instance for consistent logging
+   */
+  constructor(consumerId, projectId, workspaceId, apiKey, accessToken, logger) {
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.apiKey = apiKey;
+    this.accessToken = accessToken;
+    this.providerManager = null;
+    const config = {
+      consumerId: this.consumerId,
+      projectId: this.projectId,
+      workspaceId: this.workspaceId,
+      apiKey: this.apiKey,
+      accessToken: this.accessToken
+    };
+    const required = ["consumerId", "projectId", "workspaceId", "apiKey", "accessToken"];
+    const missing = required.filter(
+      (key) => !config[key] || config[key].trim() === ""
+    );
+    if (missing.length > 0) {
+      throw new Error(`Missing required configuration: ${missing.join(", ")}`);
+    }
+    if (!logger) {
+      throw new Error("Logger is required");
+    }
+    this.logger = logger;
+    this.logger.debug("\u2705 CreateProviders initialized with valid configuration");
+  }
+  /**
+   * Processes providers for creation in the Adobe Commerce integration
+   *
+   * @param providers - Array of onboard provider configurations to create
+   * @param projectName - Name of the project for enhanced labeling
+   * @returns Promise resolving to processing result
+   */
+  async process(providers, projectName = "Unknown Project") {
+    this.logger.debug(`\u{1F3ED} Creating providers for project: ${projectName}`);
+    this.logger.debug(`\u{1F4CA} Processing ${providers.length} provider(s)...`);
+    try {
+      const existingProviders = await this.getProviders();
+      const results = [];
+      for (const provider of providers) {
+        const result = await this.createProvider(provider, projectName, existingProviders);
+        results.push(result);
+      }
+      this.logger.debug("\u{1F389} Provider creation completed");
+      results.forEach((result) => {
+        if (result.provider.id) {
+          this.logger.debug(
+            `\u{1F194} Provider ID: ${result.provider.id} (${result.provider.originalLabel})`
+          );
+        }
+      });
+      return results;
+    } catch (error) {
+      this.logger.error(`\u274C Provider creation failed: ${error.message}`);
+      throw error;
+    }
+  }
+  /**
+   * Gets the Provider SDK instance from the framework
+   * @private
+   */
+  getProviderManager() {
+    if (!this.providerManager) {
+      this.providerManager = new provider_default(
+        this.apiKey,
+        this.consumerId,
+        this.projectId,
+        this.workspaceId,
+        this.accessToken
+      );
+    }
+    return this.providerManager;
+  }
+  /**
+   * Gets existing providers from Adobe I/O
+   * @returns Promise<Map> Map of existing providers by label
+   */
+  async getProviders() {
+    this.logger.debug("\u{1F50D} Fetching existing providers...");
+    try {
+      const providerManager = this.getProviderManager();
+      const providerList = await providerManager.list();
+      const existingProviders = /* @__PURE__ */ new Map();
+      providerList.forEach((provider) => {
+        existingProviders.set(provider.label, provider);
+      });
+      this.logger.debug(`\u2705 Found ${existingProviders.size} existing providers`);
+      return existingProviders;
+    } catch (error) {
+      this.logger.error(`\u274C Failed to fetch existing providers: ${error.message}`);
+      throw error;
+    }
+  }
+  /**
+   * Creates a single provider
+   * @param providerData - Provider configuration data
+   * @param projectName - Project name for enhanced labeling
+   * @param existingProviders - Map of existing providers by label
+   * @private
+   */
+  async createProvider(providerData, projectName, existingProviders) {
+    const enhancedLabel = `${projectName} - ${providerData.label}`;
+    this.logger.debug(`\u{1F528} Processing provider: ${providerData.label}`);
+    this.logger.debug(`\u{1F4DD} Enhanced label: ${enhancedLabel}`);
+    const existingProvider = existingProviders.get(enhancedLabel);
+    if (existingProvider) {
+      this.logger.debug(`\u23ED\uFE0F Provider already exists - skipping creation`);
+      this.logger.debug(`\u{1F194} Existing ID: ${existingProvider.id}`);
+      return {
+        created: false,
+        skipped: true,
+        provider: {
+          id: existingProvider.id,
+          ...existingProvider.instance_id && { instanceId: existingProvider.instance_id },
+          label: enhancedLabel,
+          originalLabel: providerData.label,
+          description: providerData.description,
+          docsUrl: providerData.docs_url
+        },
+        reason: "Already exists"
+      };
+    }
+    try {
+      const providerInput = this.preparePayload(providerData, enhancedLabel);
+      this.logger.debug(`\u2728 Creating new provider with payload: ${JSON.stringify(providerInput)}`);
+      const createdProvider = await this.getProviderManager().create(providerInput);
+      this.logger.debug(
+        `\u2705 Provider created successfully! ID: ${createdProvider.id}, Instance ID: ${createdProvider.instance_id}`
+      );
+      const result = {
+        created: true,
+        skipped: false,
+        provider: {
+          id: createdProvider.id,
+          ...createdProvider.instance_id && { instanceId: createdProvider.instance_id },
+          label: createdProvider.label,
+          originalLabel: providerData.label,
+          description: providerData.description,
+          docsUrl: providerData.docs_url
+        },
+        raw: createdProvider
+      };
+      return result;
+    } catch (error) {
+      this.logger.error(`\u274C Failed to create provider "${enhancedLabel}": ${error.message}`);
+      return {
+        created: false,
+        skipped: false,
+        error: error.message,
+        provider: {
+          label: enhancedLabel,
+          originalLabel: providerData.label,
+          description: providerData.description,
+          docsUrl: providerData.docs_url
+        }
+      };
+    }
+  }
+  /**
+   * Prepares payload object for Adobe I/O API
+   * @param providerData - Provider configuration data
+   * @param enhancedLabel - Enhanced provider label
+   * @private
+   */
+  preparePayload(providerData, enhancedLabel) {
+    const input = {
+      label: enhancedLabel
+    };
+    if (providerData.description) {
+      input.description = providerData.description;
+    }
+    if (providerData.docs_url) {
+      input.docs_url = providerData.docs_url;
+    }
+    if (this.isCommerceProvider(providerData)) {
+      input.provider_metadata = "dx_commerce_events";
+      input.instance_id = (0, import_crypto.randomUUID)();
+    }
+    return input;
+  }
+  /**
+   * Determines if provider is a commerce provider
+   * @private
+   */
+  isCommerceProvider(providerData) {
+    const commerceIndicators = ["commerce", "magento", "adobe commerce"];
+    const label = providerData.label.toLowerCase();
+    const description = (providerData.description || "").toLowerCase();
+    return commerceIndicators.some(
+      (indicator) => label.includes(indicator) || description.includes(indicator)
+    );
+  }
+};
+__name(_CreateProviders, "CreateProviders");
+var CreateProviders = _CreateProviders;
+var create_providers_default = CreateProviders;
+
+// src/integration/onboard-events/index.ts
+var _OnboardEvents = class _OnboardEvents {
+  /**
+   * Creates a new OnboardEvents instance
+   *
+   * @param projectName - Name of the Adobe Commerce project
+   * @param consumerId - Adobe I/O consumer ID
+   * @param projectId - Adobe I/O project ID
+   * @param workspaceId - Adobe I/O workspace ID
+   * @param apiKey - API key for authentication
+   * @param accessToken - Access token for API calls
+   */
+  constructor(projectName, consumerId, projectId, workspaceId, apiKey, accessToken) {
+    this.projectName = projectName;
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.apiKey = apiKey;
+    this.accessToken = accessToken;
+    if (!projectName) {
+      throw new Error("Project name is required");
+    }
+    if (!consumerId) {
+      throw new Error("Consumer ID is required");
+    }
+    if (!projectId) {
+      throw new Error("Project ID is required");
+    }
+    if (!workspaceId) {
+      throw new Error("Workspace ID is required");
+    }
+    if (!apiKey) {
+      throw new Error("API key is required");
+    }
+    if (!accessToken) {
+      throw new Error("Access token is required");
+    }
+    const loggerName = projectName.toLowerCase().replace(/[^a-z0-9\s-_]/g, "").replace(/\s+/g, "-").replace(/_{2,}/g, "_").replace(/-{2,}/g, "-").trim().concat("-onboard-events");
+    this.logger = import_aio_sdk4.Core.Logger(loggerName, { level: "debug" });
+    this.createProviders = new create_providers_default(
+      consumerId,
+      projectId,
+      workspaceId,
+      apiKey,
+      accessToken,
+      this.logger
+    );
+  }
+  /**
+   * Gets the configured logger instance for consistent logging
+   *
+   * @returns The configured logger instance
+   */
+  getLogger() {
+    return this.logger;
+  }
+  /**
+   * Processes the onboarding events
+   *
+   * @param providers - Array of onboard provider configurations
+   * @returns Promise resolving to processing result with created providers
+   */
+  async process(providers) {
+    this.logger.debug(
+      `\u{1F680} Processing onboard events for project: ${this.projectName} (${this.projectId}) with ${providers.length} providers`
+    );
+    const results = await this.createProviders.process(providers, this.projectName);
+    const created = results.filter((r) => r.created).length;
+    const skipped = results.filter((r) => r.skipped).length;
+    const failed = results.filter((r) => !r.created && !r.skipped).length;
+    this.logger.debug(
+      `\u{1F4CA} Provider creation summary: ${created} created, ${skipped} skipped, ${failed} failed`
+    );
+    return {
+      createdProviders: results
+    };
+  }
+};
+__name(_OnboardEvents, "OnboardEvents");
+var OnboardEvents = _OnboardEvents;
+var onboard_events_default = OnboardEvents;
+
+// src/commerce/adobe-auth/index.ts
+var import_aio_lib_ims = require("@adobe/aio-lib-ims");
+var _AdobeAuth = class _AdobeAuth {
+  /**
+   * Retrieves an authentication token from Adobe IMS
+   *
+   * @param clientId - The client ID for the Adobe IMS integration
+   * @param clientSecret - The client secret for the Adobe IMS integration
+   * @param technicalAccountId - The technical account ID for the Adobe IMS integration
+   * @param technicalAccountEmail - The technical account email for the Adobe IMS integration
+   * @param imsOrgId - The IMS organization ID
+   * @param scopes - Array of permission scopes to request for the token
+   * @param currentContext - The context name for storing the configuration (defaults to 'onboarding-config')
+   * @returns Promise<string> - A promise that resolves to the authentication token
+   *
+   * @example
+   * const token = await AdobeAuth.getToken(
+   *   'your-client-id',
+   *   'your-client-secret',
+   *   'your-technical-account-id',
+   *   'your-technical-account-email',
+   *   'your-ims-org-id',
+   *   ['AdobeID', 'openid', 'adobeio_api']
+   * );
+   */
+  static async getToken(clientId, clientSecret, technicalAccountId, technicalAccountEmail, imsOrgId, scopes, currentContext = "onboarding-config") {
+    const config = {
+      client_id: clientId,
+      client_secrets: [clientSecret],
+      technical_account_id: technicalAccountId,
+      technical_account_email: technicalAccountEmail,
+      ims_org_id: imsOrgId,
+      scopes
+    };
+    await import_aio_lib_ims.context.setCurrent(currentContext);
+    await import_aio_lib_ims.context.set(currentContext, config);
+    return await (0, import_aio_lib_ims.getToken)();
+  }
+};
+__name(_AdobeAuth, "AdobeAuth");
+var AdobeAuth = _AdobeAuth;
+var adobe_auth_default = AdobeAuth;
+
+// src/commerce/adobe-commerce-client/index.ts
+var import_aio_sdk5 = require("@adobe/aio-sdk");
+var import_got = __toESM(require("got"));
+var _AdobeCommerceClient = class _AdobeCommerceClient {
+  /**
+   * @param baseUrl
+   * @param connection
+   * @param logger
+   */
+  constructor(baseUrl, connection, logger = null) {
+    if (!baseUrl) {
+      throw new Error("Commerce URL must be provided");
+    }
+    this.baseUrl = baseUrl;
+    this.connection = connection;
+    if (logger === null) {
+      logger = import_aio_sdk5.Core.Logger("adobe-commerce-client", {
+        level: "debug"
+      });
+    }
+    this.logger = logger;
+  }
+  /**
+   * @param endpoint
+   * @param headers
+   */
+  async get(endpoint, headers = {}) {
+    return await this.apiCall(endpoint, "GET", headers);
+  }
+  /**
+   * @param endpoint
+   * @param headers
+   * @param payload
+   */
+  async post(endpoint, headers = {}, payload = null) {
+    return await this.apiCall(endpoint, "POST", headers, payload);
+  }
+  /**
+   * @param endpoint
+   * @param headers
+   * @param payload
+   */
+  async put(endpoint, headers = {}, payload = null) {
+    return await this.apiCall(endpoint, "PUT", headers, payload);
+  }
+  /**
+   * @param endpoint
+   * @param headers
+   */
+  async delete(endpoint, headers = {}) {
+    return await this.apiCall(endpoint, "DELETE", headers);
+  }
+  /**
+   * @param endpoint
+   * @param method
+   * @param headers
+   * @param payload
+   * @private
+   */
+  async apiCall(endpoint, method, headers, payload = null) {
+    const commerceGot = await this.getHttpClient();
+    commerceGot.extend({
+      headers
+    });
+    const wrapper = /* @__PURE__ */ __name(async (callable) => {
+      try {
+        const message = await callable();
+        return { success: true, message };
+      } catch (e) {
+        if (e.code === "ERR_GOT_REQUEST_ERROR") {
+          this.logger.error("Error while calling Commerce API", e);
+          return {
+            success: false,
+            statusCode: 500 /* INTERNAL_ERROR */,
+            message: `Unexpected error, check logs. Original error "${e.message}"`
+          };
+        }
+        return {
+          success: false,
+          statusCode: e.response?.statusCode || 500 /* INTERNAL_ERROR */,
+          message: e.message,
+          body: e.responseBody
+        };
+      }
+    }, "wrapper");
+    let options = {
+      method
+    };
+    if (payload !== null) {
+      options = {
+        ...options,
+        json: payload
+      };
+    }
+    return await wrapper(() => commerceGot(endpoint, options).json());
+  }
+  /**
+   * @private
+   */
+  async getHttpClient() {
+    const commerceGot = import_got.default.extend({
+      http2: true,
+      responseType: "json",
+      prefixUrl: this.baseUrl,
+      headers: {
+        "Content-Type": "application/json"
+      },
+      hooks: {
+        beforeRequest: [
+          (options) => this.logger.debug(`Request [${options.method}] ${options.url}`)
+        ],
+        beforeRetry: [
+          (options, error, retryCount) => this.logger.debug(
+            `Retrying request [${options.method}] ${options.url} - count: ${retryCount} - error: ${error?.code} - ${error?.message}`
+          )
+        ],
+        beforeError: [
+          (error) => {
+            const { response } = error;
+            if (response?.body) {
+              error.responseBody = response.body;
+            }
+            return error;
+          }
+        ],
+        afterResponse: [
+          (response) => {
+            this.logger.debug(
+              `Response [${response.request.options.method}] ${response.request.options.url} - ${response.statusCode} ${response.statusMessage}`
+            );
+            return response;
+          }
+        ]
+      }
+    });
+    return await this.connection.extend(commerceGot);
+  }
+};
+__name(_AdobeCommerceClient, "AdobeCommerceClient");
+var AdobeCommerceClient = _AdobeCommerceClient;
+var adobe_commerce_client_default = AdobeCommerceClient;
+
+// src/commerce/adobe-commerce-client/basic-auth-connection/index.ts
+var import_aio_sdk7 = require("@adobe/aio-sdk");
+
+// src/commerce/adobe-commerce-client/basic-auth-connection/generate-basic-auth-token/index.ts
+var import_aio_sdk6 = require("@adobe/aio-sdk");
+var _GenerateBasicAuthToken = class _GenerateBasicAuthToken {
+  /**
+   * @param baseUrl
+   * @param username
+   * @param password
+   * @param logger
+   */
+  constructor(baseUrl, username, password, logger = null) {
+    this.baseUrl = baseUrl;
+    this.username = username;
+    this.password = password;
+    this.key = "adobe_commerce_basic_auth_token";
+    if (logger === null) {
+      logger = import_aio_sdk6.Core.Logger("adobe-commerce-client", {
+        level: "debug"
+      });
+    }
+    this.logger = logger;
+  }
+  /**
+   * @return string | null
+   */
+  async execute() {
+    const currentValue = await this.getValue();
+    if (currentValue !== null) {
+      return currentValue;
+    }
+    let result = {
+      token: null,
+      expire_in: 3600
+    };
+    const response = await this.getCommerceToken();
+    if (response !== null) {
+      result = response;
+    }
+    this.logger.debug(`Token: ${JSON.stringify(result)}`);
+    if (result.token !== null) {
+      await this.setValue(result);
+    }
+    return result.token;
+  }
+  /**
+   * @return TokenResult | null
+   */
+  async getCommerceToken() {
+    const endpoint = this.createEndpoint("rest/V1/integration/admin/token");
+    this.logger.debug(`Endpoint: ${endpoint}`);
+    try {
+      const restClient = new rest_client_default();
+      const response = await restClient.post(
+        endpoint,
+        {
+          "Content-Type": "application/json"
+        },
+        {
+          username: this.username,
+          password: this.password
+        }
+      );
+      this.logger.debug(`Raw response type: ${typeof response}`);
+      this.logger.debug(`Raw response: ${JSON.stringify(response)}`);
+      if (response !== null && response !== void 0) {
+        let tokenValue;
+        if (typeof response === "string") {
+          tokenValue = response;
+        } else if (typeof response === "object" && response.token) {
+          tokenValue = response.token;
+        } else {
+          try {
+            tokenValue = response.toString();
+            this.logger.debug(`Converted response to string: ${tokenValue?.substring(0, 10)}...`);
+          } catch {
+            this.logger.error(`Unexpected response format: ${JSON.stringify(response)}`);
+            return null;
+          }
+        }
+        this.logger.debug(`Extracted token: ${tokenValue?.substring(0, 10)}...`);
+        return {
+          token: tokenValue,
+          expire_in: 3600
+          // Adobe Commerce tokens typically expire in 1 hour
+        };
+      }
+      this.logger.error("Received null or undefined response from Commerce API");
+      return null;
+    } catch (error) {
+      this.logger.error(`Failed to get Commerce token: ${error.message}`);
+      this.logger.debug(`Full error: ${JSON.stringify(error)}`);
+      return null;
+    }
+  }
+  /**
+   * @param endpoint
+   * @return string
+   */
+  createEndpoint(endpoint) {
+    const normalizedBaseUrl = this.baseUrl.replace(/\/+$/, "");
+    const normalizedEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    return `${normalizedBaseUrl}${normalizedEndpoint}`;
+  }
+  /**
+   * @param result
+   * @return boolean
+   */
+  async setValue(result) {
+    try {
+      const state = await this.getState();
+      if (state === null) {
+        return true;
+      }
+      await state.put(this.key, result.token, { ttl: result.expire_in });
+      return true;
+    } catch (error) {
+      this.logger.debug("Failed to cache token, continuing without caching");
+      return true;
+    }
+  }
+  /**
+   * @return string | null
+   */
+  async getValue() {
+    try {
+      const state = await this.getState();
+      if (state === null) {
+        return null;
+      }
+      const value = await state.get(this.key);
+      if (value !== void 0) {
+        return value.value;
+      }
+    } catch (error) {
+      this.logger.debug("State API not available, skipping cache lookup");
+    }
+    return null;
+  }
+  /**
+   * @return any
+   */
+  async getState() {
+    if (this.state === void 0) {
+      try {
+        this.state = await import_aio_sdk6.State.init();
+      } catch (error) {
+        this.logger.debug("State API initialization failed, running without caching");
+        this.state = null;
+      }
+    }
+    return this.state;
+  }
+};
+__name(_GenerateBasicAuthToken, "GenerateBasicAuthToken");
+var GenerateBasicAuthToken = _GenerateBasicAuthToken;
+var generate_basic_auth_token_default = GenerateBasicAuthToken;
+
+// src/commerce/adobe-commerce-client/basic-auth-connection/index.ts
+var _BasicAuthConnection = class _BasicAuthConnection {
+  /**
+   * @param baseUrl
+   * @param username
+   * @param password
+   * @param logger
+   */
+  constructor(baseUrl, username, password, logger = null) {
+    this.baseUrl = baseUrl;
+    this.username = username;
+    this.password = password;
+    if (logger === null) {
+      logger = import_aio_sdk7.Core.Logger("adobe-commerce-client", {
+        level: "debug"
+      });
+    }
+    this.logger = logger;
+  }
+  /**
+   * @param commerceGot
+   */
+  async extend(commerceGot) {
+    this.logger.debug("Using Commerce client with integration options");
+    const generateToken = new generate_basic_auth_token_default(
+      this.baseUrl,
+      this.username,
+      this.password,
+      this.logger
+    );
+    const token = await generateToken.execute();
+    return commerceGot.extend({
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  }
+};
+__name(_BasicAuthConnection, "BasicAuthConnection");
+var BasicAuthConnection = _BasicAuthConnection;
+var basic_auth_connection_default = BasicAuthConnection;
+
+// src/commerce/adobe-commerce-client/oauth1a-connection/index.ts
+var import_aio_sdk8 = require("@adobe/aio-sdk");
+var import_oauth_1 = __toESM(require("oauth-1.0a"));
+var crypto = __toESM(require("crypto"));
+var _Oauth1aConnection = class _Oauth1aConnection {
+  /**
+   * @param consumerKey
+   * @param consumerSecret
+   * @param accessToken
+   * @param accessTokenSecret
+   * @param logger
+   */
+  constructor(consumerKey, consumerSecret, accessToken, accessTokenSecret, logger = null) {
+    this.consumerKey = consumerKey;
+    this.consumerSecret = consumerSecret;
+    this.accessToken = accessToken;
+    this.accessTokenSecret = accessTokenSecret;
+    if (logger === null) {
+      logger = import_aio_sdk8.Core.Logger("adobe-commerce-client", {
+        level: "debug"
+      });
+    }
+    this.logger = logger;
+  }
+  /**
+   * @param commerceGot
+   */
+  async extend(commerceGot) {
+    this.logger.debug("Using Commerce client with integration options");
+    const headers = this.headersProvider();
+    return commerceGot.extend({
+      handlers: [
+        (options, next) => {
+          options.headers = {
+            ...options.headers,
+            ...headers(options.url.toString(), options.method)
+          };
+          return next(options);
+        }
+      ]
+    });
+  }
+  /**
+   * return () => { }
+   */
+  headersProvider() {
+    const oauth = new import_oauth_1.default({
+      consumer: {
+        key: this.consumerKey,
+        secret: this.consumerSecret
+      },
+      signature_method: "HMAC-SHA256",
+      hash_function: /* @__PURE__ */ __name((baseString, key) => crypto.createHmac("sha256", key).update(baseString).digest("base64"), "hash_function")
+    });
+    const oauthToken = {
+      key: this.accessToken,
+      secret: this.accessTokenSecret
+    };
+    return (url, method) => oauth.toHeader(oauth.authorize({ url, method }, oauthToken));
+  }
+};
+__name(_Oauth1aConnection, "Oauth1aConnection");
+var Oauth1aConnection = _Oauth1aConnection;
+var oauth1a_connection_default = Oauth1aConnection;
+
+// src/commerce/adobe-commerce-client/ims-connection/index.ts
+var import_aio_sdk9 = require("@adobe/aio-sdk");
+var _ImsConnection = class _ImsConnection {
+  /**
+   * @param clientId
+   * @param clientSecret
+   * @param technicalAccountId
+   * @param technicalAccountEmail
+   * @param imsOrgId
+   * @param scopes
+   * @param logger
+   * @param currentContext
+   */
+  constructor(clientId, clientSecret, technicalAccountId, technicalAccountEmail, imsOrgId, scopes, logger = null, currentContext = "adobe-commerce-client") {
+    this.clientId = clientId;
+    this.clientSecret = clientSecret;
+    this.technicalAccountId = technicalAccountId;
+    this.technicalAccountEmail = technicalAccountEmail;
+    this.imsOrgId = imsOrgId;
+    this.scopes = scopes;
+    this.currentContext = currentContext;
+    if (logger === null) {
+      logger = import_aio_sdk9.Core.Logger(currentContext, {
+        level: "debug"
+      });
+    }
+    this.logger = logger;
+  }
+  /**
+   * @param commerceGot
+   */
+  async extend(commerceGot) {
+    this.logger.debug("Using Commerce client with IMS authentication");
+    const token = await adobe_auth_default.getToken(
+      this.clientId,
+      this.clientSecret,
+      this.technicalAccountId,
+      this.technicalAccountEmail,
+      this.imsOrgId,
+      this.scopes,
+      this.currentContext
+    );
+    this.logger.debug(`IMS token being extended to header: ${token}`);
+    return commerceGot.extend({
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  }
+};
+__name(_ImsConnection, "ImsConnection");
+var ImsConnection = _ImsConnection;
+var ims_connection_default = ImsConnection;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   AdobeAuth,

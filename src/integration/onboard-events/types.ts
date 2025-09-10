@@ -20,3 +20,24 @@ export interface OnboardProvider {
  * Array of onboard provider configurations
  */
 export type OnboardProviders = OnboardProvider[];
+
+/**
+ * Response from onboard events processing
+ */
+export interface OnboardEventsResponse {
+  /** Array of created provider results */
+  createdProviders: Array<{
+    created: boolean;
+    skipped: boolean;
+    provider: {
+      id?: string;
+      instanceId?: string;
+      label: string;
+      originalLabel: string;
+      description?: string;
+      docsUrl?: string | null;
+    };
+    error?: string;
+    reason?: string;
+  }>;
+}

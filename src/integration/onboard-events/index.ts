@@ -3,7 +3,8 @@
  */
 
 import { Core, Logger } from '@adobe/aio-sdk';
-import type { OnboardProviders } from './types';
+import type { OnboardProviders, OnboardEventsResponse } from './types';
+import CreateProviders from './create-providers';
 
 /**
  * Utility class for handling onboarding events in Adobe Commerce integrations
@@ -27,6 +28,7 @@ import type { OnboardProviders } from './types';
  */
 class OnboardEvents {
   private readonly logger: Logger;
+  private readonly createProviders: CreateProviders;
 
   /**
    * Creates a new OnboardEvents instance
@@ -80,6 +82,16 @@ class OnboardEvents {
       .trim()
       .concat('-onboard-events'); // Add suffix to identify as onboard events logger
     this.logger = Core.Logger(loggerName, { level: 'debug' });
+
+    // Initialize CreateProviders instance
+    this.createProviders = new CreateProviders(
+      consumerId,
+      projectId,
+      workspaceId,
+      apiKey,
+      accessToken,
+      this.logger
+    );
   }
 
   /**
@@ -95,19 +107,28 @@ class OnboardEvents {
    * Processes the onboarding events
    *
    * @param providers - Array of onboard provider configurations
-   * @returns Promise resolving to processing result
+   * @returns Promise resolving to processing result with created providers
    */
-  async process(providers: OnboardProviders): Promise<void> {
+  async process(providers: OnboardProviders): Promise<OnboardEventsResponse> {
     this.logger.debug(
       `🚀 Processing onboard events for project: ${this.projectName} (${this.projectId}) with ${providers.length} providers`
     );
 
-    // Log each provider being processed
-    providers.forEach(provider => {
-      this.logger.debug(`Processing provider: ${provider.key} - ${provider.label}`);
-    });
+    // Use CreateProviders to create the providers
+    const results = await this.createProviders.process(providers, this.projectName);
 
-    // Implementation for processing
+    // Log summary of results
+    const created = results.filter(r => r.created).length;
+    const skipped = results.filter(r => r.skipped).length;
+    const failed = results.filter(r => !r.created && !r.skipped).length;
+
+    this.logger.debug(
+      `📊 Provider creation summary: ${created} created, ${skipped} skipped, ${failed} failed`
+    );
+
+    return {
+      createdProviders: results,
+    };
   }
 }
 
