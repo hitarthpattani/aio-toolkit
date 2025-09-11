@@ -3,8 +3,9 @@
  */
 
 import { OnboardEvents } from '../../../src/integration';
-import type { OnboardProviders } from '../../../src/integration';
+import type { OnboardEventsInput } from '../../../src/integration/onboard-events/types';
 import CreateProviders from '../../../src/integration/onboard-events/create-providers';
+import InputParser from '../../../src/integration/onboard-events/input-parser';
 
 // Mock the Adobe I/O SDK to avoid external dependencies
 jest.mock('@adobe/aio-sdk', () => ({
@@ -27,7 +28,22 @@ jest.mock('../../../src/io-events', () => ({
         label: 'Test Project - Existing Provider',
         instance_id: 'existing-instance-1',
         description: 'An existing provider',
-        docs_url: null,
+        docsUrl: null,
+        registrations: [
+          {
+            key: 'test-reg',
+            label: 'Test Registration',
+            description: 'Test registration',
+            events: [
+              {
+                eventCode: 'test.event',
+                runtimeAction: 'test/consumer',
+                deliveryType: 'webhook',
+                sampleEventTemplate: { test: true },
+              },
+            ],
+          },
+        ],
       },
     ]),
     create: jest.fn().mockResolvedValue({
@@ -35,7 +51,22 @@ jest.mock('../../../src/io-events', () => ({
       label: 'Test Project - Test Provider',
       instance_id: 'new-instance-456',
       description: 'Test provider for response validation',
-      docs_url: 'https://example.com/test-docs',
+      docsUrl: 'https://example.com/test-docs',
+      registrations: [
+        {
+          key: 'test-reg',
+          label: 'Test Registration',
+          description: 'Test registration',
+          events: [
+            {
+              eventCode: 'test.event',
+              runtimeAction: 'test/consumer',
+              deliveryType: 'webhook',
+              sampleEventTemplate: { test: true },
+            },
+          ],
+        },
+      ],
     }),
   })),
 }));
@@ -50,20 +81,60 @@ describe('OnboardEvents', () => {
     accessToken: 'test-access-token',
   };
 
-  const mockProviders: OnboardProviders = [
-    {
-      key: 'ocp',
-      label: 'HPattani Arcteryx - OCP Provider v1.0',
-      description: 'Arcteryx - OCP Provider that will receive events from ocp system',
-      docs_url: null,
-    },
-    {
-      key: 'magento',
-      label: 'Magento Commerce Provider',
-      description: 'Provider for Magento Commerce events',
-      docs_url: 'https://docs.magento.com',
-    },
-  ];
+  const mockInput: OnboardEventsInput = {
+    providers: [
+      {
+        key: 'ocp',
+        label: 'HPattani Arcteryx - OCP Provider v1.0',
+        description: 'Arcteryx - OCP Provider that will receive events from ocp system',
+        docsUrl: null,
+        registrations: [
+          {
+            key: 'product',
+            label: 'OCP Product Sync',
+            description: 'OCP Product Sync',
+            events: [
+              {
+                eventCode: 'ModelCreated.IProductModified',
+                runtimeAction: 'ocp-product/consumer',
+                deliveryType: 'webhook',
+                sampleEventTemplate: {
+                  sku: 'SKU-EXT-0001',
+                  name: 'Product Created Externally',
+                  price: 0.0,
+                  description: 'This is a sample product created externally',
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        key: 'magento',
+        label: 'Magento Commerce Provider',
+        description: 'Provider for Magento Commerce events',
+        docsUrl: 'https://docs.magento.com',
+        registrations: [
+          {
+            key: 'order',
+            label: 'Magento Order Events',
+            description: 'Magento Order Events',
+            events: [
+              {
+                eventCode: 'com.magento.commerce.events.order.placed',
+                runtimeAction: 'magento-order/consumer',
+                deliveryType: 'webhook',
+                sampleEventTemplate: {
+                  orderId: '123456',
+                  customerId: '789',
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -258,10 +329,10 @@ describe('OnboardEvents', () => {
     });
 
     it('should process providers successfully', async () => {
-      const result = await onboardEvents.process(mockProviders);
+      const result = await onboardEvents.process(mockInput);
 
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        `[START] Processing onboard events for project: ${validParams.projectName} (${validParams.projectId}) with ${mockProviders.length} providers`
+        `[START] Processing onboard events for project: ${validParams.projectName} (${validParams.projectId}) with ${mockInput.providers.length} providers`
       );
       // Verify return value structure (from OnboardEventsResponse tests)
       expect(result).toHaveProperty('createdProviders');
@@ -269,7 +340,7 @@ describe('OnboardEvents', () => {
     });
 
     it('should process empty providers array', async () => {
-      const emptyProviders: OnboardProviders = [];
+      const emptyProviders: OnboardEventsInput = { providers: [] };
 
       const result = await onboardEvents.process(emptyProviders);
 
@@ -283,7 +354,7 @@ describe('OnboardEvents', () => {
     });
 
     it('should process single provider', async () => {
-      const singleProvider: OnboardProviders = [mockProviders[0]];
+      const singleProvider: OnboardEventsInput = { providers: [mockInput.providers[0]] };
 
       const result = await onboardEvents.process(singleProvider);
 
@@ -297,15 +368,32 @@ describe('OnboardEvents', () => {
     });
 
     it('should handle providers with long labels', async () => {
-      const longLabelProviders: OnboardProviders = [
-        {
-          key: 'test',
-          label:
-            'A very long provider label that exceeds normal expectations and continues for a while to test edge cases',
-          description: 'Test provider with long label',
-          docs_url: null,
-        },
-      ];
+      const longLabelProviders: OnboardEventsInput = {
+        providers: [
+          {
+            key: 'test',
+            label:
+              'A very long provider label that exceeds normal expectations and continues for a while to test edge cases',
+            description: 'Test provider with long label',
+            docsUrl: null,
+            registrations: [
+              {
+                key: 'test-reg',
+                label: 'Test Registration',
+                description: 'Test registration',
+                events: [
+                  {
+                    eventCode: 'test.event',
+                    runtimeAction: 'test/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { test: true },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
 
       const result = await onboardEvents.process(longLabelProviders);
 
@@ -315,14 +403,31 @@ describe('OnboardEvents', () => {
     });
 
     it('should handle providers with special characters in labels', async () => {
-      const specialCharProviders: OnboardProviders = [
-        {
-          key: 'special-test',
-          label: 'Provider with émojis 🚀 and spécial châractérs!',
-          description: 'Test provider with special characters',
-          docs_url: null,
-        },
-      ];
+      const specialCharProviders: OnboardEventsInput = {
+        providers: [
+          {
+            key: 'special-test',
+            label: 'Provider with émojis 🚀 and spécial châractérs!',
+            description: 'Test provider with special characters',
+            docsUrl: null,
+            registrations: [
+              {
+                key: 'special-reg',
+                label: 'Special Registration',
+                description: 'Special registration',
+                events: [
+                  {
+                    eventCode: 'special.event',
+                    runtimeAction: 'special/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { special: true },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
 
       const result = await onboardEvents.process(specialCharProviders);
 
@@ -509,20 +614,52 @@ describe('OnboardEvents', () => {
         'prod-access-token-xyz'
       );
 
-      const realisticProviders: OnboardProviders = [
-        {
-          key: 'commerce-events',
-          label: 'Adobe Commerce Events Provider',
-          description: 'Provider for Adobe Commerce storefront and admin events',
-          docs_url: 'https://developer.adobe.com/commerce/extensibility/',
-        },
-        {
-          key: 'inventory-sync',
-          label: 'Inventory Synchronization Provider',
-          description: 'Real-time inventory updates across multiple channels',
-          docs_url: null,
-        },
-      ];
+      const realisticProviders: OnboardEventsInput = {
+        providers: [
+          {
+            key: 'commerce-events',
+            label: 'Adobe Commerce Events Provider',
+            description: 'Provider for Adobe Commerce storefront and admin events',
+            docsUrl: 'https://developer.adobe.com/commerce/extensibility/',
+            registrations: [
+              {
+                key: 'commerce-reg',
+                label: 'Commerce Registration',
+                description: 'Commerce events registration',
+                events: [
+                  {
+                    eventCode: 'commerce.event',
+                    runtimeAction: 'commerce/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { commerce: true },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            key: 'inventory-sync',
+            label: 'Inventory Synchronization Provider',
+            description: 'Real-time inventory updates across multiple channels',
+            docsUrl: null,
+            registrations: [
+              {
+                key: 'inventory-reg',
+                label: 'Inventory Registration',
+                description: 'Inventory sync registration',
+                events: [
+                  {
+                    eventCode: 'inventory.sync',
+                    runtimeAction: 'inventory/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { inventory: true },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
 
       const result = await onboardEvents.process(realisticProviders);
 
@@ -565,14 +702,31 @@ describe('OnboardEvents', () => {
         'ecommerce-access-token-ghi'
       );
 
-      const providers: OnboardProviders = [
-        {
-          key: 'payment-gateway',
-          label: 'Payment Gateway Provider',
-          description: 'Payment processing events provider',
-          docs_url: 'https://example.com/payment-docs',
-        },
-      ];
+      const providers: OnboardEventsInput = {
+        providers: [
+          {
+            key: 'payment-gateway',
+            label: 'Payment Gateway Provider',
+            description: 'Payment processing events provider',
+            docsUrl: 'https://example.com/payment-docs',
+            registrations: [
+              {
+                key: 'test-reg',
+                label: 'Test Registration',
+                description: 'Test registration',
+                events: [
+                  {
+                    eventCode: 'test.event',
+                    runtimeAction: 'test/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { test: true },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
 
       // Use the logger externally before processing
       const logger = onboardEvents.getLogger();
@@ -629,14 +783,31 @@ describe('OnboardEvents', () => {
         'failure-access-token-def'
       );
 
-      const testProviders: OnboardProviders = [
-        {
-          key: 'failing-provider',
-          label: 'Failing Provider',
-          description: 'This provider will fail',
-          docs_url: null,
-        },
-      ];
+      const testProviders: OnboardEventsInput = {
+        providers: [
+          {
+            key: 'failing-provider',
+            label: 'Failing Provider',
+            description: 'This provider will fail',
+            docsUrl: null,
+            registrations: [
+              {
+                key: 'test-reg',
+                label: 'Test Registration',
+                description: 'Test registration',
+                events: [
+                  {
+                    eventCode: 'test.event',
+                    runtimeAction: 'test/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { test: true },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
 
       const result = await onboardEvents.process(testProviders);
 
@@ -673,7 +844,22 @@ describe('OnboardEvents', () => {
             label: 'Skipped Test Project - Existing Provider',
             instance_id: 'existing-instance-456',
             description: 'This provider already exists',
-            docs_url: 'https://example.com/docs',
+            docsUrl: 'https://example.com/docs',
+            registrations: [
+              {
+                key: 'test-reg',
+                label: 'Test Registration',
+                description: 'Test registration',
+                events: [
+                  {
+                    eventCode: 'test.event',
+                    runtimeAction: 'test/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { test: true },
+                  },
+                ],
+              },
+            ],
           },
         ]),
         create: jest.fn(), // This should not be called
@@ -691,14 +877,31 @@ describe('OnboardEvents', () => {
         'skipped-access-token-def'
       );
 
-      const testProviders: OnboardProviders = [
-        {
-          key: 'existing-provider',
-          label: 'Existing Provider',
-          description: 'This provider already exists',
-          docs_url: 'https://example.com/docs',
-        },
-      ];
+      const testProviders: OnboardEventsInput = {
+        providers: [
+          {
+            key: 'existing-provider',
+            label: 'Existing Provider',
+            description: 'This provider already exists',
+            docsUrl: 'https://example.com/docs',
+            registrations: [
+              {
+                key: 'test-reg',
+                label: 'Test Registration',
+                description: 'Test registration',
+                events: [
+                  {
+                    eventCode: 'test.event',
+                    runtimeAction: 'test/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { test: true },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
 
       const result = await onboardEvents.process(testProviders);
 
@@ -745,7 +948,22 @@ describe('OnboardEvents', () => {
             label: 'Mixed Test Project - Existing Provider',
             instance_id: 'existing-mixed-instance',
             description: 'This provider already exists',
-            docs_url: null,
+            docsUrl: null,
+            registrations: [
+              {
+                key: 'test-reg',
+                label: 'Test Registration',
+                description: 'Test registration',
+                events: [
+                  {
+                    eventCode: 'test.event',
+                    runtimeAction: 'test/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { test: true },
+                  },
+                ],
+              },
+            ],
           },
         ]),
         create: jest.fn().mockImplementation(() => {
@@ -757,7 +975,22 @@ describe('OnboardEvents', () => {
               label: 'Mixed Test Project - New Provider',
               instance_id: 'new-mixed-instance',
               description: 'This is a new provider',
-              docs_url: 'https://example.com/new',
+              docsUrl: 'https://example.com/new',
+              registrations: [
+                {
+                  key: 'test-reg',
+                  label: 'Test Registration',
+                  description: 'Test registration',
+                  events: [
+                    {
+                      eventCode: 'test.event',
+                      runtimeAction: 'test/consumer',
+                      deliveryType: 'webhook',
+                      sampleEventTemplate: { test: true },
+                    },
+                  ],
+                },
+              ],
             });
           } else {
             // Second call fails
@@ -778,26 +1011,73 @@ describe('OnboardEvents', () => {
         'mixed-access-token-def'
       );
 
-      const testProviders: OnboardProviders = [
-        {
-          key: 'existing-provider',
-          label: 'Existing Provider',
-          description: 'This provider already exists',
-          docs_url: null,
-        },
-        {
-          key: 'new-provider',
-          label: 'New Provider',
-          description: 'This is a new provider',
-          docs_url: 'https://example.com/new',
-        },
-        {
-          key: 'failing-provider',
-          label: 'Failing Provider',
-          description: 'This provider will fail',
-          docs_url: null,
-        },
-      ];
+      const testProviders: OnboardEventsInput = {
+        providers: [
+          {
+            key: 'existing-provider',
+            label: 'Existing Provider',
+            description: 'This provider already exists',
+            docsUrl: null,
+            registrations: [
+              {
+                key: 'test-reg',
+                label: 'Test Registration',
+                description: 'Test registration',
+                events: [
+                  {
+                    eventCode: 'test.event',
+                    runtimeAction: 'test/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { test: true },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            key: 'new-provider',
+            label: 'New Provider',
+            description: 'This is a new provider',
+            docsUrl: 'https://example.com/new',
+            registrations: [
+              {
+                key: 'test-reg',
+                label: 'Test Registration',
+                description: 'Test registration',
+                events: [
+                  {
+                    eventCode: 'test.event',
+                    runtimeAction: 'test/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { test: true },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            key: 'failing-provider',
+            label: 'Failing Provider',
+            description: 'This provider will fail',
+            docsUrl: null,
+            registrations: [
+              {
+                key: 'test-reg',
+                label: 'Test Registration',
+                description: 'Test registration',
+                events: [
+                  {
+                    eventCode: 'test.event',
+                    runtimeAction: 'test/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { test: true },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
 
       const result = await onboardEvents.process(testProviders);
 
@@ -861,14 +1141,31 @@ describe('OnboardEvents', () => {
         'fetch-error-access-token-def'
       );
 
-      const testProviders: OnboardProviders = [
-        {
-          key: 'test-provider',
-          label: 'Test Provider',
-          description: 'This will trigger a fetch error',
-          docs_url: null,
-        },
-      ];
+      const testProviders: OnboardEventsInput = {
+        providers: [
+          {
+            key: 'test-provider',
+            label: 'Test Provider',
+            description: 'This will trigger a fetch error',
+            docsUrl: null,
+            registrations: [
+              {
+                key: 'test-reg',
+                label: 'Test Registration',
+                description: 'Test registration',
+                events: [
+                  {
+                    eventCode: 'test.event',
+                    runtimeAction: 'test/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { test: true },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
 
       // Expect the error to be thrown
       await expect(onboardEvents.process(testProviders)).rejects.toThrow(
@@ -956,7 +1253,22 @@ describe('OnboardEvents', () => {
           label: 'Edge Case Project - Test Provider',
           instance_id: 'edge-case-instance-456',
           description: undefined,
-          docs_url: null,
+          docsUrl: null,
+          registrations: [
+            {
+              key: 'test-reg',
+              label: 'Test Registration',
+              description: 'Test registration',
+              events: [
+                {
+                  eventCode: 'test.event',
+                  runtimeAction: 'test/consumer',
+                  deliveryType: 'webhook',
+                  sampleEventTemplate: { test: true },
+                },
+              ],
+            },
+          ],
         }),
       };
       // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -973,23 +1285,58 @@ describe('OnboardEvents', () => {
         mockLogger
       );
 
-      const testProviders: OnboardProviders = [
-        {
-          key: 'test-no-description',
-          label: 'Provider Without Description',
-          description: '', // Empty description to test preparePayload branch
-          docs_url: null,
-        },
-        {
-          key: 'test-null-description',
-          label: 'Provider With Null Description',
-          description: undefined as any, // Undefined description to test _isCommerceProvider branch
-          docs_url: null,
-        },
-      ];
+      const testProviders: OnboardEventsInput = {
+        providers: [
+          {
+            key: 'test-no-description',
+            label: 'Provider Without Description',
+            description: '', // Empty description to test preparePayload branch
+            docsUrl: null,
+            registrations: [
+              {
+                key: 'test-reg',
+                label: 'Test Registration',
+                description: 'Test registration',
+                events: [
+                  {
+                    eventCode: 'test.event',
+                    runtimeAction: 'test/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { test: true },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            key: 'test-null-description',
+            label: 'Provider With Null Description',
+            description: undefined as any, // Undefined description to test _isCommerceProvider branch
+            docsUrl: null,
+            registrations: [
+              {
+                key: 'test-reg',
+                label: 'Test Registration',
+                description: 'Test registration',
+                events: [
+                  {
+                    eventCode: 'test.event',
+                    runtimeAction: 'test/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { test: true },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
 
       // Call process without projectName to test default parameter (line 86)
-      const results = await createProviders.process(testProviders);
+      // Extract providers from the OnboardEventsInput structure for direct CreateProviders testing
+      const inputParser = new InputParser(testProviders);
+      const entities = inputParser.getEntities();
+      const results = await createProviders.process(entities.providers);
 
       // Verify default project name was used in logging
       expect(mockLogger.debug).toHaveBeenCalledWith(
@@ -1026,7 +1373,22 @@ describe('OnboardEvents', () => {
             label: 'Test Project - Existing Provider',
             instance_id: 'existing-instance-1',
             description: 'An existing provider',
-            docs_url: null,
+            docsUrl: null,
+            registrations: [
+              {
+                key: 'test-reg',
+                label: 'Test Registration',
+                description: 'Test registration',
+                events: [
+                  {
+                    eventCode: 'test.event',
+                    runtimeAction: 'test/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { test: true },
+                  },
+                ],
+              },
+            ],
           },
         ]),
         create: jest.fn().mockResolvedValue({
@@ -1034,7 +1396,22 @@ describe('OnboardEvents', () => {
           label: 'Test Project - Test Provider',
           instance_id: 'new-instance-456',
           description: 'Test provider for response validation',
-          docs_url: 'https://example.com/test-docs',
+          docsUrl: 'https://example.com/test-docs',
+          registrations: [
+            {
+              key: 'test-reg',
+              label: 'Test Registration',
+              description: 'Test registration',
+              events: [
+                {
+                  eventCode: 'test.event',
+                  runtimeAction: 'test/consumer',
+                  deliveryType: 'webhook',
+                  sampleEventTemplate: { test: true },
+                },
+              ],
+            },
+          ],
         }),
       };
       // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -1050,20 +1427,52 @@ describe('OnboardEvents', () => {
         'response-access-token-def'
       );
 
-      const testProviders: OnboardProviders = [
-        {
-          key: 'test-provider-1',
-          label: 'Test Provider One',
-          description: 'First test provider for response validation',
-          docs_url: 'https://example.com/provider-1',
-        },
-        {
-          key: 'test-provider-2',
-          label: 'Test Provider Two',
-          description: 'Second test provider for response validation',
-          docs_url: null,
-        },
-      ];
+      const testProviders: OnboardEventsInput = {
+        providers: [
+          {
+            key: 'test-provider-1',
+            label: 'Test Provider One',
+            description: 'First test provider for response validation',
+            docsUrl: 'https://example.com/provider-1',
+            registrations: [
+              {
+                key: 'test-reg',
+                label: 'Test Registration',
+                description: 'Test registration',
+                events: [
+                  {
+                    eventCode: 'test.event',
+                    runtimeAction: 'test/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { test: true },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            key: 'test-provider-2',
+            label: 'Test Provider Two',
+            description: 'Second test provider for response validation',
+            docsUrl: null,
+            registrations: [
+              {
+                key: 'test-reg',
+                label: 'Test Registration',
+                description: 'Test registration',
+                events: [
+                  {
+                    eventCode: 'test.event',
+                    runtimeAction: 'test/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { test: true },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
 
       const result = await onboardEvents.process(testProviders);
 

@@ -3187,7 +3187,7 @@ var _CreateProviders = class _CreateProviders {
   /**
    * Processes providers for creation in the Adobe Commerce integration
    *
-   * @param providers - Array of onboard provider configurations to create
+   * @param providers - Array of parsed provider configurations to create
    * @param projectName - Name of the project for enhanced labeling
    * @returns Promise resolving to processing result
    */
@@ -3276,7 +3276,7 @@ var _CreateProviders = class _CreateProviders {
           label: enhancedLabel,
           originalLabel: providerData.label,
           description: providerData.description,
-          docsUrl: providerData.docs_url
+          docsUrl: providerData.docsUrl
         },
         reason: "Already exists"
       };
@@ -3299,7 +3299,7 @@ var _CreateProviders = class _CreateProviders {
           label: createdProvider.label,
           originalLabel: providerData.label,
           description: providerData.description,
-          docsUrl: providerData.docs_url
+          docsUrl: providerData.docsUrl
         },
         raw: createdProvider
       };
@@ -3314,7 +3314,7 @@ var _CreateProviders = class _CreateProviders {
           label: enhancedLabel,
           originalLabel: providerData.label,
           description: providerData.description,
-          docsUrl: providerData.docs_url
+          docsUrl: providerData.docsUrl
         }
       };
     }
@@ -3332,8 +3332,8 @@ var _CreateProviders = class _CreateProviders {
     if (providerData.description) {
       input.description = providerData.description;
     }
-    if (providerData.docs_url) {
-      input.docs_url = providerData.docs_url;
+    if (providerData.docsUrl) {
+      input.docs_url = providerData.docsUrl;
     }
     if (this.isCommerceProvider(providerData)) {
       input.provider_metadata = "dx_commerce_events";
@@ -3347,16 +3347,78 @@ var _CreateProviders = class _CreateProviders {
    */
   isCommerceProvider(providerData) {
     const commerceIndicators = ["commerce", "magento", "adobe commerce"];
+    const key = providerData.key.toLowerCase();
     const label = providerData.label.toLowerCase();
     const description = (providerData.description || "").toLowerCase();
     return commerceIndicators.some(
-      (indicator) => label.includes(indicator) || description.includes(indicator)
+      (indicator) => key.includes(indicator) || label.includes(indicator) || description.includes(indicator)
     );
   }
 };
 __name(_CreateProviders, "CreateProviders");
 var CreateProviders = _CreateProviders;
 var create_providers_default = CreateProviders;
+
+// src/integration/onboard-events/input-parser/index.ts
+var _InputParser = class _InputParser {
+  constructor(input) {
+    this.entities = {
+      providers: [],
+      registrations: [],
+      events: []
+    };
+    for (const provider of input.providers) {
+      this.entities.providers.push(this.createProviderEntity(provider));
+      for (const registration of provider.registrations) {
+        this.entities.registrations.push(this.createRegistrationEntity(registration, provider.key));
+        for (const event of registration.events) {
+          this.entities.events.push(this.createEventEntity(event, registration.key, provider.key));
+        }
+      }
+    }
+  }
+  /**
+   * Create provider entity structure
+   */
+  createProviderEntity(provider) {
+    return {
+      key: provider.key,
+      label: provider.label,
+      description: provider.description,
+      docsUrl: provider.docsUrl
+    };
+  }
+  /**
+   * Create registration entity structure
+   */
+  createRegistrationEntity(registration, providerKey) {
+    return {
+      key: registration.key,
+      label: registration.label,
+      description: registration.description,
+      providerKey
+    };
+  }
+  /**
+   * Create event entity structure
+   */
+  createEventEntity(event, registrationKey, providerKey) {
+    return {
+      eventCode: event.eventCode,
+      runtimeAction: event.runtimeAction,
+      deliveryType: event.deliveryType,
+      sampleEventTemplate: event.sampleEventTemplate,
+      registrationKey,
+      providerKey
+    };
+  }
+  getEntities() {
+    return this.entities;
+  }
+};
+__name(_InputParser, "InputParser");
+var InputParser = _InputParser;
+var input_parser_default = InputParser;
 
 // src/integration/onboard-events/index.ts
 var _OnboardEvents = class _OnboardEvents {
@@ -3417,14 +3479,16 @@ var _OnboardEvents = class _OnboardEvents {
   /**
    * Processes the onboarding events
    *
-   * @param providers - Array of onboard provider configurations
+   * @param input - Onboard events input configuration containing providers, registrations, and events
    * @returns Promise resolving to processing result with created providers
    */
-  async process(providers) {
+  async process(input) {
     this.logger.debug(
-      `[START] Processing onboard events for project: ${this.projectName} (${this.projectId}) with ${providers.length} providers`
+      `[START] Processing onboard events for project: ${this.projectName} (${this.projectId}) with ${input.providers.length} providers`
     );
-    const results = await this.createProviders.process(providers, this.projectName);
+    const inputParser = new input_parser_default(input);
+    const entities = inputParser.getEntities();
+    const results = await this.createProviders.process(entities.providers, this.projectName);
     const created = results.filter((r) => r.created).length;
     const skipped = results.filter((r) => r.skipped).length;
     const failed = results.filter((r) => !r.created && !r.skipped).length;

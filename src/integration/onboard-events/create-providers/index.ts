@@ -3,7 +3,7 @@
  */
 
 import type { Logger } from '@adobe/aio-sdk';
-import type { OnboardProviders, OnboardProvider } from '../types';
+import type { ParsedProvider } from '../types';
 import { ProviderManager } from '../../../io-events';
 import { randomUUID } from 'crypto';
 import type { CreateProviderResult } from './types';
@@ -77,12 +77,12 @@ class CreateProviders {
   /**
    * Processes providers for creation in the Adobe Commerce integration
    *
-   * @param providers - Array of onboard provider configurations to create
+   * @param providers - Array of parsed provider configurations to create
    * @param projectName - Name of the project for enhanced labeling
    * @returns Promise resolving to processing result
    */
   async process(
-    providers: OnboardProviders,
+    providers: ParsedProvider[],
     projectName: string = 'Unknown Project'
   ): Promise<CreateProviderResult[]> {
     this.logger.debug(`[CREATE] Creating providers for project: ${projectName}`);
@@ -167,7 +167,7 @@ class CreateProviders {
    * @private
    */
   private async createProvider(
-    providerData: OnboardProvider,
+    providerData: ParsedProvider,
     projectName: string,
     existingProviders: Map<string, any>
   ): Promise<CreateProviderResult> {
@@ -192,7 +192,7 @@ class CreateProviders {
           label: enhancedLabel,
           originalLabel: providerData.label,
           description: providerData.description,
-          docsUrl: providerData.docs_url,
+          docsUrl: providerData.docsUrl,
         },
         reason: 'Already exists',
       };
@@ -220,7 +220,7 @@ class CreateProviders {
           label: createdProvider.label,
           originalLabel: providerData.label,
           description: providerData.description,
-          docsUrl: providerData.docs_url,
+          docsUrl: providerData.docsUrl,
         },
         raw: createdProvider,
       };
@@ -237,7 +237,7 @@ class CreateProviders {
           label: enhancedLabel,
           originalLabel: providerData.label,
           description: providerData.description,
-          docsUrl: providerData.docs_url,
+          docsUrl: providerData.docsUrl,
         },
       };
     }
@@ -249,7 +249,7 @@ class CreateProviders {
    * @param enhancedLabel - Enhanced provider label
    * @private
    */
-  private preparePayload(providerData: OnboardProvider, enhancedLabel: string): any {
+  private preparePayload(providerData: ParsedProvider, enhancedLabel: string): any {
     const input: any = {
       label: enhancedLabel,
     };
@@ -260,8 +260,8 @@ class CreateProviders {
     }
 
     // Add docs URL if provided
-    if (providerData.docs_url) {
-      input.docs_url = providerData.docs_url;
+    if (providerData.docsUrl) {
+      input.docs_url = providerData.docsUrl;
     }
 
     // Add special commerce provider metadata if needed
@@ -277,13 +277,15 @@ class CreateProviders {
    * Determines if provider is a commerce provider
    * @private
    */
-  private isCommerceProvider(providerData: OnboardProvider): boolean {
+  private isCommerceProvider(providerData: ParsedProvider): boolean {
     const commerceIndicators = ['commerce', 'magento', 'adobe commerce'];
+    const key = providerData.key.toLowerCase();
     const label = providerData.label.toLowerCase();
     const description = (providerData.description || '').toLowerCase();
 
     return commerceIndicators.some(
-      indicator => label.includes(indicator) || description.includes(indicator)
+      indicator =>
+        key.includes(indicator) || label.includes(indicator) || description.includes(indicator)
     );
   }
 }

@@ -3,8 +3,9 @@
  */
 
 import { Core, Logger } from '@adobe/aio-sdk';
-import type { OnboardProviders, OnboardEventsResponse } from './types';
+import type { OnboardEventsInput, OnboardEventsResponse } from './types';
 import CreateProviders from './create-providers';
+import InputParser from './input-parser';
 
 /**
  * Utility class for handling onboarding events in Adobe Commerce integrations
@@ -23,8 +24,8 @@ import CreateProviders from './create-providers';
  * const logger = onboardEvents.getLogger();
  * logger.info('Custom logging with the same configuration');
  *
- * // Process providers
- * await onboardEvents.process(providers);
+ * // Process onboard events input
+ * await onboardEvents.process({ providers });
  */
 class OnboardEvents {
   private readonly logger: Logger;
@@ -106,16 +107,19 @@ class OnboardEvents {
   /**
    * Processes the onboarding events
    *
-   * @param providers - Array of onboard provider configurations
+   * @param input - Onboard events input configuration containing providers, registrations, and events
    * @returns Promise resolving to processing result with created providers
    */
-  async process(providers: OnboardProviders): Promise<OnboardEventsResponse> {
+  async process(input: OnboardEventsInput): Promise<OnboardEventsResponse> {
     this.logger.debug(
-      `[START] Processing onboard events for project: ${this.projectName} (${this.projectId}) with ${providers.length} providers`
+      `[START] Processing onboard events for project: ${this.projectName} (${this.projectId}) with ${input.providers.length} providers`
     );
 
+    const inputParser = new InputParser(input);
+    const entities = inputParser.getEntities();
+
     // Use CreateProviders to create the providers
-    const results = await this.createProviders.process(providers, this.projectName);
+    const results = await this.createProviders.process(entities.providers, this.projectName);
 
     // Log summary of results
     const created = results.filter(r => r.created).length;
