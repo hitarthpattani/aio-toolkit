@@ -44,4 +44,19 @@ describe('Integration Module', () => {
     expect(typeof client.delete).toBe('function');
     expect(typeof client.apiCall).toBe('function');
   });
+
+  it('should export OnboardEvents class', () => {
+    expect(integration.OnboardEvents).toBeDefined();
+    expect(typeof integration.OnboardEvents).toBe('function');
+  });
+
+  it('should export CreateEvents class', () => {
+    expect(integration.CreateEvents).toBeDefined();
+    expect(typeof integration.CreateEvents).toBe('function');
+  });
+
+  it('should export CreateRegistrations class', () => {
+    expect(integration.CreateRegistrations).toBeDefined();
+    expect(typeof integration.CreateRegistrations).toBe('function');
+  });
 });

@@ -148,6 +148,30 @@ export interface CreateEventResult {
 }
 
 /**
+ * Registration creation result interface
+ */
+export interface CreateRegistrationResult {
+  created: boolean;
+  skipped: boolean;
+  registration: {
+    id?: string;
+    key: string;
+    label: string;
+    originalLabel: string;
+    description?: string;
+    clientId?: string;
+    name?: string;
+    webhookUrl?: string;
+    deliveryType?: string;
+    runtimeAction?: string;
+  };
+  provider?: CreateProviderResult['provider'];
+  error?: string;
+  reason?: string;
+  raw?: any;
+}
+
+/**
  * Response from onboard events processing
  */
 export interface OnboardEventsResponse {
@@ -155,4 +179,6 @@ export interface OnboardEventsResponse {
   createdProviders: CreateProviderResult[];
   /** Array of created event results */
   createdEvents: CreateEventResult[];
+  /** Array of created registration results */
+  createdRegistrations: CreateRegistrationResult[];
 }

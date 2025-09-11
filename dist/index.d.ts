@@ -173,6 +173,20 @@ interface OnboardProvider {
 interface OnboardEventsInput {
     providers: OnboardProvider[];
 }
+interface ParsedRegistration {
+    key: string;
+    label: string;
+    description: string;
+    providerKey: string;
+}
+interface ParsedEvent {
+    eventCode: string;
+    runtimeAction: string;
+    deliveryType: string;
+    sampleEventTemplate: any;
+    registrationKey: string;
+    providerKey: string;
+}
 interface CreateProviderResult {
     created: boolean;
     skipped: boolean;
@@ -204,9 +218,30 @@ interface CreateEventResult {
     reason?: string;
     raw?: any;
 }
+interface CreateRegistrationResult {
+    created: boolean;
+    skipped: boolean;
+    registration: {
+        id?: string;
+        key: string;
+        label: string;
+        originalLabel: string;
+        description?: string;
+        clientId?: string;
+        name?: string;
+        webhookUrl?: string;
+        deliveryType?: string;
+        runtimeAction?: string;
+    };
+    provider?: CreateProviderResult['provider'];
+    error?: string;
+    reason?: string;
+    raw?: any;
+}
 interface OnboardEventsResponse {
     createdProviders: CreateProviderResult[];
     createdEvents: CreateEventResult[];
+    createdRegistrations: CreateRegistrationResult[];
 }
 
 declare class OnboardEvents {
@@ -219,9 +254,59 @@ declare class OnboardEvents {
     private readonly logger;
     private readonly createProviders;
     private readonly createEvents;
+    private readonly createRegistrations;
     constructor(projectName: string, consumerId: string, projectId: string, workspaceId: string, apiKey: string, accessToken: string);
     getLogger(): Logger;
     process(input: OnboardEventsInput): Promise<OnboardEventsResponse>;
+}
+
+declare class CreateEvents {
+    private readonly consumerId;
+    private readonly projectId;
+    private readonly workspaceId;
+    private readonly clientId;
+    private readonly accessToken;
+    private readonly logger;
+    private eventMetadataManager;
+    constructor(consumerId: string, projectId: string, workspaceId: string, clientId: string, accessToken: string, logger: Logger);
+    private getEventMetadataManager;
+    private createEvent;
+    private fetchMetadata;
+    process(events: ParsedEvent[], providerResults: CreateProviderResult[], projectName?: string): Promise<CreateEventResult[]>;
+}
+
+interface Registration {
+    registration_id: string;
+    name: string;
+    description?: string;
+    webhook_url?: string;
+    events_of_interest?: Array<{
+        provider_id: string;
+        event_code: string;
+    }>;
+    delivery_type: string;
+    enabled: boolean;
+    created_date: string;
+    updated_date: string;
+    runtime_action?: string;
+    [key: string]: any;
+}
+
+declare class CreateRegistrations {
+    private readonly consumerId;
+    private readonly projectId;
+    private readonly workspaceId;
+    private readonly clientId;
+    private readonly accessToken;
+    private readonly logger;
+    private registrationManager?;
+    constructor(consumerId: string, projectId: string, workspaceId: string, clientId: string, accessToken: string, logger: Logger);
+    process(registrations: ParsedRegistration[], events: ParsedEvent[], providerResults: CreateProviderResult[], projectName?: string): Promise<CreateRegistrationResult[]>;
+    private getRegistrationManager;
+    fetchRegistrations(): Promise<Map<string, Registration>>;
+    private groupEventsByProvider;
+    private preparePayload;
+    private createRegistration;
 }
 
 declare class AdobeAuth {
@@ -438,23 +523,6 @@ declare class EventMetadataManager {
     delete(providerId: string, eventCode?: string): Promise<void>;
 }
 
-interface Registration {
-    registration_id: string;
-    name: string;
-    description?: string;
-    webhook_url?: string;
-    events_of_interest?: Array<{
-        provider_id: string;
-        event_code: string;
-    }>;
-    delivery_type: string;
-    enabled: boolean;
-    created_date: string;
-    updated_date: string;
-    runtime_action?: string;
-    [key: string]: any;
-}
-
 interface EventsOfInterestInputModel {
     provider_id: string;
     event_code: string;
@@ -522,4 +590,4 @@ interface GetRegistrationQueryParams {
     registrationId: string;
 }
 
-export { AdobeAuth, AdobeCommerceClient, type AdobeIMSConfig, BasicAuthConnection, BearerToken, type BearerTokenInfo, type Connection, type CreateEventResult, type CreateProviderParams, type CreateProviderResult, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type ExtendedRequestError, GenerateBasicAuthToken, type GetProviderQueryParams, type GetRegistrationQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, ImsConnection, IoEventsGlobals, type ListProvidersQueryParams, type ListRegistrationQueryParams, Oauth1aConnection, OnboardEvents, type OnboardEventsInput, type OnboardEventsResponse, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, type Registration, type RegistrationCreateModel, type RegistrationListResponse, RegistrationManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, type SuccessResponse, type TokenResult, Validator };
+export { AdobeAuth, AdobeCommerceClient, type AdobeIMSConfig, BasicAuthConnection, BearerToken, type BearerTokenInfo, type Connection, type CreateEventResult, CreateEvents, type CreateProviderParams, type CreateProviderResult, type CreateRegistrationResult, CreateRegistrations, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type ExtendedRequestError, GenerateBasicAuthToken, type GetProviderQueryParams, type GetRegistrationQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, ImsConnection, IoEventsGlobals, type ListProvidersQueryParams, type ListRegistrationQueryParams, Oauth1aConnection, OnboardEvents, type OnboardEventsInput, type OnboardEventsResponse, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, type Registration, type RegistrationCreateModel, type RegistrationListResponse, RegistrationManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, type SuccessResponse, type TokenResult, Validator };

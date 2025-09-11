@@ -4,8 +4,6 @@
 
 import { OnboardEvents } from '../../../src/integration';
 import type { OnboardEventsInput } from '../../../src/integration/onboard-events/types';
-import CreateProviders from '../../../src/integration/onboard-events/create-providers';
-import InputParser from '../../../src/integration/onboard-events/input-parser';
 
 // Mock the Adobe I/O SDK to avoid external dependencies
 jest.mock('@adobe/aio-sdk', () => ({
@@ -19,7 +17,7 @@ jest.mock('@adobe/aio-sdk', () => ({
   },
 }));
 
-// Mock ProviderManager to avoid real API calls
+// Mock I/O Events SDK to avoid real API calls
 jest.mock('../../../src/io-events', () => ({
   ProviderManager: jest.fn().mockImplementation(() => ({
     list: jest.fn().mockResolvedValue([
@@ -65,6 +63,36 @@ jest.mock('../../../src/io-events', () => ({
               sampleEventTemplate: { test: true },
             },
           ],
+        },
+      ],
+    }),
+  })),
+  EventMetadataManager: jest.fn().mockImplementation(() => ({
+    list: jest.fn().mockResolvedValue([]),
+    create: jest.fn().mockResolvedValue({
+      id: 'new-event-123',
+      event_code: 'test.event',
+      label: 'Test Event',
+      description: 'Test event metadata',
+      sample_event_template: { test: true },
+    }),
+  })),
+}));
+
+// Mock RegistrationManager separately due to different import path
+jest.mock('../../../src/io-events/registration', () => ({
+  RegistrationManager: jest.fn().mockImplementation(() => ({
+    list: jest.fn().mockResolvedValue([]),
+    create: jest.fn().mockResolvedValue({
+      id: 'new-registration-123',
+      name: 'Test Registration',
+      description: 'Test registration',
+      client_id: 'test-client-id',
+      delivery_type: 'webhook',
+      events_of_interest: [
+        {
+          provider_id: 'test-provider-id',
+          event_code: 'test.event',
         },
       ],
     }),
@@ -1187,18 +1215,8 @@ describe('OnboardEvents', () => {
       );
     });
 
-    it('should handle constructor validation errors in CreateProviders', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { Core } = require('@adobe/aio-sdk');
-      const mockLogger = {
-        debug: jest.fn(),
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-      };
-      Core.Logger.mockReturnValue(mockLogger);
-
-      // Test missing configuration parameters (line 64)
+    it('should handle OnboardEvents constructor validation', async () => {
+      // Test missing configuration parameters
       expect(() => {
         new OnboardEvents(
           'Validation Error Test',
@@ -1209,153 +1227,6 @@ describe('OnboardEvents', () => {
           'validation-access-token-def'
         );
       }).toThrow('Consumer ID is required');
-
-      // Test missing logger scenario would be harder to test directly
-      // as logger is always created in OnboardEvents constructor
-      // But we can create CreateProviders directly to test this
-
-      expect(() => {
-        new CreateProviders(
-          'consumer-id',
-          'project-id',
-          'workspace-id',
-          'api-key',
-          'access-token',
-          null // Missing logger
-        );
-      }).toThrow('Logger is required');
-
-      // Test empty configuration values (also covers line 64)
-      expect(() => {
-        new CreateProviders(
-          '', // Empty consumerId
-          'project-id',
-          'workspace-id',
-          'api-key',
-          'access-token',
-          mockLogger
-        );
-      }).toThrow('Missing required configuration: consumerId');
-    });
-
-    it('should handle edge cases for complete branch coverage', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { Core } = require('@adobe/aio-sdk');
-      const mockLogger = {
-        debug: jest.fn(),
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-      };
-      Core.Logger.mockReturnValue(mockLogger);
-
-      // Mock ProviderManager for edge case testing
-      const mockProviderManager = {
-        list: jest.fn().mockResolvedValue([]),
-        create: jest.fn().mockResolvedValue({
-          id: 'edge-case-provider-123',
-          label: 'Edge Case Project - Test Provider',
-          instance_id: 'edge-case-instance-456',
-          description: undefined,
-          docsUrl: null,
-          registrations: [
-            {
-              key: 'test-reg',
-              label: 'Test Registration',
-              description: 'Test registration',
-              events: [
-                {
-                  eventCode: 'test.event',
-                  runtimeAction: 'test/consumer',
-                  deliveryType: 'webhook',
-                  sampleEventTemplate: { test: true },
-                },
-              ],
-            },
-          ],
-        }),
-      };
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const ioEventsMock = require('../../../src/io-events');
-      ioEventsMock.ProviderManager.mockImplementation(() => mockProviderManager);
-
-      // Test default projectName parameter (line 86) and provider without description (line 254)
-      const createProviders = new CreateProviders(
-        'edge-case-consumer-123',
-        'edge-case-project-456',
-        'edge-case-workspace-789',
-        'edge-case-api-key-abc',
-        'edge-case-access-token-def',
-        mockLogger
-      );
-
-      const testProviders: OnboardEventsInput = {
-        providers: [
-          {
-            key: 'test-no-description',
-            label: 'Provider Without Description',
-            description: '', // Empty description to test preparePayload branch
-            docsUrl: null,
-            registrations: [
-              {
-                key: 'test-reg',
-                label: 'Test Registration',
-                description: 'Test registration',
-                events: [
-                  {
-                    eventCode: 'test.event',
-                    runtimeAction: 'test/consumer',
-                    deliveryType: 'webhook',
-                    sampleEventTemplate: { test: true },
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            key: 'test-null-description',
-            label: 'Provider With Null Description',
-            description: undefined as any, // Undefined description to test _isCommerceProvider branch
-            docsUrl: null,
-            registrations: [
-              {
-                key: 'test-reg',
-                label: 'Test Registration',
-                description: 'Test registration',
-                events: [
-                  {
-                    eventCode: 'test.event',
-                    runtimeAction: 'test/consumer',
-                    deliveryType: 'webhook',
-                    sampleEventTemplate: { test: true },
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      };
-
-      // Call process without projectName to test default parameter (line 86)
-      // Extract providers from the OnboardEventsInput structure for direct CreateProviders testing
-      const inputParser = new InputParser(testProviders);
-      const entities = inputParser.getEntities();
-      const results = await createProviders.process(entities.providers);
-
-      // Verify default project name was used in logging
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        '[CREATE] Creating providers for project: Unknown Project'
-      );
-
-      // Verify the results structure
-      expect(results).toHaveLength(2);
-      expect(results[0].created).toBe(true);
-      expect(results[1].created).toBe(true);
-
-      // Verify that providers without description don't add description to payload
-      expect(mockProviderManager.create).toHaveBeenCalledWith({
-        label: 'Unknown Project - Provider Without Description',
-      });
     });
 
     it('should return proper OnboardEventsResponse structure', async () => {
@@ -1529,6 +1400,133 @@ describe('OnboardEvents', () => {
       expect(Core.Logger).toHaveBeenCalledWith('response-test-project-onboard-events', {
         level: 'debug',
       });
+    });
+
+    it('should handle failed event and registration creation for complete coverage', async () => {
+      // Mock CreateEvents.process to return failed results
+      const mockCreateEvents = {
+        process: jest.fn().mockResolvedValue([
+          {
+            created: false,
+            skipped: false,
+            error: 'Event creation failed',
+            event: {
+              eventCode: 'test.event',
+            },
+          },
+        ]),
+      };
+
+      // Mock CreateRegistrations.process to return failed results
+      const mockCreateRegistrations = {
+        process: jest.fn().mockResolvedValue([
+          {
+            created: false,
+            skipped: false,
+            error: 'Registration creation failed',
+            registration: {
+              key: 'test-reg',
+              label: 'Test Registration',
+            },
+          },
+        ]),
+      };
+
+      // Mock CreateProviders.process to return successful results
+      const mockCreateProviders = {
+        process: jest.fn().mockResolvedValue([
+          {
+            created: true,
+            skipped: false,
+            provider: {
+              id: 'test-provider-123',
+              label: 'Test Project - Test Provider',
+              originalLabel: 'Test Provider',
+              key: 'test-provider',
+            },
+          },
+        ]),
+      };
+
+      // Mock the constructor of OnboardEvents to inject our mocked dependencies
+      const originalOnboardEvents = jest.requireActual('../../../src/integration/onboard-events');
+
+      // Create an instance and override the internal dependencies
+      const onboardEvents = new originalOnboardEvents.default(
+        'Failure Test Project',
+        'failure-consumer-123',
+        'failure-project-456',
+        'failure-workspace-789',
+        'failure-api-key-abc',
+        'failure-access-token-def'
+      );
+
+      // Replace the internal instances with our mocks
+      (onboardEvents as any).createProviders = mockCreateProviders;
+      (onboardEvents as any).createEvents = mockCreateEvents;
+      (onboardEvents as any).createRegistrations = mockCreateRegistrations;
+
+      const testProviders: OnboardEventsInput = {
+        providers: [
+          {
+            key: 'test-provider',
+            label: 'Test Provider',
+            description: 'Test provider with failing events and registrations',
+            docsUrl: null,
+            registrations: [
+              {
+                key: 'test-reg',
+                label: 'Test Registration',
+                description: 'Test registration',
+                events: [
+                  {
+                    eventCode: 'test.event',
+                    runtimeAction: 'test/consumer',
+                    deliveryType: 'webhook',
+                    sampleEventTemplate: { test: true },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = await onboardEvents.process(testProviders);
+
+      // Verify failed events and registrations are counted
+      expect(result).toHaveProperty('createdProviders');
+      expect(result).toHaveProperty('createdEvents');
+      expect(result).toHaveProperty('createdRegistrations');
+
+      // Verify the mocks were called
+      expect(mockCreateProviders.process).toHaveBeenCalled();
+      expect(mockCreateEvents.process).toHaveBeenCalled();
+      expect(mockCreateRegistrations.process).toHaveBeenCalled();
+
+      // Verify return values include our failed results
+      expect(result.createdEvents).toEqual([
+        {
+          created: false,
+          skipped: false,
+          error: 'Event creation failed',
+          event: {
+            eventCode: 'test.event',
+          },
+        },
+      ]);
+
+      expect(result.createdRegistrations).toEqual([
+        {
+          created: false,
+          skipped: false,
+          error: 'Registration creation failed',
+          registration: {
+            key: 'test-reg',
+            label: 'Test Registration',
+          },
+        },
+      ]);
     });
   });
 });

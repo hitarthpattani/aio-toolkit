@@ -18,6 +18,8 @@ export type { Headers } from './rest-client/types';
 
 // Export Onboard Events
 export { default as OnboardEvents } from './onboard-events';
+export { default as CreateEvents } from './onboard-events/create-events';
+export { default as CreateRegistrations } from './onboard-events/create-registrations';
 
 // Export Onboard Events types
 export type {
@@ -25,4 +27,5 @@ export type {
   OnboardEventsResponse,
   CreateProviderResult,
   CreateEventResult,
+  CreateRegistrationResult,
 } from './onboard-events/types';

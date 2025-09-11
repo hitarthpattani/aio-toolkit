@@ -6,6 +6,7 @@ import { Core, Logger } from '@adobe/aio-sdk';
 import type { OnboardEventsInput, OnboardEventsResponse } from './types';
 import CreateProviders from './create-providers';
 import CreateEvents from './create-events';
+import CreateRegistrations from './create-registrations';
 import InputParser from './input-parser';
 
 /**
@@ -32,6 +33,7 @@ class OnboardEvents {
   private readonly logger: Logger;
   private readonly createProviders: CreateProviders;
   private readonly createEvents: CreateEvents;
+  private readonly createRegistrations: CreateRegistrations;
 
   /**
    * Creates a new OnboardEvents instance
@@ -105,6 +107,16 @@ class OnboardEvents {
       accessToken,
       this.logger
     );
+
+    // Initialize CreateRegistrations instance
+    this.createRegistrations = new CreateRegistrations(
+      consumerId,
+      projectId,
+      workspaceId,
+      apiKey, // Using apiKey as clientId
+      accessToken,
+      this.logger
+    );
   }
 
   /**
@@ -160,9 +172,26 @@ class OnboardEvents {
       `[SUMMARY] Event creation summary: ${eventsCreated} created, ${eventsSkipped} skipped, ${eventsFailed} failed`
     );
 
+    // Use CreateRegistrations to create the registrations
+    const registrationResults = await this.createRegistrations.process(
+      entities.registrations,
+      entities.events,
+      providerResults,
+      this.projectName
+    );
+
+    const registrationsCreated = registrationResults.filter(r => r.created).length;
+    const registrationsSkipped = registrationResults.filter(r => r.skipped).length;
+    const registrationsFailed = registrationResults.filter(r => !r.created && !r.skipped).length;
+
+    this.logger.debug(
+      `[SUMMARY] Registration creation summary: ${registrationsCreated} created, ${registrationsSkipped} skipped, ${registrationsFailed} failed`
+    );
+
     return {
       createdProviders: providerResults,
       createdEvents: eventResults,
+      createdRegistrations: registrationResults,
     };
   }
 }

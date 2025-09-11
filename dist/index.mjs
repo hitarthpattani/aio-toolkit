@@ -3521,6 +3521,279 @@ __name(_CreateEvents, "CreateEvents");
 var CreateEvents = _CreateEvents;
 var create_events_default = CreateEvents;
 
+// src/integration/onboard-events/create-registrations/index.ts
+var _CreateRegistrations = class _CreateRegistrations {
+  /**
+   * Creates a new CreateRegistrations instance
+   *
+   * @param consumerId - Adobe I/O consumer ID
+   * @param projectId - Adobe I/O project ID
+   * @param workspaceId - Adobe I/O workspace ID
+   * @param clientId - Adobe I/O client ID
+   * @param accessToken - Adobe I/O access token
+   * @param logger - Logger instance for consistent logging
+   */
+  constructor(consumerId, projectId, workspaceId, clientId, accessToken, logger) {
+    this.consumerId = consumerId;
+    this.projectId = projectId;
+    this.workspaceId = workspaceId;
+    this.clientId = clientId;
+    this.accessToken = accessToken;
+    const config = {
+      consumerId: this.consumerId,
+      projectId: this.projectId,
+      workspaceId: this.workspaceId,
+      clientId: this.clientId,
+      accessToken: this.accessToken
+    };
+    const required = ["consumerId", "projectId", "workspaceId", "clientId", "accessToken"];
+    const missing = required.filter(
+      (key) => !config[key] || config[key].trim() === ""
+    );
+    if (missing.length > 0) {
+      throw new Error(`Missing required configuration: ${missing.join(", ")}`);
+    }
+    if (!logger) {
+      throw new Error("Logger is required");
+    }
+    this.logger = logger;
+    this.logger.debug(`[INIT] CreateRegistrations initialized with valid configuration`);
+  }
+  /**
+   * Process multiple registrations for creation
+   *
+   * @param registrations - Array of parsed registrations to process
+   * @param events - Array of parsed events for registration creation
+   * @param providerResults - Array of provider results to link registrations to
+   * @param projectName - Optional project name for logging
+   * @returns Promise resolving to array of registration creation results
+   */
+  async process(registrations, events, providerResults, projectName = "Unknown Project") {
+    this.logger.debug(`[INFO] Creating registrations for project: ${projectName}`);
+    this.logger.debug(
+      `[PROCESSING] Processing ${registrations.length} registration(s) with ${events.length} event(s) across ${providerResults.length} provider(s)...`
+    );
+    if (!registrations || registrations.length === 0) {
+      this.logger.debug("[SKIP] No registrations to process.");
+      return [];
+    }
+    if (!events || events.length === 0) {
+      this.logger.debug("[SKIP] No events to process.");
+      return [];
+    }
+    if (!providerResults || providerResults.length === 0) {
+      this.logger.debug("[SKIP] No provider results to process.");
+      return [];
+    }
+    try {
+      const existingRegistrations = await this.fetchRegistrations();
+      const results = [];
+      for (const registration of registrations) {
+        this.logger.debug(`[PROCESSING] Processing registration: ${registration.label}`);
+        const registrationEvents = events.filter(
+          (event) => event.registrationKey === registration.key
+        );
+        if (registrationEvents.length === 0) {
+          this.logger.debug(`[SKIP] No events found for registration: ${registration.label}`);
+          continue;
+        }
+        this.logger.debug(
+          `[INFO] Found ${registrationEvents.length} event(s) for this registration`
+        );
+        const eventsByProvider = this.groupEventsByProvider(registrationEvents);
+        for (const [providerLabel, providerEvents] of Object.entries(eventsByProvider)) {
+          const provider = providerResults.find((p) => p.provider.originalLabel === providerLabel);
+          if (!provider || !provider.provider.id) {
+            this.logger.debug(`[SKIP] Provider not found or missing ID for: ${providerLabel}`);
+            continue;
+          }
+          const result = await this.createRegistration(
+            registration,
+            providerEvents,
+            provider,
+            existingRegistrations
+          );
+          results.push(result);
+        }
+      }
+      return results;
+    } catch (error) {
+      this.logger.error(`[ERROR] Registration creation failed: ${error.message}`);
+      throw error;
+    }
+  }
+  /**
+   * Lazy initialization of RegistrationManager
+   * @private
+   * @returns RegistrationManager instance
+   */
+  getRegistrationManager() {
+    if (!this.registrationManager) {
+      this.registrationManager = new RegistrationManager(
+        this.clientId,
+        this.consumerId,
+        this.projectId,
+        this.workspaceId,
+        this.accessToken
+      );
+    }
+    return this.registrationManager;
+  }
+  /**
+   * Fetches existing registrations to avoid duplicates
+   * @returns {Promise<Map>} Map of existing registrations by name
+   */
+  async fetchRegistrations() {
+    this.logger.debug("[INFO] Fetching existing registrations...");
+    try {
+      const registrationSDK = this.getRegistrationManager();
+      const registrationList = await registrationSDK.list();
+      const existingRegistrations = /* @__PURE__ */ new Map();
+      registrationList.forEach((registration) => {
+        existingRegistrations.set(registration.name, registration);
+      });
+      this.logger.debug(`[INFO] Found ${existingRegistrations.size} existing registrations`);
+      return existingRegistrations;
+    } catch (error) {
+      this.logger.error(
+        `[ERROR] Failed to fetch existing registrations: ${error.message}`
+      );
+      throw error;
+    }
+  }
+  /**
+   * Groups events by their provider key
+   * @private
+   * @param events - Events to group
+   * @returns Events grouped by provider key
+   */
+  groupEventsByProvider(events) {
+    const grouped = {};
+    events.forEach((event) => {
+      if (!grouped[event.providerKey]) {
+        grouped[event.providerKey] = [];
+      }
+      grouped[event.providerKey].push(event);
+    });
+    return grouped;
+  }
+  /**
+   * Builds registration input object for Adobe I/O API
+   * @private
+   * @param registration - Registration entity
+   * @param events - Events for this registration
+   * @param provider - Provider result
+   * @param registrationName - Enhanced registration name
+   * @param firstEvent - First event for common properties
+   * @returns Registration input for API
+   */
+  preparePayload(registration, events, provider, registrationName, firstEvent) {
+    const eventsOfInterest = events.map((event) => ({
+      provider_id: provider.provider.id || "",
+      event_code: event.eventCode
+    }));
+    const input = {
+      client_id: this.clientId,
+      name: registrationName,
+      description: registration.description || registrationName,
+      delivery_type: firstEvent.deliveryType || "webhook",
+      events_of_interest: eventsOfInterest,
+      ...firstEvent.runtimeAction && { runtime_action: firstEvent.runtimeAction }
+    };
+    return input;
+  }
+  /**
+   * Creates a single registration for a provider and its events
+   * @private
+   * @param registrationData - Registration entity
+   * @param events - Events for this registration
+   * @param provider - Provider result
+   * @param existingRegistrations - Map of existing registrations
+   * @returns Registration creation result
+   */
+  async createRegistration(registrationData, events, provider, existingRegistrations) {
+    const firstEvent = events[0];
+    if (!firstEvent) {
+      throw new Error("No events provided for registration creation");
+    }
+    const registrationName = registrationData.label;
+    this.logger.debug(
+      `[PROCESSING] Processing registration: ${registrationData.label} for provider: ${provider.provider.originalLabel}`
+    );
+    this.logger.debug(`[INFO] Registration name: ${registrationName}`);
+    const existingRegistration = existingRegistrations.get(registrationName);
+    if (existingRegistration) {
+      this.logger.debug("[SKIP] Registration already exists - skipping creation");
+      this.logger.debug(`[INFO] Existing ID: ${existingRegistration.id}`);
+      return {
+        created: false,
+        skipped: true,
+        registration: {
+          id: existingRegistration.id,
+          key: registrationData.key,
+          label: registrationData.label,
+          originalLabel: registrationData.label,
+          name: registrationName,
+          description: registrationData.description
+        },
+        reason: "Already exists",
+        raw: existingRegistration
+      };
+    }
+    this.logger.debug("[CREATE] Creating new registration...");
+    try {
+      const registrationInput = this.preparePayload(
+        registrationData,
+        events,
+        provider,
+        registrationName,
+        firstEvent
+      );
+      this.logger.debug(`[INFO] Registration input: ${JSON.stringify(registrationInput, null, 2)}`);
+      const registrationSDK = this.getRegistrationManager();
+      const createdRegistration = await registrationSDK.create(registrationInput);
+      this.logger.debug("[SUCCESS] Registration created successfully!");
+      this.logger.debug(`[INFO] New ID: ${createdRegistration.id}`);
+      this.logger.debug(`[INFO] Registration ID: ${createdRegistration.registration_id}`);
+      const result = {
+        created: true,
+        skipped: false,
+        registration: {
+          id: createdRegistration.id,
+          key: registrationData.key,
+          label: registrationData.label,
+          originalLabel: registrationData.label,
+          name: createdRegistration.name,
+          description: registrationData.description
+        },
+        provider: provider.provider,
+        raw: createdRegistration
+      };
+      return result;
+    } catch (error) {
+      this.logger.error(
+        `[ERROR] Failed to create registration "${registrationName}": ${error.message}`
+      );
+      return {
+        created: false,
+        skipped: false,
+        error: error.message,
+        registration: {
+          key: registrationData.key,
+          label: registrationData.label,
+          originalLabel: registrationData.label,
+          name: registrationName,
+          description: registrationData.description
+        },
+        provider: provider.provider
+      };
+    }
+  }
+};
+__name(_CreateRegistrations, "CreateRegistrations");
+var CreateRegistrations = _CreateRegistrations;
+var create_registrations_default = CreateRegistrations;
+
 // src/integration/onboard-events/input-parser/index.ts
 var _InputParser = class _InputParser {
   constructor(input) {
@@ -3638,6 +3911,15 @@ var _OnboardEvents = class _OnboardEvents {
       accessToken,
       this.logger
     );
+    this.createRegistrations = new create_registrations_default(
+      consumerId,
+      projectId,
+      workspaceId,
+      apiKey,
+      // Using apiKey as clientId
+      accessToken,
+      this.logger
+    );
   }
   /**
    * Gets the configured logger instance for consistent logging
@@ -3680,9 +3962,22 @@ var _OnboardEvents = class _OnboardEvents {
     this.logger.debug(
       `[SUMMARY] Event creation summary: ${eventsCreated} created, ${eventsSkipped} skipped, ${eventsFailed} failed`
     );
+    const registrationResults = await this.createRegistrations.process(
+      entities.registrations,
+      entities.events,
+      providerResults,
+      this.projectName
+    );
+    const registrationsCreated = registrationResults.filter((r) => r.created).length;
+    const registrationsSkipped = registrationResults.filter((r) => r.skipped).length;
+    const registrationsFailed = registrationResults.filter((r) => !r.created && !r.skipped).length;
+    this.logger.debug(
+      `[SUMMARY] Registration creation summary: ${registrationsCreated} created, ${registrationsSkipped} skipped, ${registrationsFailed} failed`
+    );
     return {
       createdProviders: providerResults,
-      createdEvents: eventResults
+      createdEvents: eventResults,
+      createdRegistrations: registrationResults
     };
   }
 };
@@ -4199,6 +4494,8 @@ export {
   adobe_commerce_client_default as AdobeCommerceClient,
   basic_auth_connection_default as BasicAuthConnection,
   bearer_token_default as BearerToken,
+  create_events_default as CreateEvents,
+  create_registrations_default as CreateRegistrations,
   event_consumer_action_default as EventConsumerAction,
   event_metadata_default as EventMetadataManager,
   generate_basic_auth_token_default as GenerateBasicAuthToken,
