@@ -109,22 +109,50 @@ export interface ParsedEntities {
 }
 
 /**
+ * Provider creation result interface
+ */
+export interface CreateProviderResult {
+  created: boolean;
+  skipped: boolean;
+  provider: {
+    id?: string;
+    instanceId?: string;
+    key: string;
+    label: string;
+    originalLabel: string;
+    description?: string;
+    docsUrl?: string | null;
+  };
+  error?: string;
+  reason?: string;
+  raw?: any;
+}
+
+/**
+ * Event metadata creation result interface
+ */
+export interface CreateEventResult {
+  created: boolean;
+  skipped: boolean;
+  event: {
+    id?: string;
+    eventCode: string;
+    label?: string;
+    description?: string;
+    sampleEventTemplate?: any;
+  };
+  provider?: CreateProviderResult['provider'];
+  error?: string;
+  reason?: string;
+  raw?: any;
+}
+
+/**
  * Response from onboard events processing
  */
 export interface OnboardEventsResponse {
   /** Array of created provider results */
-  createdProviders: Array<{
-    created: boolean;
-    skipped: boolean;
-    provider: {
-      id?: string;
-      instanceId?: string;
-      label: string;
-      originalLabel: string;
-      description?: string;
-      docsUrl?: string | null;
-    };
-    error?: string;
-    reason?: string;
-  }>;
+  createdProviders: CreateProviderResult[];
+  /** Array of created event results */
+  createdEvents: CreateEventResult[];
 }

@@ -20,4 +20,9 @@ export type { Headers } from './rest-client/types';
 export { default as OnboardEvents } from './onboard-events';
 
 // Export Onboard Events types
-export type { OnboardEventsInput, OnboardEventsResponse } from './onboard-events/types';
+export type {
+  OnboardEventsInput,
+  OnboardEventsResponse,
+  CreateProviderResult,
+  CreateEventResult,
+} from './onboard-events/types';

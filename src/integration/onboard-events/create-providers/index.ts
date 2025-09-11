@@ -3,10 +3,9 @@
  */
 
 import type { Logger } from '@adobe/aio-sdk';
-import type { ParsedProvider } from '../types';
+import type { ParsedProvider, CreateProviderResult } from '../types';
 import { ProviderManager } from '../../../io-events';
 import { randomUUID } from 'crypto';
-import type { CreateProviderResult } from './types';
 
 /**
  * Utility class for creating providers in Adobe Commerce onboarding integrations
@@ -189,6 +188,7 @@ class CreateProviders {
         provider: {
           id: existingProvider.id,
           ...(existingProvider.instance_id && { instanceId: existingProvider.instance_id }),
+          key: providerData.key,
           label: enhancedLabel,
           originalLabel: providerData.label,
           description: providerData.description,
@@ -217,6 +217,7 @@ class CreateProviders {
         provider: {
           id: createdProvider.id,
           ...(createdProvider.instance_id && { instanceId: createdProvider.instance_id }),
+          key: providerData.key,
           label: createdProvider.label,
           originalLabel: providerData.label,
           description: providerData.description,
@@ -234,6 +235,7 @@ class CreateProviders {
         skipped: false,
         error: error.message,
         provider: {
+          key: providerData.key,
           label: enhancedLabel,
           originalLabel: providerData.label,
           description: providerData.description,

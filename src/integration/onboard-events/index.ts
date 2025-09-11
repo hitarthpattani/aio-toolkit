@@ -5,6 +5,7 @@
 import { Core, Logger } from '@adobe/aio-sdk';
 import type { OnboardEventsInput, OnboardEventsResponse } from './types';
 import CreateProviders from './create-providers';
+import CreateEvents from './create-events';
 import InputParser from './input-parser';
 
 /**
@@ -30,6 +31,7 @@ import InputParser from './input-parser';
 class OnboardEvents {
   private readonly logger: Logger;
   private readonly createProviders: CreateProviders;
+  private readonly createEvents: CreateEvents;
 
   /**
    * Creates a new OnboardEvents instance
@@ -93,6 +95,16 @@ class OnboardEvents {
       accessToken,
       this.logger
     );
+
+    // Initialize CreateEvents instance
+    this.createEvents = new CreateEvents(
+      consumerId,
+      projectId,
+      workspaceId,
+      apiKey, // Using apiKey as clientId
+      accessToken,
+      this.logger
+    );
   }
 
   /**
@@ -119,19 +131,38 @@ class OnboardEvents {
     const entities = inputParser.getEntities();
 
     // Use CreateProviders to create the providers
-    const results = await this.createProviders.process(entities.providers, this.projectName);
+    const providerResults = await this.createProviders.process(
+      entities.providers,
+      this.projectName
+    );
 
     // Log summary of results
-    const created = results.filter(r => r.created).length;
-    const skipped = results.filter(r => r.skipped).length;
-    const failed = results.filter(r => !r.created && !r.skipped).length;
+    const providersCreated = providerResults.filter(r => r.created).length;
+    const providersSkipped = providerResults.filter(r => r.skipped).length;
+    const providersFailed = providerResults.filter(r => !r.created && !r.skipped).length;
 
     this.logger.debug(
-      `[SUMMARY] Provider creation summary: ${created} created, ${skipped} skipped, ${failed} failed`
+      `[SUMMARY] Provider creation summary: ${providersCreated} created, ${providersSkipped} skipped, ${providersFailed} failed`
+    );
+
+    // Use CreateEvents to create the events
+    const eventResults = await this.createEvents.process(
+      entities.events,
+      providerResults,
+      this.projectName
+    );
+
+    const eventsCreated = eventResults.filter(r => r.created).length;
+    const eventsSkipped = eventResults.filter(r => r.skipped).length;
+    const eventsFailed = eventResults.filter(r => !r.created && !r.skipped).length;
+
+    this.logger.debug(
+      `[SUMMARY] Event creation summary: ${eventsCreated} created, ${eventsSkipped} skipped, ${eventsFailed} failed`
     );
 
     return {
-      createdProviders: results,
+      createdProviders: providerResults,
+      createdEvents: eventResults,
     };
   }
 }
