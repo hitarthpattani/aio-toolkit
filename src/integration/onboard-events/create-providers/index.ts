@@ -195,6 +195,7 @@ class CreateProviders {
           docsUrl: providerData.docsUrl,
         },
         reason: 'Already exists',
+        raw: existingProvider,
       };
     }
 

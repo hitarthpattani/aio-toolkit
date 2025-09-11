@@ -3222,7 +3222,8 @@ var _CreateProviders = class _CreateProviders {
           description: providerData.description,
           docsUrl: providerData.docsUrl
         },
-        reason: "Already exists"
+        reason: "Already exists",
+        raw: existingProvider
       };
     }
     try {
@@ -3373,8 +3374,8 @@ var _CreateEvents = class _CreateEvents {
     try {
       const eventCode = event.eventCode;
       this.logger.debug(`[INFO] Processing event: ${eventCode}`);
-      const exists = existingEvents.some((metadata) => metadata.event_code === eventCode);
-      if (exists) {
+      const existingEvent = existingEvents.find((metadata) => metadata.event_code === eventCode);
+      if (existingEvent) {
         this.logger.debug(
           `[INFO] Event code '${eventCode}' already exists for provider ${providerId}`
         );
@@ -3383,8 +3384,15 @@ var _CreateEvents = class _CreateEvents {
           created: false,
           skipped: true,
           event: {
-            eventCode
-          }
+            id: existingEvent.id,
+            eventCode,
+            ...existingEvent.label && { label: existingEvent.label },
+            ...existingEvent.description && { description: existingEvent.description },
+            ...existingEvent.sample_event_template && {
+              sampleEventTemplate: existingEvent.sample_event_template
+            }
+          },
+          raw: existingEvent
         };
       }
       this.logger.debug(`[CREATE] Creating event metadata: ${eventCode}`);

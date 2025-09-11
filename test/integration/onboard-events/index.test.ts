@@ -912,6 +912,8 @@ describe('OnboardEvents', () => {
       expect(result.createdProviders[0].skipped).toBe(true);
       expect(result.createdProviders[0].reason).toBe('Already exists');
       expect(result.createdProviders[0].provider.id).toBe('existing-provider-123');
+      expect(result.createdProviders[0]).toHaveProperty('raw');
+      expect(result.createdProviders[0].raw.id).toBe('existing-provider-123');
 
       // Verify summary logging with skipped providers
       expect(mockLogger.debug).toHaveBeenCalledWith(
@@ -1089,6 +1091,8 @@ describe('OnboardEvents', () => {
       expect(result.createdProviders[0].created).toBe(false);
       expect(result.createdProviders[0].skipped).toBe(true);
       expect(result.createdProviders[0].reason).toBe('Already exists');
+      expect(result.createdProviders[0]).toHaveProperty('raw');
+      expect(result.createdProviders[0].raw.id).toBe('existing-mixed-provider');
 
       // Second provider: created (new)
       expect(result.createdProviders[1].created).toBe(true);

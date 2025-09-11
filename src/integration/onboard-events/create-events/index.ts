@@ -108,9 +108,9 @@ class CreateEvents {
       this.logger.debug(`[INFO] Processing event: ${eventCode}`);
 
       // Check if event metadata already exists
-      const exists = existingEvents.some(metadata => metadata.event_code === eventCode);
+      const existingEvent = existingEvents.find(metadata => metadata.event_code === eventCode);
 
-      if (exists) {
+      if (existingEvent) {
         this.logger.debug(
           `[INFO] Event code '${eventCode}' already exists for provider ${providerId}`
         );
@@ -119,8 +119,15 @@ class CreateEvents {
           created: false,
           skipped: true,
           event: {
+            id: existingEvent.id,
             eventCode: eventCode,
+            ...(existingEvent.label && { label: existingEvent.label }),
+            ...(existingEvent.description && { description: existingEvent.description }),
+            ...(existingEvent.sample_event_template && {
+              sampleEventTemplate: existingEvent.sample_event_template,
+            }),
           },
+          raw: existingEvent,
         };
       }
 

@@ -244,7 +244,14 @@ describe('CreateEvents', () => {
     };
 
     it('should skip existing event metadata', async () => {
-      const existingEvents = [{ event_code: 'test.event.create', label: 'Existing Event' }];
+      const existingEvents = [
+        {
+          id: 'existing-event-id',
+          event_code: 'test.event.create',
+          label: 'Existing Event',
+          description: 'Existing event description',
+        },
+      ];
 
       const result = await (createEvents as any).createEvent(
         'provider-123',
@@ -256,8 +263,12 @@ describe('CreateEvents', () => {
         created: false,
         skipped: true,
         event: {
+          id: 'existing-event-id',
           eventCode: 'test.event.create',
+          label: 'Existing Event',
+          description: 'Existing event description',
         },
+        raw: existingEvents[0],
       });
       expect(mockLogger.debug).toHaveBeenCalledWith('[INFO] Processing event: test.event.create');
       expect(mockLogger.debug).toHaveBeenCalledWith(
@@ -266,6 +277,46 @@ describe('CreateEvents', () => {
       expect(mockLogger.debug).toHaveBeenCalledWith(
         '[SKIP] Event metadata already exists for: test.event.create - skipping'
       );
+    });
+
+    it('should skip existing event metadata with sample event template', async () => {
+      const existingEvents = [
+        {
+          id: 'existing-event-id',
+          event_code: 'test.event.create',
+          label: 'Existing Event',
+          description: 'Existing event description',
+          sample_event_template: {
+            eventId: 'sample-123',
+            eventType: 'test.event.create',
+            payload: { key: 'value' },
+          },
+        },
+      ];
+
+      const result = await (createEvents as any).createEvent(
+        'provider-123',
+        sampleEvent,
+        existingEvents
+      );
+
+      expect(result).toEqual({
+        created: false,
+        skipped: true,
+        event: {
+          id: 'existing-event-id',
+          eventCode: 'test.event.create',
+          label: 'Existing Event',
+          description: 'Existing event description',
+          sampleEventTemplate: {
+            eventId: 'sample-123',
+            eventType: 'test.event.create',
+            payload: { key: 'value' },
+          },
+        },
+        raw: existingEvents[0],
+      });
+      expect(mockEventMetadataManager.create).not.toHaveBeenCalled();
     });
 
     it('should create new event metadata successfully', async () => {
