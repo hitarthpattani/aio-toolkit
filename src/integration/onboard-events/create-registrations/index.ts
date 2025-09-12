@@ -139,11 +139,11 @@ class CreateRegistrations {
         // Group events by provider to create separate registrations per provider
         const eventsByProvider = this.groupEventsByProvider(registrationEvents);
 
-        for (const [providerLabel, providerEvents] of Object.entries(eventsByProvider)) {
-          const provider = providerResults.find(p => p.provider.originalLabel === providerLabel);
+        for (const [providerKey, providerEvents] of Object.entries(eventsByProvider)) {
+          const provider = providerResults.find(p => p.provider.key === providerKey);
 
           if (!provider || !provider.provider.id) {
-            this.logger.debug(`[SKIP] Provider not found or missing ID for: ${providerLabel}`);
+            this.logger.debug(`[SKIP] Provider not found or missing ID for: ${providerKey}`);
             continue;
           }
 

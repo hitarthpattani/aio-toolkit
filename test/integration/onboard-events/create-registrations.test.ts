@@ -543,7 +543,7 @@ describe('CreateRegistrations', () => {
         deliveryType: 'webhook',
         sampleEventTemplate: { test: 'data1' },
         registrationKey: 'reg1',
-        providerKey: 'Provider 1', // Should match provider originalLabel
+        providerKey: 'provider1', // Should match provider key
       },
       {
         eventCode: 'event2',
@@ -551,7 +551,7 @@ describe('CreateRegistrations', () => {
         deliveryType: 'journal',
         sampleEventTemplate: { test: 'data2' },
         registrationKey: 'reg1',
-        providerKey: 'Provider 1', // Should match provider originalLabel
+        providerKey: 'provider1', // Should match provider key
       },
     ];
 
@@ -620,7 +620,7 @@ describe('CreateRegistrations', () => {
           ...sampleProviderResults[0],
           provider: {
             ...sampleProviderResults[0].provider,
-            originalLabel: 'Different Provider',
+            key: 'different-provider',
           },
         },
       ];
@@ -633,7 +633,7 @@ describe('CreateRegistrations', () => {
 
       expect(result).toEqual([]);
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        '[SKIP] Provider not found or missing ID for: Provider 1'
+        '[SKIP] Provider not found or missing ID for: provider1'
       );
     });
 
@@ -656,7 +656,7 @@ describe('CreateRegistrations', () => {
 
       expect(result).toEqual([]);
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        '[SKIP] Provider not found or missing ID for: Provider 1'
+        '[SKIP] Provider not found or missing ID for: provider1'
       );
     });
 
@@ -811,7 +811,7 @@ describe('CreateRegistrations', () => {
           deliveryType: 'webhook',
           sampleEventTemplate: {},
           registrationKey: 'reg1',
-          providerKey: 'Provider 1', // Match originalLabel
+          providerKey: 'provider1', // Match provider key
         },
         {
           eventCode: 'event2',
@@ -819,7 +819,7 @@ describe('CreateRegistrations', () => {
           deliveryType: 'webhook',
           sampleEventTemplate: {},
           registrationKey: 'reg2',
-          providerKey: 'Provider 2', // Match originalLabel
+          providerKey: 'provider2', // Match provider key
         },
       ];
 
@@ -965,6 +965,80 @@ describe('CreateRegistrations', () => {
       } catch (error) {
         expect((error as Error).message).toBe('No events provided for registration creation');
       }
+    });
+
+    it('should correctly match provider by key (regression test for provider lookup bug)', async () => {
+      // This test documents the fix for the bug where provider lookup was using
+      // originalLabel instead of key, causing registrations to fail when
+      // events had providerKey matching the provider's key but not originalLabel
+
+      const ocpRegistrations: ParsedRegistration[] = [
+        {
+          key: 'product-sync',
+          label: 'OCP Product Sync',
+          description: 'OCP Product Sync',
+          providerKey: 'ocp',
+        },
+      ];
+
+      const ocpEvents: ParsedEvent[] = [
+        {
+          eventCode: 'ModelCreated.IProductModified',
+          runtimeAction: 'ocp-product/consumer',
+          deliveryType: 'webhook',
+          sampleEventTemplate: { sku: 'SKU-EXT-0001' },
+          registrationKey: 'product-sync',
+          providerKey: 'ocp', // This should match provider.key, not provider.originalLabel
+        },
+      ];
+
+      const ocpProviderResults: CreateProviderResult[] = [
+        {
+          created: false,
+          skipped: true,
+          provider: {
+            id: '82a7da9d-083f-47ba-9242-bcdf71046c81',
+            instanceId: 'ca0b2faf-08b0-4d98-8333-f6a6b6c46556',
+            key: 'ocp', // Event providerKey matches this
+            label: 'HPattani AIO Toolkit V1 - OCP Provider v1.0',
+            originalLabel: 'OCP Provider v1.0', // Event providerKey does NOT match this
+            description: 'OCP Provider that will receive events from ocp system',
+            docsUrl: null,
+          },
+          reason: 'Already exists',
+        },
+      ];
+
+      const mockCreatedRegistration = {
+        id: 'ocp-reg-id',
+        registration_id: 'ocp-reg-123',
+        name: 'OCP Product Sync',
+        description: 'OCP Product Sync',
+        enabled: true,
+        client_id: validConfig.clientId,
+      };
+
+      mockRegistrationManager.create.mockResolvedValue(mockCreatedRegistration);
+
+      const result = await createRegistrations.process(
+        ocpRegistrations,
+        ocpEvents,
+        ocpProviderResults,
+        'HPattani AIO Toolkit V1'
+      );
+
+      // The fix ensures this registration is created successfully
+      // Previously this would fail with "Provider not found or missing ID for: ocp"
+      expect(result).toHaveLength(1);
+      expect(result[0].created).toBe(true);
+      expect(result[0].skipped).toBe(false);
+      expect(result[0].registration.label).toBe('OCP Product Sync');
+      expect(result[0].provider.key).toBe('ocp');
+
+      // Verify that the provider was found correctly by checking no skip messages
+      expect(mockLogger.debug).not.toHaveBeenCalledWith(
+        '[SKIP] Provider not found or missing ID for: ocp'
+      );
     });
   });
 });
