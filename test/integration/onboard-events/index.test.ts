@@ -847,9 +847,12 @@ describe('OnboardEvents', () => {
       expect(result.createdProviders[0]).toHaveProperty('error');
       expect(result.createdProviders[0].error).toBe('Provider creation failed');
 
-      // Verify summary logging with failures
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        '[SUMMARY] Provider creation summary: 0 created, 0 skipped, 1 failed'
+      // Verify summary logging with failures - new format uses info() instead of debug()
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        '📊 ONBOARD EVENTS SUMMARY - Failure Test Project'
+      );
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        '📈 OVERALL: 1 processed | 0 created | 0 existing | 1 failed'
       );
     });
 
@@ -943,9 +946,14 @@ describe('OnboardEvents', () => {
       expect(result.createdProviders[0]).toHaveProperty('raw');
       expect(result.createdProviders[0].raw.id).toBe('existing-provider-123');
 
-      // Verify summary logging with skipped providers
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        '[SUMMARY] Provider creation summary: 0 created, 1 skipped, 0 failed'
+      // Verify summary logging with skipped providers - new format uses info() instead of debug()
+      // Total: 3 processed (1 provider + 1 event + 1 registration)
+      // Results: 2 created (event + registration), 1 existing (provider), 0 failed
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        '📊 ONBOARD EVENTS SUMMARY - Skipped Test Project'
+      );
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        '📈 OVERALL: 3 processed | 2 created | 1 existing | 0 failed'
       );
 
       // Verify skipping logs were called
@@ -1133,9 +1141,14 @@ describe('OnboardEvents', () => {
       expect(result.createdProviders[2]).toHaveProperty('error');
       expect(result.createdProviders[2].error).toBe('Mixed creation failed');
 
-      // Verify summary logging with all three states
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        '[SUMMARY] Provider creation summary: 1 created, 1 skipped, 1 failed'
+      // Verify summary logging with all three states - new format uses info() instead of debug()
+      // Total: 11 processed (3 providers + 2 events + 6 registrations)
+      // Results: 9 created, 1 existing (skipped provider), 1 failed (failed provider)
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        '📊 ONBOARD EVENTS SUMMARY - Mixed Test Project'
+      );
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        '📈 OVERALL: 11 processed | 9 created | 1 existing | 1 failed'
       );
 
       // Verify error logging was called for the failed provider

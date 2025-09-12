@@ -148,28 +148,11 @@ class OnboardEvents {
       this.projectName
     );
 
-    // Log summary of results
-    const providersCreated = providerResults.filter(r => r.created).length;
-    const providersSkipped = providerResults.filter(r => r.skipped).length;
-    const providersFailed = providerResults.filter(r => !r.created && !r.skipped).length;
-
-    this.logger.debug(
-      `[SUMMARY] Provider creation summary: ${providersCreated} created, ${providersSkipped} skipped, ${providersFailed} failed`
-    );
-
     // Use CreateEvents to create the events
     const eventResults = await this.createEvents.process(
       entities.events,
       providerResults,
       this.projectName
-    );
-
-    const eventsCreated = eventResults.filter(r => r.created).length;
-    const eventsSkipped = eventResults.filter(r => r.skipped).length;
-    const eventsFailed = eventResults.filter(r => !r.created && !r.skipped).length;
-
-    this.logger.debug(
-      `[SUMMARY] Event creation summary: ${eventsCreated} created, ${eventsSkipped} skipped, ${eventsFailed} failed`
     );
 
     // Use CreateRegistrations to create the registrations
@@ -178,14 +161,6 @@ class OnboardEvents {
       entities.events,
       providerResults,
       this.projectName
-    );
-
-    const registrationsCreated = registrationResults.filter(r => r.created).length;
-    const registrationsSkipped = registrationResults.filter(r => r.skipped).length;
-    const registrationsFailed = registrationResults.filter(r => !r.created && !r.skipped).length;
-
-    this.logger.debug(
-      `[SUMMARY] Registration creation summary: ${registrationsCreated} created, ${registrationsSkipped} skipped, ${registrationsFailed} failed`
     );
 
     const response = {
@@ -305,6 +280,7 @@ class OnboardEvents {
     this.logger.info(`📊 ONBOARD EVENTS SUMMARY - ${this.projectName}`);
     this.logger.info('='.repeat(60));
 
+    this.logger.info('');
     // Overall summary
     this.logger.info(
       `📈 OVERALL: ${summary.overall.totalProcessed} processed | ${summary.overall.totalCreated} created | ${summary.overall.totalExisting} existing | ${summary.overall.totalFailed} failed`

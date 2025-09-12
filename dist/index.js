@@ -4113,34 +4113,16 @@ var _OnboardEvents = class _OnboardEvents {
       entities.providers,
       this.projectName
     );
-    const providersCreated = providerResults.filter((r) => r.created).length;
-    const providersSkipped = providerResults.filter((r) => r.skipped).length;
-    const providersFailed = providerResults.filter((r) => !r.created && !r.skipped).length;
-    this.logger.debug(
-      `[SUMMARY] Provider creation summary: ${providersCreated} created, ${providersSkipped} skipped, ${providersFailed} failed`
-    );
     const eventResults = await this.createEvents.process(
       entities.events,
       providerResults,
       this.projectName
-    );
-    const eventsCreated = eventResults.filter((r) => r.created).length;
-    const eventsSkipped = eventResults.filter((r) => r.skipped).length;
-    const eventsFailed = eventResults.filter((r) => !r.created && !r.skipped).length;
-    this.logger.debug(
-      `[SUMMARY] Event creation summary: ${eventsCreated} created, ${eventsSkipped} skipped, ${eventsFailed} failed`
     );
     const registrationResults = await this.createRegistrations.process(
       entities.registrations,
       entities.events,
       providerResults,
       this.projectName
-    );
-    const registrationsCreated = registrationResults.filter((r) => r.created).length;
-    const registrationsSkipped = registrationResults.filter((r) => r.skipped).length;
-    const registrationsFailed = registrationResults.filter((r) => !r.created && !r.skipped).length;
-    this.logger.debug(
-      `[SUMMARY] Registration creation summary: ${registrationsCreated} created, ${registrationsSkipped} skipped, ${registrationsFailed} failed`
     );
     const response = {
       createdProviders: providerResults,
@@ -4230,6 +4212,7 @@ var _OnboardEvents = class _OnboardEvents {
     this.logger.info("=".repeat(60));
     this.logger.info(`\u{1F4CA} ONBOARD EVENTS SUMMARY - ${this.projectName}`);
     this.logger.info("=".repeat(60));
+    this.logger.info("");
     this.logger.info(
       `\u{1F4C8} OVERALL: ${summary.overall.totalProcessed} processed | ${summary.overall.totalCreated} created | ${summary.overall.totalExisting} existing | ${summary.overall.totalFailed} failed`
     );
