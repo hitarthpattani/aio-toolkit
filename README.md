@@ -40,6 +40,7 @@ Before installing the package, you need to set up authentication for GitHub Pack
 #### Framework Components
 
 - **[EventConsumerAction](./docs/event-consumer-action.md)** - Event-driven processing for Adobe I/O Events
+- **[FileRepository](./docs/file-repository.md)** - File-based storage with CRUD operations for Adobe I/O Runtime applications
 - **[GraphQlAction](./docs/graphql-action.md)** - GraphQL server implementation with schema validation
 - **[OpenWhisk](./docs/openwhisk.md)** - OpenWhisk client for serverless action invocation
 - **[OpenWhiskAction](./docs/openwhisk-action.md)** - OpenWhisk action wrapper with logging and error handling

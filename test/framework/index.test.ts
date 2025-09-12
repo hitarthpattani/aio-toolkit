@@ -55,4 +55,10 @@ describe('Framework', () => {
     expect(framework.HttpMethod).toBeDefined();
     expect(typeof framework.HttpMethod).toBe('object');
   });
+
+  it('should export FileRepository class', () => {
+    expect(framework.FileRepository).toBeDefined();
+    expect(typeof framework.FileRepository).toBe('function');
+    expect(() => new framework.FileRepository('test')).not.toThrow();
+  });
 });

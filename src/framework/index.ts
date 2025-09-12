@@ -21,3 +21,7 @@ export { default as GraphQlAction } from './graphql-action';
 // Export OpenWhisk classes
 export { default as Openwhisk } from './openwhisk';
 export { default as OpenwhiskAction } from './openwhisk-action';
+
+// Export Repository classes
+export { default as FileRepository } from './repository/file-repository';
+export * from './repository/file-repository/types';

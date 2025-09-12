@@ -38,4 +38,16 @@ declare module '@adobe/aio-sdk' {
   export namespace Utils {
     function uuid(): string;
   }
+
+  // Files storage interface
+  export interface Files {
+    list(path: string): Promise<Array<{ name: string }>>;
+    read(path: string): Promise<Buffer>;
+    write(path: string, data: string): Promise<void>;
+    delete(path: string): Promise<void>;
+  }
+
+  export namespace Files {
+    function init(): Promise<Files>;
+  }
 }

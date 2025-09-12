@@ -119,6 +119,24 @@ declare class OpenwhiskAction {
     }) => Promise<RuntimeActionResponseType>;
 }
 
+interface FileRecord {
+    id: string | number;
+    created_at: string;
+    updated_at: string;
+    [key: string]: any;
+}
+
+declare class FileRepository {
+    private readonly filepath;
+    private files;
+    constructor(filepath: string);
+    list(): Promise<FileRecord[]>;
+    load(id?: string): Promise<FileRecord>;
+    save(payload?: Partial<FileRecord>): Promise<boolean>;
+    delete(ids?: (string | number)[]): Promise<FileRecord[]>;
+    private getFiles;
+}
+
 interface BearerTokenInfo {
     token: string | null;
     tokenLength: number;
@@ -590,4 +608,4 @@ interface GetRegistrationQueryParams {
     registrationId: string;
 }
 
-export { AdobeAuth, AdobeCommerceClient, type AdobeIMSConfig, BasicAuthConnection, BearerToken, type BearerTokenInfo, type Connection, type CreateEventResult, CreateEvents, type CreateProviderParams, type CreateProviderResult, type CreateRegistrationResult, CreateRegistrations, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type ExtendedRequestError, GenerateBasicAuthToken, type GetProviderQueryParams, type GetRegistrationQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, ImsConnection, IoEventsGlobals, type ListProvidersQueryParams, type ListRegistrationQueryParams, Oauth1aConnection, OnboardEvents, type OnboardEventsInput, type OnboardEventsResponse, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, type Registration, type RegistrationCreateModel, type RegistrationListResponse, RegistrationManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, type SuccessResponse, type TokenResult, Validator };
+export { AdobeAuth, AdobeCommerceClient, type AdobeIMSConfig, BasicAuthConnection, BearerToken, type BearerTokenInfo, type Connection, type CreateEventResult, CreateEvents, type CreateProviderParams, type CreateProviderResult, type CreateRegistrationResult, CreateRegistrations, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type ExtendedRequestError, type FileRecord, FileRepository, GenerateBasicAuthToken, type GetProviderQueryParams, type GetRegistrationQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, ImsConnection, IoEventsGlobals, type ListProvidersQueryParams, type ListRegistrationQueryParams, Oauth1aConnection, OnboardEvents, type OnboardEventsInput, type OnboardEventsResponse, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, type Registration, type RegistrationCreateModel, type RegistrationListResponse, RegistrationManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, type SuccessResponse, type TokenResult, Validator };

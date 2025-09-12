@@ -39,6 +39,7 @@ __export(index_exports, {
   CreateRegistrations: () => create_registrations_default,
   EventConsumerAction: () => event_consumer_action_default,
   EventMetadataManager: () => event_metadata_default,
+  FileRepository: () => file_repository_default,
   GenerateBasicAuthToken: () => generate_basic_auth_token_default,
   GraphQlAction: () => graphql_action_default,
   HttpMethod: () => HttpMethod,
@@ -437,6 +438,113 @@ __name(_OpenwhiskAction, "OpenwhiskAction");
 var OpenwhiskAction = _OpenwhiskAction;
 var openwhisk_action_default = OpenwhiskAction;
 
+// src/framework/repository/file-repository/index.ts
+var import_aio_sdk4 = require("@adobe/aio-sdk");
+var _FileRepository = class _FileRepository {
+  /**
+   * Creates a new FileRepository instance
+   * @param filepath - The base directory path for file operations
+   */
+  constructor(filepath) {
+    this.files = null;
+    this.filepath = filepath;
+  }
+  /**
+   * Lists all files in the repository directory
+   * @returns Promise<FileRecord[]> Array of file records
+   */
+  async list() {
+    const filesLib = await this.getFiles();
+    const results = [];
+    const existingFiles = await filesLib.list(`${this.filepath}/`);
+    if (existingFiles.length) {
+      for (const { name } of existingFiles) {
+        const buffer = await filesLib.read(`${name}`);
+        results.push(JSON.parse(buffer.toString()));
+      }
+    }
+    return results;
+  }
+  /**
+   * Loads a specific file by ID
+   * @param id - The ID of the file to load
+   * @returns Promise<FileRecord> The loaded file record or empty object if not found
+   */
+  async load(id = "") {
+    const filepath = `${this.filepath}/${id}.json`;
+    const filesLib = await this.getFiles();
+    const existingFile = await filesLib.list(filepath);
+    if (existingFile.length) {
+      const buffer = await filesLib.read(filepath);
+      return JSON.parse(buffer.toString());
+    }
+    return {};
+  }
+  /**
+   * Saves a file record to the repository
+   * @param payload - The data to save
+   * @returns Promise<boolean> True if save was successful, false otherwise
+   */
+  async save(payload = {}) {
+    try {
+      const filesLib = await this.getFiles();
+      let requestFileId = (/* @__PURE__ */ new Date()).getTime();
+      if ("id" in payload && payload.id !== void 0) {
+        requestFileId = Number(payload.id);
+      }
+      const filepath = `${this.filepath}/${requestFileId}.json`;
+      const existingFile = await filesLib.list(filepath);
+      if (existingFile.length) {
+        const buffer = await filesLib.read(filepath);
+        const existingData = JSON.parse(buffer.toString());
+        payload = {
+          ...payload,
+          updated_at: (/* @__PURE__ */ new Date()).toDateString()
+        };
+        payload = { ...existingData, ...payload };
+        await filesLib.delete(filepath);
+      } else {
+        payload = {
+          ...payload,
+          id: requestFileId,
+          created_at: (/* @__PURE__ */ new Date()).toDateString(),
+          updated_at: (/* @__PURE__ */ new Date()).toDateString()
+        };
+      }
+      await filesLib.write(filepath, JSON.stringify(payload));
+      return true;
+    } catch (error) {
+      console.error("Error saving file:", error);
+      return false;
+    }
+  }
+  /**
+   * Deletes files by their IDs
+   * @param ids - Array of file IDs to delete
+   * @returns Promise<FileRecord[]> Updated list of remaining files
+   */
+  async delete(ids = []) {
+    const filesLib = await this.getFiles();
+    for (const id of ids) {
+      await filesLib.delete(`${this.filepath}/${id}.json`);
+    }
+    return await this.list();
+  }
+  /**
+   * Initializes and returns the Files library instance
+   * @returns Promise<any> Initialized Files library instance
+   */
+  async getFiles() {
+    if (!this.files) {
+      this.files = await import_aio_sdk4.Files.init();
+    }
+    return this.files;
+  }
+};
+__name(_FileRepository, "FileRepository");
+var FileRepository = _FileRepository;
+var file_repository_default = FileRepository;
+
 // src/integration/bearer-token/index.ts
 var _BearerToken = class _BearerToken {
   /**
@@ -637,7 +745,7 @@ var RestClient = _RestClient;
 var rest_client_default = RestClient;
 
 // src/integration/onboard-events/index.ts
-var import_aio_sdk4 = require("@adobe/aio-sdk");
+var import_aio_sdk5 = require("@adobe/aio-sdk");
 
 // src/io-events/types.ts
 var IoEventsGlobals = {
@@ -3952,7 +4060,7 @@ var _OnboardEvents = class _OnboardEvents {
       throw new Error("Access token is required");
     }
     const loggerName = projectName.toLowerCase().replace(/[^a-z0-9\s-_]/g, "").replace(/\s+/g, "-").replace(/_{2,}/g, "_").replace(/-{2,}/g, "-").trim().concat("-onboard-events");
-    this.logger = import_aio_sdk4.Core.Logger(loggerName, { level: "debug" });
+    this.logger = import_aio_sdk5.Core.Logger(loggerName, { level: "debug" });
     this.createProviders = new create_providers_default(
       consumerId,
       projectId,
@@ -4088,7 +4196,7 @@ var AdobeAuth = _AdobeAuth;
 var adobe_auth_default = AdobeAuth;
 
 // src/commerce/adobe-commerce-client/index.ts
-var import_aio_sdk5 = require("@adobe/aio-sdk");
+var import_aio_sdk6 = require("@adobe/aio-sdk");
 var import_got = __toESM(require("got"));
 var _AdobeCommerceClient = class _AdobeCommerceClient {
   /**
@@ -4103,7 +4211,7 @@ var _AdobeCommerceClient = class _AdobeCommerceClient {
     this.baseUrl = baseUrl;
     this.connection = connection;
     if (logger === null) {
-      logger = import_aio_sdk5.Core.Logger("adobe-commerce-client", {
+      logger = import_aio_sdk6.Core.Logger("adobe-commerce-client", {
         level: "debug"
       });
     }
@@ -4230,10 +4338,10 @@ var AdobeCommerceClient = _AdobeCommerceClient;
 var adobe_commerce_client_default = AdobeCommerceClient;
 
 // src/commerce/adobe-commerce-client/basic-auth-connection/index.ts
-var import_aio_sdk7 = require("@adobe/aio-sdk");
+var import_aio_sdk8 = require("@adobe/aio-sdk");
 
 // src/commerce/adobe-commerce-client/basic-auth-connection/generate-basic-auth-token/index.ts
-var import_aio_sdk6 = require("@adobe/aio-sdk");
+var import_aio_sdk7 = require("@adobe/aio-sdk");
 var _GenerateBasicAuthToken = class _GenerateBasicAuthToken {
   /**
    * @param baseUrl
@@ -4247,7 +4355,7 @@ var _GenerateBasicAuthToken = class _GenerateBasicAuthToken {
     this.password = password;
     this.key = "adobe_commerce_basic_auth_token";
     if (logger === null) {
-      logger = import_aio_sdk6.Core.Logger("adobe-commerce-client", {
+      logger = import_aio_sdk7.Core.Logger("adobe-commerce-client", {
         level: "debug"
       });
     }
@@ -4375,7 +4483,7 @@ var _GenerateBasicAuthToken = class _GenerateBasicAuthToken {
   async getState() {
     if (this.state === void 0) {
       try {
-        this.state = await import_aio_sdk6.State.init();
+        this.state = await import_aio_sdk7.State.init();
       } catch (error) {
         this.logger.debug("State API initialization failed, running without caching");
         this.state = null;
@@ -4401,7 +4509,7 @@ var _BasicAuthConnection = class _BasicAuthConnection {
     this.username = username;
     this.password = password;
     if (logger === null) {
-      logger = import_aio_sdk7.Core.Logger("adobe-commerce-client", {
+      logger = import_aio_sdk8.Core.Logger("adobe-commerce-client", {
         level: "debug"
       });
     }
@@ -4431,7 +4539,7 @@ var BasicAuthConnection = _BasicAuthConnection;
 var basic_auth_connection_default = BasicAuthConnection;
 
 // src/commerce/adobe-commerce-client/oauth1a-connection/index.ts
-var import_aio_sdk8 = require("@adobe/aio-sdk");
+var import_aio_sdk9 = require("@adobe/aio-sdk");
 var import_oauth_1 = __toESM(require("oauth-1.0a"));
 var crypto = __toESM(require("crypto"));
 var _Oauth1aConnection = class _Oauth1aConnection {
@@ -4448,7 +4556,7 @@ var _Oauth1aConnection = class _Oauth1aConnection {
     this.accessToken = accessToken;
     this.accessTokenSecret = accessTokenSecret;
     if (logger === null) {
-      logger = import_aio_sdk8.Core.Logger("adobe-commerce-client", {
+      logger = import_aio_sdk9.Core.Logger("adobe-commerce-client", {
         level: "debug"
       });
     }
@@ -4496,7 +4604,7 @@ var Oauth1aConnection = _Oauth1aConnection;
 var oauth1a_connection_default = Oauth1aConnection;
 
 // src/commerce/adobe-commerce-client/ims-connection/index.ts
-var import_aio_sdk9 = require("@adobe/aio-sdk");
+var import_aio_sdk10 = require("@adobe/aio-sdk");
 var _ImsConnection = class _ImsConnection {
   /**
    * @param clientId
@@ -4517,7 +4625,7 @@ var _ImsConnection = class _ImsConnection {
     this.scopes = scopes;
     this.currentContext = currentContext;
     if (logger === null) {
-      logger = import_aio_sdk9.Core.Logger(currentContext, {
+      logger = import_aio_sdk10.Core.Logger(currentContext, {
         level: "debug"
       });
     }
@@ -4558,6 +4666,7 @@ var ims_connection_default = ImsConnection;
   CreateRegistrations,
   EventConsumerAction,
   EventMetadataManager,
+  FileRepository,
   GenerateBasicAuthToken,
   GraphQlAction,
   HttpMethod,
