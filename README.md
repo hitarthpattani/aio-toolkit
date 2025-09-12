@@ -50,12 +50,12 @@ Before installing the package, you need to set up authentication for GitHub Pack
 
 - **[BearerToken](./docs/bearer-token.md)** - Bearer token extraction utility for OpenWhisk actions
 - **[InfiniteLoopBreaker](./docs/infinite-loop-breaker.md)** - Detect and prevent infinite loops in event-driven applications
+- **[OnboardEvents](./docs/onboard-events.md)** - Complete onboarding orchestration for Adobe I/O Events (providers, metadata, and registrations)
 - **[RestClient](./docs/rest-client.md)** - HTTP client for external API integration
 
 #### I/O Events Components
 
 - **[EventMetadataManager](./docs/event-metadata.md)** - Manage event metadata for Adobe I/O Events providers
-- **[OnboardEvents](./docs/onboard-events.md)** - Complete onboarding orchestration for Adobe I/O Events (providers, metadata, and registrations)
 - **[ProviderManager](./docs/provider.md)** - Manage event providers for Adobe I/O Events
 - **[RegistrationManager](./docs/registration.md)** - Manage event registrations and subscriptions
 
