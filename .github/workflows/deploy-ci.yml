@@ -1,0 +1,52 @@
+# <license header>
+#
+# CI/CD PR Pipeline for Adobe Commerce AIO Toolkit
+name: Deploy to GitHub Packages CI
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  publish:
+    name: Publish Package
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        node-version: ['20']
+        os: [ubuntu-latest]
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          registry-url: https://npm.pkg.github.com/
+          scope: '@Magento-ECG-Team'
+
+      - name: Install Dependencies
+        run: |
+          echo "📦 Installing dependencies..."
+          npm ci --prefer-offline --no-audit
+
+      - name: Check Package Version
+        run: |
+          echo "📦 Package version: $(npm version --json | jq -r '.["@magento-ecg-team/app-builder-core-framework"]')"
+          echo "📋 Package info:"
+          npm pack --dry-run
+
+      - name: Publish to GitHub Packages
+        run: |
+          echo "🚀 Publishing package to GitHub Packages..."
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.ACCESS_TOKEN}}

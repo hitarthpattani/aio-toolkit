@@ -35,6 +35,7 @@
     "safe-add": "npm run pre-add && git add",
     "validate:commit": "npm run type-check && npm run lint:fix && npm run format && npm run test:fast",
     "validate:push": "npm run format:check && npm run lint && npm run type-check && npm run test:ci && npm run build",
+    "security:audit": "npm audit --audit-level=moderate",
     "prepublishOnly": "npm run build",
     "prepare": "husky"
   },
