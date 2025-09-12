@@ -59,4 +59,16 @@ describe('Integration Module', () => {
     expect(integration.CreateRegistrations).toBeDefined();
     expect(typeof integration.CreateRegistrations).toBe('function');
   });
+
+  it('should export InfiniteLoopBreaker class', () => {
+    expect(integration.InfiniteLoopBreaker).toBeDefined();
+    expect(typeof integration.InfiniteLoopBreaker).toBe('function');
+  });
+
+  it('should have InfiniteLoopBreaker static methods', () => {
+    expect(typeof integration.InfiniteLoopBreaker.isInfiniteLoop).toBe('function');
+    expect(typeof integration.InfiniteLoopBreaker.storeFingerPrint).toBe('function');
+    expect(typeof integration.InfiniteLoopBreaker.fnFingerprint).toBe('function');
+    expect(typeof integration.InfiniteLoopBreaker.fnInfiniteLoopKey).toBe('function');
+  });
 });

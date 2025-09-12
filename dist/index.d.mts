@@ -327,6 +327,24 @@ declare class CreateRegistrations {
     private createRegistration;
 }
 
+interface InfiniteLoopData {
+    keyFn: string | (() => string);
+    fingerprintFn: any | (() => any);
+    eventTypes: string[];
+    event: string;
+}
+
+declare class InfiniteLoopBreaker {
+    private static readonly FINGERPRINT_ALGORITHM;
+    private static readonly FINGERPRINT_ENCODING;
+    private static readonly DEFAULT_INFINITE_LOOP_BREAKER_TTL;
+    static isInfiniteLoop({ keyFn, fingerprintFn, eventTypes, event, }: InfiniteLoopData): Promise<boolean>;
+    static storeFingerPrint(keyFn: string | (() => string), fingerprintFn: any | (() => any), ttl?: number): Promise<void>;
+    static fnFingerprint(obj: any): () => any;
+    static fnInfiniteLoopKey(key: any): () => any;
+    private static fingerPrint;
+}
+
 declare class AdobeAuth {
     static getToken(clientId: string, clientSecret: string, technicalAccountId: string, technicalAccountEmail: string, imsOrgId: string, scopes: string[], currentContext?: string): Promise<string>;
 }
@@ -608,4 +626,4 @@ interface GetRegistrationQueryParams {
     registrationId: string;
 }
 
-export { AdobeAuth, AdobeCommerceClient, type AdobeIMSConfig, BasicAuthConnection, BearerToken, type BearerTokenInfo, type Connection, type CreateEventResult, CreateEvents, type CreateProviderParams, type CreateProviderResult, type CreateRegistrationResult, CreateRegistrations, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type ExtendedRequestError, type FileRecord, FileRepository, GenerateBasicAuthToken, type GetProviderQueryParams, type GetRegistrationQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, ImsConnection, IoEventsGlobals, type ListProvidersQueryParams, type ListRegistrationQueryParams, Oauth1aConnection, OnboardEvents, type OnboardEventsInput, type OnboardEventsResponse, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, type Registration, type RegistrationCreateModel, type RegistrationListResponse, RegistrationManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, type SuccessResponse, type TokenResult, Validator };
+export { AdobeAuth, AdobeCommerceClient, type AdobeIMSConfig, BasicAuthConnection, BearerToken, type BearerTokenInfo, type Connection, type CreateEventResult, CreateEvents, type CreateProviderParams, type CreateProviderResult, type CreateRegistrationResult, CreateRegistrations, type ErrorResponse, EventConsumerAction, type EventMetadata, type EventMetadataInputModel, type EventMetadataListResponse, EventMetadataManager, type ExtendedRequestError, type FileRecord, FileRepository, GenerateBasicAuthToken, type GetProviderQueryParams, type GetRegistrationQueryParams, GraphQlAction, type HALLink, type Headers, HttpMethod, HttpStatus, IOEventsApiError, type IOEventsError, ImsConnection, InfiniteLoopBreaker, type InfiniteLoopData, IoEventsGlobals, type ListProvidersQueryParams, type ListRegistrationQueryParams, Oauth1aConnection, OnboardEvents, type OnboardEventsInput, type OnboardEventsResponse, Openwhisk, OpenwhiskAction, Parameters, type Provider, type ProviderInputModel, ProviderManager, type Registration, type RegistrationCreateModel, type RegistrationListResponse, RegistrationManager, RestClient, RuntimeAction, RuntimeActionResponse, type RuntimeActionResponseType, type SuccessResponse, type TokenResult, Validator };

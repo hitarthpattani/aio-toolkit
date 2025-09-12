@@ -29,3 +29,9 @@ export type {
   CreateEventResult,
   CreateRegistrationResult,
 } from './onboard-events/types';
+
+// Export Infinite Loop Breaker
+export { default as InfiniteLoopBreaker } from './infinite-loop-breaker';
+
+// Export Infinite Loop Breaker types
+export type { InfiniteLoopData } from './infinite-loop-breaker/types';

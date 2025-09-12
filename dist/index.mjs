@@ -4092,6 +4092,103 @@ __name(_OnboardEvents, "OnboardEvents");
 var OnboardEvents = _OnboardEvents;
 var onboard_events_default = OnboardEvents;
 
+// src/integration/infinite-loop-breaker/index.ts
+import { Core as Core5, State } from "@adobe/aio-sdk";
+import crypto from "crypto";
+var _InfiniteLoopBreaker = class _InfiniteLoopBreaker {
+  // seconds
+  /**
+   * This function checks if there is a potential infinite loop
+   *
+   * @param state - The state object
+   * @param infiniteLoopData - The event data containing the key and fingerprint functions, event types, and event name
+   * @returns Returns true if the event is a potential infinite loop
+   */
+  static async isInfiniteLoop({
+    keyFn,
+    fingerprintFn,
+    eventTypes,
+    event
+  }) {
+    const logLevel = process.env.LOG_LEVEL || "info";
+    const logger = Core5.Logger("infiniteLoopBreaker", { level: logLevel });
+    logger.debug(`Checking for potential infinite loop for event: ${event}`);
+    if (!eventTypes.includes(event)) {
+      logger.debug(`Event type ${event} is not in the infinite loop event types list`);
+      return false;
+    }
+    const key = typeof keyFn === "function" ? keyFn() : keyFn;
+    const data = typeof fingerprintFn === "function" ? fingerprintFn() : fingerprintFn;
+    const state = await State.init();
+    const persistedFingerPrint = await state.get(key);
+    if (!persistedFingerPrint) {
+      logger.debug(`No persisted fingerprint found for key ${key}`);
+      return false;
+    }
+    logger.debug(
+      `Persisted fingerprint found for key ${key}: ${persistedFingerPrint.value}, Generated fingerprint: ${_InfiniteLoopBreaker.fingerPrint(data)}`
+    );
+    return persistedFingerPrint && persistedFingerPrint.value === _InfiniteLoopBreaker.fingerPrint(data);
+  }
+  /**
+   * This function stores the fingerprint in the state
+   *
+   * @param keyFn - Function to generate the key for the fingerprint
+   * @param fingerprintFn - Function to generate the fingerprint
+   * @param ttl - The time to live for the fingerprint in the lib state
+   */
+  static async storeFingerPrint(keyFn, fingerprintFn, ttl) {
+    const key = typeof keyFn === "function" ? keyFn() : keyFn;
+    const data = typeof fingerprintFn === "function" ? fingerprintFn() : fingerprintFn;
+    const state = await State.init();
+    await state.put(key, _InfiniteLoopBreaker.fingerPrint(data), {
+      ttl: ttl !== void 0 ? ttl : _InfiniteLoopBreaker.DEFAULT_INFINITE_LOOP_BREAKER_TTL
+    });
+  }
+  /**
+   * This function generates a function to generate fingerprint for the data to be used in infinite loop detection based on params.
+   *
+   * @param obj - Data received from the event
+   * @returns The function that generates the fingerprint
+   */
+  static fnFingerprint(obj) {
+    return () => {
+      return obj;
+    };
+  }
+  /**
+   * This function generates a function to create a key for the infinite loop detection based on params.
+   *
+   * @param key - Data received from the event
+   * @returns The function that generates the key
+   */
+  static fnInfiniteLoopKey(key) {
+    return () => {
+      return key;
+    };
+  }
+  /**
+   * This function generates a fingerprint for the data
+   *
+   * @param data - The data to generate the fingerprint
+   * @returns The fingerprint
+   */
+  static fingerPrint(data) {
+    const hash = crypto.createHash(_InfiniteLoopBreaker.FINGERPRINT_ALGORITHM);
+    hash.update(JSON.stringify(data));
+    return hash.digest(_InfiniteLoopBreaker.FINGERPRINT_ENCODING);
+  }
+};
+__name(_InfiniteLoopBreaker, "InfiniteLoopBreaker");
+/** The algorithm used to generate the fingerprint */
+_InfiniteLoopBreaker.FINGERPRINT_ALGORITHM = "sha256";
+/** The encoding used to generate the fingerprint */
+_InfiniteLoopBreaker.FINGERPRINT_ENCODING = "hex";
+/** The default time to live for the fingerprint in the lib state */
+_InfiniteLoopBreaker.DEFAULT_INFINITE_LOOP_BREAKER_TTL = 60;
+var InfiniteLoopBreaker = _InfiniteLoopBreaker;
+var infinite_loop_breaker_default = InfiniteLoopBreaker;
+
 // src/commerce/adobe-auth/index.ts
 import { context, getToken } from "@adobe/aio-lib-ims";
 var _AdobeAuth = class _AdobeAuth {
@@ -4136,7 +4233,7 @@ var AdobeAuth = _AdobeAuth;
 var adobe_auth_default = AdobeAuth;
 
 // src/commerce/adobe-commerce-client/index.ts
-import { Core as Core5 } from "@adobe/aio-sdk";
+import { Core as Core6 } from "@adobe/aio-sdk";
 import got from "got";
 var _AdobeCommerceClient = class _AdobeCommerceClient {
   /**
@@ -4151,7 +4248,7 @@ var _AdobeCommerceClient = class _AdobeCommerceClient {
     this.baseUrl = baseUrl;
     this.connection = connection;
     if (logger === null) {
-      logger = Core5.Logger("adobe-commerce-client", {
+      logger = Core6.Logger("adobe-commerce-client", {
         level: "debug"
       });
     }
@@ -4278,10 +4375,10 @@ var AdobeCommerceClient = _AdobeCommerceClient;
 var adobe_commerce_client_default = AdobeCommerceClient;
 
 // src/commerce/adobe-commerce-client/basic-auth-connection/index.ts
-import { Core as Core7 } from "@adobe/aio-sdk";
+import { Core as Core8 } from "@adobe/aio-sdk";
 
 // src/commerce/adobe-commerce-client/basic-auth-connection/generate-basic-auth-token/index.ts
-import { State, Core as Core6 } from "@adobe/aio-sdk";
+import { State as State2, Core as Core7 } from "@adobe/aio-sdk";
 var _GenerateBasicAuthToken = class _GenerateBasicAuthToken {
   /**
    * @param baseUrl
@@ -4295,7 +4392,7 @@ var _GenerateBasicAuthToken = class _GenerateBasicAuthToken {
     this.password = password;
     this.key = "adobe_commerce_basic_auth_token";
     if (logger === null) {
-      logger = Core6.Logger("adobe-commerce-client", {
+      logger = Core7.Logger("adobe-commerce-client", {
         level: "debug"
       });
     }
@@ -4423,7 +4520,7 @@ var _GenerateBasicAuthToken = class _GenerateBasicAuthToken {
   async getState() {
     if (this.state === void 0) {
       try {
-        this.state = await State.init();
+        this.state = await State2.init();
       } catch (error) {
         this.logger.debug("State API initialization failed, running without caching");
         this.state = null;
@@ -4449,7 +4546,7 @@ var _BasicAuthConnection = class _BasicAuthConnection {
     this.username = username;
     this.password = password;
     if (logger === null) {
-      logger = Core7.Logger("adobe-commerce-client", {
+      logger = Core8.Logger("adobe-commerce-client", {
         level: "debug"
       });
     }
@@ -4479,9 +4576,9 @@ var BasicAuthConnection = _BasicAuthConnection;
 var basic_auth_connection_default = BasicAuthConnection;
 
 // src/commerce/adobe-commerce-client/oauth1a-connection/index.ts
-import { Core as Core8 } from "@adobe/aio-sdk";
+import { Core as Core9 } from "@adobe/aio-sdk";
 import Oauth1a from "oauth-1.0a";
-import * as crypto from "crypto";
+import * as crypto2 from "crypto";
 var _Oauth1aConnection = class _Oauth1aConnection {
   /**
    * @param consumerKey
@@ -4496,7 +4593,7 @@ var _Oauth1aConnection = class _Oauth1aConnection {
     this.accessToken = accessToken;
     this.accessTokenSecret = accessTokenSecret;
     if (logger === null) {
-      logger = Core8.Logger("adobe-commerce-client", {
+      logger = Core9.Logger("adobe-commerce-client", {
         level: "debug"
       });
     }
@@ -4530,7 +4627,7 @@ var _Oauth1aConnection = class _Oauth1aConnection {
         secret: this.consumerSecret
       },
       signature_method: "HMAC-SHA256",
-      hash_function: /* @__PURE__ */ __name((baseString, key) => crypto.createHmac("sha256", key).update(baseString).digest("base64"), "hash_function")
+      hash_function: /* @__PURE__ */ __name((baseString, key) => crypto2.createHmac("sha256", key).update(baseString).digest("base64"), "hash_function")
     });
     const oauthToken = {
       key: this.accessToken,
@@ -4544,7 +4641,7 @@ var Oauth1aConnection = _Oauth1aConnection;
 var oauth1a_connection_default = Oauth1aConnection;
 
 // src/commerce/adobe-commerce-client/ims-connection/index.ts
-import { Core as Core9 } from "@adobe/aio-sdk";
+import { Core as Core10 } from "@adobe/aio-sdk";
 var _ImsConnection = class _ImsConnection {
   /**
    * @param clientId
@@ -4565,7 +4662,7 @@ var _ImsConnection = class _ImsConnection {
     this.scopes = scopes;
     this.currentContext = currentContext;
     if (logger === null) {
-      logger = Core9.Logger(currentContext, {
+      logger = Core10.Logger(currentContext, {
         level: "debug"
       });
     }
@@ -4612,6 +4709,7 @@ export {
   HttpStatus,
   IOEventsApiError,
   ims_connection_default as ImsConnection,
+  infinite_loop_breaker_default as InfiniteLoopBreaker,
   IoEventsGlobals,
   oauth1a_connection_default as Oauth1aConnection,
   onboard_events_default as OnboardEvents,

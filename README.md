@@ -49,6 +49,7 @@ Before installing the package, you need to set up authentication for GitHub Pack
 #### Integration Components
 
 - **[BearerToken](./docs/bearer-token.md)** - Bearer token extraction utility for OpenWhisk actions
+- **[InfiniteLoopBreaker](./docs/infinite-loop-breaker.md)** - Detect and prevent infinite loops in event-driven applications
 - **[RestClient](./docs/rest-client.md)** - HTTP client for external API integration
 
 #### I/O Events Components
