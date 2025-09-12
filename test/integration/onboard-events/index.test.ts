@@ -779,7 +779,7 @@ describe('OnboardEvents', () => {
       );
       expect(mockLogger.info).toHaveBeenCalledWith('Completed onboard event processing workflow');
 
-      expect(mockLogger.info).toHaveBeenCalledTimes(2);
+      // Note: mockLogger.info is called multiple times now due to automatic summary logging
     });
 
     it('should handle provider creation failures', async () => {
@@ -1527,6 +1527,245 @@ describe('OnboardEvents', () => {
           },
         },
       ]);
+    });
+
+    describe('Summary Integration', () => {
+      let onboardEvents: OnboardEvents;
+
+      beforeEach(() => {
+        onboardEvents = new OnboardEvents(
+          'Test Project',
+          'test-consumer',
+          'test-project',
+          'test-workspace',
+          'test-api-key',
+          'test-token'
+        );
+      });
+
+      it('should automatically log comprehensive summary after processing', async () => {
+        const mockLogger = onboardEvents.getLogger();
+        jest.spyOn(mockLogger, 'info').mockImplementation(() => {});
+
+        const testInput = {
+          providers: [
+            {
+              key: 'test-provider',
+              label: 'Test Provider',
+              description: 'Test provider description',
+              docsUrl: null,
+              registrations: [
+                {
+                  key: 'test-registration',
+                  label: 'Test Registration',
+                  description: 'Test registration description',
+                  events: [
+                    {
+                      eventCode: 'test.event.created',
+                      runtimeAction: 'test-action/handler',
+                      deliveryType: 'webhook',
+                      sampleEventTemplate: { id: 'test-123' },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        };
+
+        const result = await onboardEvents.process(testInput);
+
+        // Verify that summary was logged automatically
+        expect(mockLogger.info).toHaveBeenCalledWith('='.repeat(60));
+        expect(mockLogger.info).toHaveBeenCalledWith('📊 ONBOARD EVENTS SUMMARY - Test Project');
+        expect(mockLogger.info).toHaveBeenCalledWith('='.repeat(60));
+
+        // Verify overall summary was logged
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          expect.stringMatching(
+            /📈 OVERALL: \d+ processed \| \d+ created \| \d+ existing \| \d+ failed/
+          )
+        );
+
+        // Verify sections were logged (providers, events, registrations)
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          expect.stringMatching(/🏭 PROVIDERS \(\d+\):/)
+        );
+        expect(mockLogger.info).toHaveBeenCalledWith(expect.stringMatching(/📅 EVENTS \(\d+\):/));
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          expect.stringMatching(/📋 REGISTRATIONS \(\d+\):/)
+        );
+
+        // Verify the process still returns the expected response
+        expect(result).toHaveProperty('createdProviders');
+        expect(result).toHaveProperty('createdEvents');
+        expect(result).toHaveProperty('createdRegistrations');
+      });
+
+      it('should log summary even with no results', async () => {
+        const mockLogger = onboardEvents.getLogger();
+        jest.spyOn(mockLogger, 'info').mockImplementation(() => {});
+
+        const emptyInput = { providers: [] };
+        await onboardEvents.process(emptyInput);
+
+        // Should still log header and overall summary
+        expect(mockLogger.info).toHaveBeenCalledWith('📊 ONBOARD EVENTS SUMMARY - Test Project');
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          '📈 OVERALL: 0 processed | 0 created | 0 existing | 0 failed'
+        );
+
+        // Should not log empty section headers
+        expect(mockLogger.info).not.toHaveBeenCalledWith('🏭 PROVIDERS (0):');
+        expect(mockLogger.info).not.toHaveBeenCalledWith('📅 EVENTS (0):');
+        expect(mockLogger.info).not.toHaveBeenCalledWith('📋 REGISTRATIONS (0):');
+      });
+
+      it('should handle failed status scenarios for complete coverage', async () => {
+        const mockLogger = onboardEvents.getLogger();
+        jest.spyOn(mockLogger, 'info').mockImplementation(() => {});
+
+        // Mock all operations to fail
+        (onboardEvents as any).createProviders.process = jest.fn().mockResolvedValue([
+          {
+            created: false,
+            skipped: false,
+            provider: { key: 'failed-provider', label: 'Failed Provider' },
+            error: 'Provider creation failed',
+          },
+        ]);
+
+        (onboardEvents as any).createEvents.process = jest.fn().mockResolvedValue([
+          {
+            created: false,
+            skipped: false,
+            event: { eventCode: 'failed.event', label: 'Failed Event' },
+            error: 'Event creation failed',
+          },
+        ]);
+
+        (onboardEvents as any).createRegistrations.process = jest.fn().mockResolvedValue([
+          {
+            created: false,
+            skipped: false,
+            registration: { key: 'failed-reg', label: 'Failed Registration' },
+            error: 'Registration creation failed',
+          },
+        ]);
+
+        const testInput = {
+          providers: [
+            {
+              key: 'failed-provider',
+              label: 'Failed Provider',
+              description: 'Provider that will fail',
+              docsUrl: null,
+              registrations: [
+                {
+                  key: 'failed-reg',
+                  label: 'Failed Registration',
+                  description: 'Registration that will fail',
+                  events: [
+                    {
+                      eventCode: 'failed.event',
+                      runtimeAction: 'failed-action/handler',
+                      deliveryType: 'webhook',
+                      sampleEventTemplate: { test: true },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        };
+
+        await onboardEvents.process(testInput);
+
+        // Verify that failed status symbols are logged (❌)
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          expect.stringContaining(
+            '❌ failed-provider - Failed Provider - Error: Provider creation failed'
+          )
+        );
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          expect.stringContaining('❌ failed.event - Error: Event creation failed')
+        );
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          expect.stringContaining(
+            '❌ failed-reg - Failed Registration - Error: Registration creation failed'
+          )
+        );
+      });
+
+      it('should handle existing/skipped status scenarios for complete branch coverage', async () => {
+        const mockLogger = onboardEvents.getLogger();
+        jest.spyOn(mockLogger, 'info').mockImplementation(() => {});
+
+        // Mock all operations to be skipped (existing)
+        (onboardEvents as any).createProviders.process = jest.fn().mockResolvedValue([
+          {
+            created: false,
+            skipped: true,
+            provider: { key: 'existing-provider', label: 'Existing Provider' },
+            reason: 'Already exists',
+          },
+        ]);
+
+        (onboardEvents as any).createEvents.process = jest.fn().mockResolvedValue([
+          {
+            created: false,
+            skipped: true,
+            event: { eventCode: 'existing.event', label: 'Existing Event' },
+            reason: 'Already exists',
+          },
+        ]);
+
+        (onboardEvents as any).createRegistrations.process = jest.fn().mockResolvedValue([
+          {
+            created: false,
+            skipped: true,
+            registration: { key: 'existing-reg', label: 'Existing Registration' },
+            reason: 'Already exists',
+          },
+        ]);
+
+        const testInput = {
+          providers: [
+            {
+              key: 'existing-provider',
+              label: 'Existing Provider',
+              description: 'Provider that already exists',
+              docsUrl: null,
+              registrations: [
+                {
+                  key: 'existing-reg',
+                  label: 'Existing Registration',
+                  description: 'Registration that already exists',
+                  events: [
+                    {
+                      eventCode: 'existing.event',
+                      runtimeAction: 'existing-action/handler',
+                      deliveryType: 'webhook',
+                      sampleEventTemplate: { test: true },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        };
+
+        await onboardEvents.process(testInput);
+
+        // Verify that existing status symbols are logged (⏭️)
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          expect.stringContaining('⏭️ existing-provider - Existing Provider')
+        );
+        expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining('⏭️ existing.event'));
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          expect.stringContaining('⏭️ existing-reg - Existing Registration')
+        );
+      });
     });
   });
 });

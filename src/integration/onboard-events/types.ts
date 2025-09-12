@@ -172,6 +172,57 @@ export interface CreateRegistrationResult {
 }
 
 /**
+ * Summary item for providers, events, or registrations
+ */
+export interface OnboardSummaryItem {
+  id?: string | undefined;
+  key?: string | undefined;
+  label: string;
+  eventCode?: string | undefined;
+  status: 'created' | 'existing' | 'failed';
+  provider?: string | undefined;
+  error?: string | undefined;
+}
+
+/**
+ * Summary counts for onboard results
+ */
+export interface OnboardSummaryCounts {
+  created: number;
+  existing: number;
+  failed: number;
+  total: number;
+}
+
+/**
+ * Concise summary of onboard events processing
+ */
+export interface OnboardEventsSummary {
+  /** Summary of providers */
+  providers: {
+    items: OnboardSummaryItem[];
+    counts: OnboardSummaryCounts;
+  };
+  /** Summary of events */
+  events: {
+    items: OnboardSummaryItem[];
+    counts: OnboardSummaryCounts;
+  };
+  /** Summary of registrations */
+  registrations: {
+    items: OnboardSummaryItem[];
+    counts: OnboardSummaryCounts;
+  };
+  /** Overall summary */
+  overall: {
+    totalProcessed: number;
+    totalCreated: number;
+    totalExisting: number;
+    totalFailed: number;
+  };
+}
+
+/**
  * Response from onboard events processing
  */
 export interface OnboardEventsResponse {

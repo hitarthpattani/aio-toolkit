@@ -276,6 +276,8 @@ declare class OnboardEvents {
     constructor(projectName: string, consumerId: string, projectId: string, workspaceId: string, apiKey: string, accessToken: string);
     getLogger(): Logger;
     process(input: OnboardEventsInput): Promise<OnboardEventsResponse>;
+    private generateSummary;
+    private logSummary;
 }
 
 declare class CreateEvents {

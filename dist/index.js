@@ -4142,11 +4142,131 @@ var _OnboardEvents = class _OnboardEvents {
     this.logger.debug(
       `[SUMMARY] Registration creation summary: ${registrationsCreated} created, ${registrationsSkipped} skipped, ${registrationsFailed} failed`
     );
-    return {
+    const response = {
       createdProviders: providerResults,
       createdEvents: eventResults,
       createdRegistrations: registrationResults
     };
+    const summary = this.generateSummary(response);
+    this.logSummary(summary);
+    return response;
+  }
+  /**
+   * Generates a concise summary of onboard events processing results
+   * @private
+   * @param response - The response from the onboard events processing
+   * @returns A concise summary with IDs and status information
+   */
+  generateSummary(response) {
+    const providerItems = response.createdProviders.map((result) => ({
+      id: result.provider.id,
+      key: result.provider.key,
+      label: result.provider.label,
+      status: result.created ? "created" : result.skipped ? "existing" : "failed",
+      error: result.error
+    }));
+    const providerCounts = {
+      created: response.createdProviders.filter((r) => r.created).length,
+      existing: response.createdProviders.filter((r) => r.skipped).length,
+      failed: response.createdProviders.filter((r) => !r.created && !r.skipped).length,
+      total: response.createdProviders.length
+    };
+    const eventItems = response.createdEvents.map((result) => ({
+      id: result.event.id,
+      eventCode: result.event.eventCode,
+      label: result.event.eventCode,
+      status: result.created ? "created" : result.skipped ? "existing" : "failed",
+      provider: result.provider?.key,
+      error: result.error
+    }));
+    const eventCounts = {
+      created: response.createdEvents.filter((r) => r.created).length,
+      existing: response.createdEvents.filter((r) => r.skipped).length,
+      failed: response.createdEvents.filter((r) => !r.created && !r.skipped).length,
+      total: response.createdEvents.length
+    };
+    const registrationItems = response.createdRegistrations.map((result) => ({
+      id: result.registration.id,
+      key: result.registration.key,
+      label: result.registration.label,
+      status: result.created ? "created" : result.skipped ? "existing" : "failed",
+      provider: result.provider?.key,
+      error: result.error
+    }));
+    const registrationCounts = {
+      created: response.createdRegistrations.filter((r) => r.created).length,
+      existing: response.createdRegistrations.filter((r) => r.skipped).length,
+      failed: response.createdRegistrations.filter((r) => !r.created && !r.skipped).length,
+      total: response.createdRegistrations.length
+    };
+    const overall = {
+      totalProcessed: providerCounts.total + eventCounts.total + registrationCounts.total,
+      totalCreated: providerCounts.created + eventCounts.created + registrationCounts.created,
+      totalExisting: providerCounts.existing + eventCounts.existing + registrationCounts.existing,
+      totalFailed: providerCounts.failed + eventCounts.failed + registrationCounts.failed
+    };
+    return {
+      providers: {
+        items: providerItems,
+        counts: providerCounts
+      },
+      events: {
+        items: eventItems,
+        counts: eventCounts
+      },
+      registrations: {
+        items: registrationItems,
+        counts: registrationCounts
+      },
+      overall
+    };
+  }
+  /**
+   * Logs a formatted summary of onboard events processing results
+   * @private
+   * @param summary - The summary to log
+   */
+  logSummary(summary) {
+    this.logger.info("=".repeat(60));
+    this.logger.info(`\u{1F4CA} ONBOARD EVENTS SUMMARY - ${this.projectName}`);
+    this.logger.info("=".repeat(60));
+    this.logger.info(
+      `\u{1F4C8} OVERALL: ${summary.overall.totalProcessed} processed | ${summary.overall.totalCreated} created | ${summary.overall.totalExisting} existing | ${summary.overall.totalFailed} failed`
+    );
+    this.logger.info("");
+    if (summary.providers.counts.total > 0) {
+      this.logger.info(`\u{1F3ED} PROVIDERS (${summary.providers.counts.total}):`);
+      summary.providers.items.forEach((item) => {
+        const status = item.status === "created" ? "\u2705" : item.status === "existing" ? "\u23ED\uFE0F" : "\u274C";
+        const id = item.id ? ` [ID: ${item.id}]` : "";
+        const error = item.error ? ` - Error: ${item.error}` : "";
+        this.logger.info(`   ${status} ${item.key} - ${item.label}${id}${error}`);
+      });
+      this.logger.info("");
+    }
+    if (summary.events.counts.total > 0) {
+      this.logger.info(`\u{1F4C5} EVENTS (${summary.events.counts.total}):`);
+      summary.events.items.forEach((item) => {
+        const status = item.status === "created" ? "\u2705" : item.status === "existing" ? "\u23ED\uFE0F" : "\u274C";
+        const id = item.id ? ` [ID: ${item.id}]` : "";
+        const provider = item.provider ? ` (Provider: ${item.provider})` : "";
+        const error = item.error ? ` - Error: ${item.error}` : "";
+        this.logger.info(`   ${status} ${item.eventCode}${provider}${id}${error}`);
+      });
+      this.logger.info("");
+    }
+    if (summary.registrations.counts.total > 0) {
+      this.logger.info(`\u{1F4CB} REGISTRATIONS (${summary.registrations.counts.total}):`);
+      summary.registrations.items.forEach((item) => {
+        const status = item.status === "created" ? "\u2705" : item.status === "existing" ? "\u23ED\uFE0F" : "\u274C";
+        const id = item.id ? ` [ID: ${item.id}]` : "";
+        const provider = item.provider ? ` (Provider: ${item.provider})` : "";
+        const error = item.error ? ` - Error: ${item.error}` : "";
+        this.logger.info(`   ${status} ${item.key} - ${item.label}${provider}${id}${error}`);
+      });
+      this.logger.info("");
+    }
+    this.logger.info("=".repeat(60));
   }
 };
 __name(_OnboardEvents, "OnboardEvents");
