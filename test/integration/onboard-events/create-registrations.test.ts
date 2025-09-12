@@ -1033,7 +1033,7 @@ describe('CreateRegistrations', () => {
       expect(result[0].created).toBe(true);
       expect(result[0].skipped).toBe(false);
       expect(result[0].registration.label).toBe('OCP Product Sync');
-      expect(result[0].provider.key).toBe('ocp');
+      expect(result[0].provider!.key).toBe('ocp');
 
       // Verify that the provider was found correctly by checking no skip messages
       expect(mockLogger.debug).not.toHaveBeenCalledWith(
