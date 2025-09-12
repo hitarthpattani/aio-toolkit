@@ -53,6 +53,7 @@ Before installing the package, you need to set up authentication for GitHub Pack
 #### I/O Events Components
 
 - **[EventMetadataManager](./docs/event-metadata.md)** - Manage event metadata for Adobe I/O Events providers
+- **[OnboardEvents](./docs/onboard-events.md)** - Complete onboarding orchestration for Adobe I/O Events (providers, metadata, and registrations)
 - **[ProviderManager](./docs/provider.md)** - Manage event providers for Adobe I/O Events
 - **[RegistrationManager](./docs/registration.md)** - Manage event registrations and subscriptions
 
