@@ -47,7 +47,7 @@
     "typescript",
     "aio"
   ],
-  "author": "",
+  "author": "Hitarth Pattani <hitarth@example.com>",
   "dependencies": {
     "@adobe/aio-lib-ims": "^7.0.2",
     "@adobe/aio-sdk": "^5.0.0",
