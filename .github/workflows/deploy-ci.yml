@@ -31,7 +31,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
           registry-url: https://npm.pkg.github.com/
-          scope: '@Magento-ECG-Team'
+          scope: '@adobe-commerce'
 
       - name: Install Dependencies
         run: |
@@ -40,7 +40,7 @@ jobs:
 
       - name: Check Package Version
         run: |
-          echo "📦 Package version: $(npm version --json | jq -r '.["@magento-ecg-team/app-builder-core-framework"]')"
+          echo "📦 Package version: $(npm version --json | jq -r '.["@adobe-commerce/aio-toolkit"]')"
           echo "📋 Package info:"
           npm pack --dry-run
 
